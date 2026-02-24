@@ -91,9 +91,9 @@ export const asignarDispositivo = async (
 
 //Asignar centros de costo a empleados
 export const asignarCencosAEmpleados = async (runUsuario, cencoIds) => {
-  const peticion = await fetch(`${API_URL}empleado/asignar-cencos/${runUsuario}`, {
+  const peticion = await fetch(`${API_URL}/empleado/asignar-cencos/${runUsuario}`, {
     method: "PUT",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
       Authorization: "Bearer " + window.localStorage.getItem("token"),
     },

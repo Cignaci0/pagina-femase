@@ -505,18 +505,18 @@ function AdminEmpresas() {
                                             </TableRow>
                                         )
                                     })}
-                                {filasVacias > 0 && (
-                                    <TableRow style={{ height: 53 * filasVacias }}>
-                                        <TableCell colSpan={10} />
-                                    </TableRow>
-                                )}
-                                {empresas.length === 0 && (
+                                {empresasFiltradas.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={10} align="center" sx={{ alignItems: "center" }}>
                                             <Typography variant="body1" color="text.secondary">
                                                 No se encontraron empresas.
                                             </Typography>
                                         </TableCell>
+                                    </TableRow>
+                                )}
+                                {filasVacias > 0 && (
+                                    <TableRow style={{ height: 53 * (empresasFiltradas.length === 0 ? Math.max(0, filasVacias - 1) : filasVacias) }}>
+                                        <TableCell colSpan={10} />
                                     </TableRow>
                                 )}
                             </TableBody>
