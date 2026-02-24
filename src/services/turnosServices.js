@@ -1,0 +1,72 @@
+const API_URL = "http://localhost:3000";
+
+//Obtener turnos
+export const obtenerTurnos = async () => {
+  try {
+    const response = await fetch(`${API_URL}/turno`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data || [];
+  } catch (error) {
+    return [];
+  }
+};
+
+//Crear turno
+export const crearTurno = async (nombre, es_rotativo, empresa, estado, horario) => {
+  const peticion = await fetch(`${API_URL}/turno`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      nombre: nombre,
+      es_rotativo: es_rotativo,
+      empresa: empresa,
+      estado: estado,
+      horario: horario,
+    }),
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al crear el turno");
+  }
+  return datos;
+};
+
+//Actualizar turno
+export const actualizarTurno = async (editId, nombre, es_rotativo, empresa, estado, horario) => {
+  const peticion = await fetch(`${API_URL}/turno/${editId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json", 
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      nombre: nombre,
+      es_rotativo: es_rotativo,
+      empresa: empresa,
+      estado: estado,
+      horario: horario
+    }),
+  });
+  
+  const data = await peticion.json();
+
+  if (!peticion.ok) {
+    throw new Error(data.message || "Error al actualizar el turno");
+  }
+  return data;
+};

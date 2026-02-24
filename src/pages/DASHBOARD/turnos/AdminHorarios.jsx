@@ -1,0 +1,643 @@
+import React, { useEffect, useState } from "react";
+import {
+    Box, Paper, TextField, Button, Table, TableContainer, TableHead,
+    TableRow, TableCell, TableBody, Dialog, DialogTitle,
+    DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
+    IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
+    Container, Alert, TablePagination, Stack,
+    FormHelperText,
+    DialogContentText
+} from "@mui/material";
+
+import { obtenerEmpresas } from "../../../services/empresasServices";
+import { obtenerHorarios, crearHorario, actualizarHorario } from "../../../services/horariosServices";
+
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+
+function AdminHorarios() {
+
+    // Estados de datos
+    const [horarios, setHorarios] = useState([])
+    const [empresas, setEmpresas] = useState([""])
+    const [empresasFiltro, setEmpresasFiltro] = useState([])
+    const [error, setError] = useState(null);
+    const [mensajeExito, setMensajeExito] = useState("")
+
+    // Estados de paginacion y filtrado
+    const [pagina, setPagina] = useState(0);
+    const [filaPorPagina, setFilaPorPagina] = useState(7);
+    const [filtroEmpresa, setFiltroEmpresa] = useState("")
+
+    // Estados crear
+    const [open, setOpen] = useState(false);
+    const [nuevoHorarioEntrada, setNuevoHorarioEntrada] = useState("")
+    const [nuevoHorarioSalida, setNuevoHorarioSalida] = useState("")
+    const [idEmpresaCrear, setIdEmpresaCrear] = useState("")
+    const [horaEntradaCrear, setHoraEntradaCrear] = useState("")
+    const [minutoEntradaCrear, setMinutoEntradaCrear] = useState("")
+    const [segEntradaCrear, setSegEntradaCrear] = useState("")
+    const [horaSalidaCrear, setHoraSalidaCrear] = useState("")
+    const [minutoSalidaCrear, setMinutoSalidaCrear] = useState("")
+    const [segSalidaCrear, setSegSalidaCrear] = useState("")
+    const enviarHoraEntradaCrear = `${horaEntradaCrear + ":" + minutoEntradaCrear + ":" + segEntradaCrear}`
+    const enviarHoraSalidaCrear = `${horaSalidaCrear + ":" + minutoSalidaCrear + ":" + segSalidaCrear}`
+
+    // Estados editar
+    const [mostrarEdit, setMostrarEdit] = useState("")
+    const [editId, setEditId] = useState("")
+    const [idEmpresaEdit, setIdEmpresaEdit] = useState("")
+    const [horaEntradaEdit, setHoraEntradaEdit] = useState("")
+    const [minutoEntradaEdit, setMinutoEntradaEdit] = useState("")
+    const [segEntradaEdit, setSegEntradaEdit] = useState("")
+    const [horaSalidaEdit, setHoraSalidaEdit] = useState("")
+    const [minutoSalidaEdit, setMinutoSalidaEdit] = useState("")
+    const [segSalidaEdit, setSegSalidaEdit] = useState("")
+    const enviarHoraEntradaEdit = `${horaEntradaEdit}:${minutoEntradaEdit}:${segEntradaEdit}`
+    const enviarHoraSalidaEdit = `${horaSalidaEdit}:${minutoSalidaEdit}:${segSalidaEdit}`
+    const [eliminar, setEliminar] = useState(false)
+    const [inputConfirmacion, setInputConfirmacion] = useState("");
+
+    // Carga de datos
+    const obtenerEmpresasCrear = async () => {
+        try {
+            const respuesta = await obtenerEmpresas()
+            setEmpresas(respuesta)
+        } catch (error) {
+            setError(error.message || " error al traer empresas")
+        }
+    }
+
+    const cargarHorarios = async () => {
+        try {
+            const respuesta = await obtenerHorarios()
+            setHorarios(respuesta)
+        } catch (error) {
+            setError("Error al traer los horarios")
+        }
+    }
+
+    const obtenerEmpresasFiltro = async () => {
+        try {
+            const respuesta = await obtenerEmpresas()
+            setEmpresasFiltro(respuesta)
+        } catch (error) {
+            setError(error.message || " error al traer empresas")
+        }
+    }
+
+    // Exportacion
+    // (No definida en este archivo)
+
+    // Manejo de dialogs
+    const abrirDialog = () => setOpen(true);
+
+    const cerrarDialog = () => {
+        setOpen(false)
+        setHoraEntradaCrear("")
+        setMinutoEntradaCrear("")
+        setIdEmpresaCrear("")
+        setSegEntradaCrear("")
+        setHoraSalidaCrear("")
+        setMinutoSalidaCrear("")
+        setSegSalidaCrear("")
+    }
+
+    const cerrarDialogEdit = () => {
+        setMostrarEdit(false)
+    }
+
+    const clickCrear = async () => {
+        try {
+            const respuesta = await crearHorario(enviarHoraEntradaCrear, enviarHoraSalidaCrear, idEmpresaCrear)
+            setMensajeExito("Se creo con exito")
+            setOpen(false)
+            setNuevoHorarioEntrada("")
+            setIdEmpresaCrear("")
+            cargarHorarios()
+            setHoraEntradaCrear("")
+            setMinutoEntradaCrear("")
+            setIdEmpresaCrear("")
+            setSegEntradaCrear("")
+            setHoraSalidaCrear("")
+            setMinutoSalidaCrear("")
+            setSegSalidaCrear("")
+        } catch (error) {
+            setError(error.message || "Error al crear el horarios")
+        }
+    }
+
+    const clickEdit = async () => {
+        try {
+            const respuesta = await actualizarHorario(editId, enviarHoraEntradaEdit, enviarHoraSalidaEdit, idEmpresaEdit)
+            setMostrarEdit(false)
+            setMensajeExito("Se edito con exito")
+            cargarHorarios()
+        } catch (error) {
+            setError(error.message || "error al editar")
+        }
+    }
+
+    const clickEliminarHorario = async () => {
+        try {
+            const respuesta = eliminarHorario(editId)
+            setMensajeExito("Eliminado con exito")
+        } catch (error) {
+            setError(error.message)
+        }
+    }
+
+    const cerrarEliminar = () => {
+        setEliminar(false)
+        setInputConfirmacion("")
+        setEliminar(false)
+    }
+
+    const handleChangeTime = (val, setter, max) => {
+        if (/^\d{0,2}$/.test(val)) {
+            if (val === "" || parseInt(val) <= max) {
+                setter(val);
+            }
+        }
+    };
+
+    const handleBlurTime = (val, setter) => {
+        if (val.length === 1) {
+            setter("0" + val);
+        } else if (val === "") {
+            setter("00");
+        }
+    };
+
+    // Filtrado y paginacion
+    const horariosFiltrados = horarios.filter((hor) => {
+        const coincideEmpresa = filtroEmpresa ? hor.empresa?.empresa_id === filtroEmpresa : true || ""
+        return coincideEmpresa;
+    });
+
+    const handleChangePage = (event, newPage) => {
+        setPagina(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setFilaPorPagina(parseInt(event.target.value, 10));
+        setPagina(0);
+    };
+
+    const filasVacias = filaPorPagina - Math.min(filaPorPagina, horariosFiltrados.length - pagina * filaPorPagina);
+
+    // Effects
+    useEffect(() => {
+        obtenerEmpresasCrear()
+    }, [])
+
+    useEffect(() => {
+        cargarHorarios()
+    }, [])
+
+    useEffect(() => {
+        obtenerEmpresasFiltro()
+    }, [])
+
+    useEffect(() => {
+        setPagina(0);
+    }, [filtroEmpresa]);
+
+    useEffect(() => {
+        if (mensajeExito) {
+            const timer = setTimeout(() => {
+                setMensajeExito("")
+            }, 2000)
+            return () => clearTimeout(timer)
+        }
+    }, [mensajeExito])
+
+    // Renderizado condicional
+    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
+    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
+    return (
+        <>
+            {/* Titulo */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" color="text.secondary">
+                    Admin Horarios
+                </Typography>
+            </Box>
+
+            {/* Alerta de exito */}
+            {mensajeExito && (
+                <Container sx={{ mb: 2 }}>
+                    <Alert severity="success" onClose={() => setMensajeExito("")}>
+                        {mensajeExito}
+                    </Alert>
+                </Container>
+            )}
+
+            {/* Contenedor principal */}
+            <Paper elevation={2} sx={{
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                boxSizing: "border-box"
+            }}>
+                {/* Barra de busqueda y botones */}
+                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
+
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120, ml: 2 }} >
+                        <InputLabel>Empresa</InputLabel>
+                        <Select sx={{ width: "26vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} label="Empresa">
+                            <MenuItem>Todos</MenuItem>
+                            {empresasFiltro.map((fe) => (
+                                <MenuItem key={fe.empresa_id} value={fe.empresa_id}>
+                                    {fe.nombre_empresa}
+                                </MenuItem>
+                            ))}
+
+                        </Select>
+                    </FormControl>
+
+                    {/* Boton nuevo registro */}
+                    <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", ml: 'auto', }} onClick={abrirDialog}>
+                        Nuevo Registro
+                    </Button>
+
+                </Box>
+
+                {/* Tabla principal */}
+                <Box sx={{
+                    flex: 1,
+                    overflow: "hidden",
+                    width: "100%",
+                    position: "relative"
+                }}>
+                    <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
+                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Horario entrada</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Horario salida</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
+
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+                                {horariosFiltrados.length > 0 ? (
+                                    horariosFiltrados
+                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((row) => (
+                                            <TableRow key={row.horario_id}>
+                                                <TableCell align="center">{row.empresa?.nombre_empresa}</TableCell>
+                                                <TableCell align="center">{row.hora_entrada}</TableCell>
+                                                <TableCell align="center">{row.hora_salida}</TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton
+                                                        onClick={() => {
+                                                            setEditId(row.horario_id)
+                                                            setIdEmpresaEdit(row.empresa?.empresa_id)
+                                                            const [hE, mE, sE] = (row.hora_entrada || "00:00:00").split(':');
+                                                            setHoraEntradaEdit(hE);
+                                                            setMinutoEntradaEdit(mE);
+                                                            setSegEntradaEdit(sE);
+
+                                                            const [hS, mS, sS] = (row.hora_salida || "00:00:00").split(':');
+                                                            setHoraSalidaEdit(hS);
+                                                            setMinutoSalidaEdit(mS);
+                                                            setSegSalidaEdit(sS);
+
+                                                            setMostrarEdit(true);
+                                                        }}
+                                                        sx={{ padding: 0 }}
+                                                    >
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                {horariosFiltrados
+                                                    ? "No se encontraron horarios"
+                                                    : "No se encontraron horarios"}
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {filasVacias > 0 && (
+                                    <TableRow style={{ height: 53 * filasVacias }}>
+                                        <TableCell colSpan={7} />
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Box>
+
+                {/* Paginacion */}
+                <TablePagination
+                    rowsPerPageOptions={[]}
+                    component="div"
+                    count={horariosFiltrados.length}
+                    rowsPerPage={filaPorPagina}
+                    page={pagina}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelRowsPerPage=""
+                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+                />
+            </Paper>
+
+            {/* Dialog crear */}
+            <Dialog open={open} sx={{ textAlign: "center" }}>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
+                        <Box width="100%">
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+
+                                <DialogTitle>Agregar Nuevo Horario</DialogTitle>
+
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
+                                    <InputLabel>Empresa</InputLabel>
+                                    <Select
+                                        value={idEmpresaCrear}
+                                        onChange={(e) => setIdEmpresaCrear(e.target.value)}
+                                        label="Empresa"
+                                        sx={{ width: "40vh" }}
+                                    >
+                                        {empresas.map((e) => (
+                                            <MenuItem key={e.empresa_id} value={e.empresa_id}>
+                                                {e.nombre_empresa}
+                                            </MenuItem>
+                                        ))}
+
+                                    </Select>
+                                    {idEmpresaCrear === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
+                                </FormControl>
+
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                                    HORARIO ENTRADA
+                                </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
+
+                                    <TextField
+                                        value={horaEntradaCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaCrear, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraEntradaCrear)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={minutoEntradaCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaCrear, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoEntradaCrear)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={segEntradaCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setSegEntradaCrear, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setSegEntradaCrear)}
+                                        placeholder="SS"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                                    HORARIO SALIDA
+                                </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
+                                    <TextField
+                                        value={horaSalidaCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraSalidaCrear, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraSalidaCrear)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={minutoSalidaCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoSalidaCrear, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoSalidaCrear)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={segSalidaCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setSegSalidaCrear, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setSegSalidaCrear)}
+                                        placeholder="SS"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+                            </Paper>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={cerrarDialog} color="error">Cancelar</Button>
+                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={horaEntradaCrear === "" || minutoEntradaCrear === "" || segEntradaCrear === "" || horaSalidaCrear === "" || minutoSalidaCrear === "" || segSalidaCrear === "" || idEmpresaCrear === ""}>Guardar</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog editar */}
+            <Dialog open={mostrarEdit} sx={{ textAlign: "center" }}>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
+                        <Box width="100%">
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+
+                                <DialogTitle>Editar Horario</DialogTitle>
+
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
+                                    <InputLabel>Empresa</InputLabel>
+                                    <Select
+                                        value={idEmpresaEdit}
+                                        onChange={(e) => setIdEmpresaEdit(e.target.value)}
+                                        label="Empresa"
+                                        sx={{ width: "40vh" }}
+                                    >
+                                        {empresas.map((e) => (
+                                            <MenuItem key={e.empresa_id} value={e.empresa_id}>
+                                                {e.nombre_empresa}
+                                            </MenuItem>
+                                        ))}
+
+                                    </Select>
+                                </FormControl>
+
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}
+                                >
+                                    HORARIO ENTRADA
+                                </Typography>
+
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
+                                    <TextField
+                                        value={horaEntradaEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaEdit, 23)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+
+                                    <Typography variant="h6">:</Typography>
+
+                                    <TextField
+                                        value={minutoEntradaEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaEdit, 59)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }} />
+
+                                    <Typography variant="h6">:</Typography>
+
+                                    <TextField
+                                        value={segEntradaEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setSegEntradaEdit, 59)}
+                                        placeholder="SS"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}
+                                >
+                                    HORARIO SALIDA
+                                </Typography>
+
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
+                                    <TextField
+                                        value={horaSalidaEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraSalidaEdit, 23)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+
+                                    <Typography variant="h6">:</Typography>
+
+                                    <TextField
+                                        value={minutoSalidaEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoSalidaEdit, 59)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }} />
+
+                                    <Typography variant="h6">:</Typography>
+
+                                    <TextField
+                                        value={segSalidaEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setSegSalidaEdit, 59)}
+                                        placeholder="SS"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+                                <Button color="error" variant="contained" onClick={() => setEliminar(true)}>Eliminar</Button>
+
+
+                            </Paper>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
+                    <Button onClick={clickEdit} variant="contained" color="primary" disabled={
+                        horaEntradaEdit === "" ||
+                        minutoEntradaEdit === "" ||
+                        segEntradaEdit === "" ||
+                        horaSalidaEdit === "" ||
+                        minutoSalidaEdit === "" ||
+                        segSalidaEdit === "" ||
+                        idEmpresaEdit === ""
+                    }>Guardar</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Alerta de eliminar */}
+            <Dialog
+                open={eliminar}
+                onClose={cerrarEliminar}
+                maxWidth="xs"
+                fullWidth
+            >
+                <Box sx={{ textAlign: 'center', pt: 3 }}>
+                    <WarningAmberRoundedIcon sx={{ fontSize: 60, color: 'error.main' }} />
+                </Box>
+
+                <DialogTitle sx={{ textAlign: "center", fontWeight: 'bold' }}>
+                    ¿Eliminar Horario?
+                </DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText sx={{ textAlign: "center", mb: 3 }}>
+                        Esta acción es irreversible. Para confirmar que desea borrar este horario, por favor escriba <strong>ELIMINAR</strong> en el cuadro de abajo.
+                    </DialogContentText>
+
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Escriba ELIMINAR"
+                        color="error"
+                        value={inputConfirmacion}
+                        onChange={(e) => setInputConfirmacion(e.target.value)}
+                        sx={{ bgcolor: '#fff' }}
+                    />
+                </DialogContent>
+
+                <DialogActions sx={{ p: 3, pt: 0, justifyContent: "center" }}>
+                    <Button
+                        onClick={cerrarEliminar}
+                        variant="outlined"
+                        color="inherit"
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        onClick={() => {
+                            cerrarEliminar(),
+                                clickEliminarHorario()
+                                cerrarDialogEdit()
+                        }}
+                        variant="contained"
+                        color="error"
+                        disabled={inputConfirmacion !== "ELIMINAR"}
+                        startIcon={<WarningAmberRoundedIcon />}
+                    >
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    );
+}
+export default AdminHorarios;

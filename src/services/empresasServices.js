@@ -1,0 +1,88 @@
+const API_URL = "http://localhost:3000";
+
+//Obtener empresas
+export const obtenerEmpresas = async () => {
+  try {
+    const response = await fetch(`${API_URL}/empresas`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.empresas || [];
+  } catch (error) {
+    return [];
+  }
+};
+
+//Crear empresa
+export const crearEmpresa = async (
+  nombre_empresa,
+  rut_empresa,
+  direccion_empresa,
+  comuna_empresa,
+  email_empresa,
+  estado
+) => {
+  const peticion = await fetch(`${API_URL}/empresas/crear`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token")
+    },
+    body: JSON.stringify({
+      nombre_empresa: nombre_empresa,
+      rut_empresa: rut_empresa,
+      direccion_empresa: direccion_empresa,
+      comuna_empresa: comuna_empresa,
+      email_empresa: email_empresa,
+      estado: estado
+    }),
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al crear la empresa");
+  }
+  return datos;
+};
+
+//Actulizar empresa
+export const actualizarEmpresa = async (
+  editId,
+  editNombre,
+  editRun,
+  editDireccion,
+  editComuna,
+  editEstado,
+  editEmail
+) => {
+  const peticion = await fetch(`${API_URL}/empresas/actualizar/${editId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      nombre_empresa: editNombre,
+      rut_empresa: editRun,
+      direccion_empresa: editDireccion,
+      comuna_empresa: editComuna,
+      email_empresa: editEmail,
+      estado: editEstado,
+    }),
+  });
+  
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al actualizar la empresa");
+  }
+  return datos;
+};
