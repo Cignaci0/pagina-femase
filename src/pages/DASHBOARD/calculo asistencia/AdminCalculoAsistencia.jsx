@@ -63,8 +63,6 @@ function AdminCalculoAsis() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, empresasFiltradas.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         setPagina(0);
@@ -208,8 +206,8 @@ function AdminCalculoAsis() {
                             <strong> Centro de costo: </strong> <span>Dpto. Sistemas</span>
                         </Typography >
 
-                        <Table sx={{ minWidth: 650, width: "100%", mt:2 }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%", mt:2 }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="14.28%" align="center"><strong>Fecha</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Entrada Teórica</strong></TableCell>

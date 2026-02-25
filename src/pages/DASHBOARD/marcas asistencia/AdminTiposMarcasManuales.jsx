@@ -80,8 +80,6 @@ function AdminTipoMarcasManuales() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, departamentosFiltrados.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         setPagina(0);
@@ -168,8 +166,8 @@ function AdminTipoMarcasManuales() {
                     position: "relative"
                 }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
-                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="16%" align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width="16%" align="center"><strong>Orden Despliegue</strong></TableCell>

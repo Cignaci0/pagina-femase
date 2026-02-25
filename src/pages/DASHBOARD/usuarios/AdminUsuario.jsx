@@ -255,8 +255,6 @@ function AdminUsuario() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, usuariosFiltrados.length - pagina * filaPorPagina);
-
     const clickAbrirEdit = () => {
         setOpenEditar(true)
     }
@@ -538,8 +536,8 @@ function AdminUsuario() {
                         overflowX: "auto",
                         overflowY: "auto"
                     }}>
-                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="20%"><strong>Username</strong></TableCell>
                                     <TableCell width="20%"><strong>Nombre Completo</strong></TableCell>
@@ -620,11 +618,7 @@ function AdminUsuario() {
                                         );
                                     })}
 
-                                {filasVacias > 0 && (
-                                    <TableRow style={{ height: 53 * filasVacias }}>
-                                        <TableCell colSpan={6} />
-                                    </TableRow>
-                                )}
+                                
 
                                 {usuariosFiltrados.length === 0 && (
                                     <TableRow>

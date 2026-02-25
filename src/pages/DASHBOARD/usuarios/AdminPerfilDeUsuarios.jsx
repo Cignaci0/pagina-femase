@@ -100,8 +100,6 @@ function AdminPerfilUsuarios() {
         row.nombre_perfil ? row.nombre_perfil.toLowerCase().includes(busqueda.toLowerCase()) : false
     );
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, filasFiltradas.length - pagina * filaPorPagina);
-
     const CambiarPagina = (evento, nuevaPag) => setPagina(nuevaPag);
 
     const handleBusquedaChange = (event) => {
@@ -173,8 +171,8 @@ function AdminPerfilUsuarios() {
 
                 {/* Tabla principal */}
                 <TableContainer sx={{ minHeight: '366px' }}>
-                    <Table sx={{ minWidth: 650 }} aria-label="tabla de usuarios">
-                        <TableHead>
+                    <Table stickyHeader sx={{ minWidth: 650 }} aria-label="tabla de usuarios">
+                        <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                             <TableRow>
                                 <TableCell width="20%"><strong>Id</strong></TableCell>
                                 <TableCell width="20%"><strong>Nombre</strong></TableCell>
@@ -215,11 +213,7 @@ function AdminPerfilUsuarios() {
                                 )
                             })}
 
-                            {filasVacias > 0 && (
-                                <TableRow style={{ height: 53 * filasVacias }}>
-                                    <TableCell colSpan={5} />
-                                </TableRow>
-                            )}
+                            
                             {perfiles.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={10} align="center">

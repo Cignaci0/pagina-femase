@@ -199,8 +199,6 @@ function AdminTiposDispositivos() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, tipoDispositivosFiltrados.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         cargarTiposDis()
@@ -320,8 +318,8 @@ function AdminTiposDispositivos() {
 
                 {/* Tabla principal */}
                 <TableContainer sx={{ flex: 1, overflowY: "auto", }}>
-                    <Table sx={{ minWidth: 650, width: "100%" }} >
-                        <TableHead>
+                    <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} >
+                        <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                             <TableRow>
                                 <TableCell width="8%"><strong>Id</strong></TableCell>
                                 <TableCell width="14%"><strong>Nombre</strong></TableCell>
@@ -370,11 +368,7 @@ function AdminTiposDispositivos() {
                                         </TableRow>
                                     )
                                 })}
-                            {filasVacias > 0 && (
-                                <TableRow style={{ height: 53 * filasVacias }}>
-                                    <TableCell colSpan={7} />
-                                </TableRow>
-                            )}
+                            
                             {tipoDispositivos.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={7} align="center" sx={{ alignItems: "center" }}>

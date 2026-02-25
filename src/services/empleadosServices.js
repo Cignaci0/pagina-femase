@@ -65,8 +65,8 @@ export const crearEmpleado = async (datosEmpleado) => {
 
 // Actualizar empleado ( se debe cambiar la url para que funcione)
 export const actualizarEmpleado = async (id, datosEmpleado) => {
-  const peticion = await fetch(`${API_URL}/empleado/${id}`, {
-    method: "PUT",
+  const peticion = await fetch(`${API_URL}/empleado/actualizar/${id}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: "Bearer " + window.localStorage.getItem("token"),
@@ -95,7 +95,6 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
       estado: datosEmpleado.estado,
     }),
   });
-
   const datos = await peticion.json();
   if (!peticion.ok) {
     throw new Error(datos.message || "Error al actualizar el empleado");

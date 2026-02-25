@@ -162,8 +162,6 @@ function AdminCodErrorRechazos() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, empresasFiltradas.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         cargarDatos();
@@ -285,8 +283,8 @@ function AdminCodErrorRechazos() {
                 {/* Tabla principal */}
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative" }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
-                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="14.28%" align="center"><strong>Id</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Descripcion</strong></TableCell>
@@ -312,11 +310,7 @@ function AdminCodErrorRechazos() {
                                     </TableCell>
                                 </TableRow>
 
-                                {filasVacias > 0 && (
-                                    <TableRow style={{ height: 53 * filasVacias }}>
-                                        <TableCell colSpan={10} />
-                                    </TableRow>
-                                )}
+                                
 
                                 {empresas.length === 0 && (
                                     <TableRow>

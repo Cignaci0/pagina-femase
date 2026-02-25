@@ -130,8 +130,6 @@ function AdminFeriados() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, cencosFiltradas.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         cargarDatosIniciales();
@@ -237,7 +235,7 @@ function AdminFeriados() {
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative", }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
                         <Table stickyHeader sx={{ minWidth: 1650 }}>
-                            <TableHead>
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell align="center"><strong>Fecha</strong></TableCell>
                                     <TableCell align="center"><strong>Tipo Feriado</strong></TableCell>

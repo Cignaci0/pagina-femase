@@ -185,8 +185,6 @@ function AdminHorarios() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, horariosFiltrados.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         obtenerEmpresasCrear()
@@ -271,8 +269,8 @@ function AdminHorarios() {
                     position: "relative"
                 }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
-                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Horario entrada</strong></TableCell>
@@ -326,11 +324,7 @@ function AdminHorarios() {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {filasVacias > 0 && (
-                                    <TableRow style={{ height: 53 * filasVacias }}>
-                                        <TableCell colSpan={7} />
-                                    </TableRow>
-                                )}
+                                
                             </TableBody>
                         </Table>
                     </TableContainer>

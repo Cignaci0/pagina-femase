@@ -232,8 +232,6 @@ function AdminDispositivos() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, dispositivosFiltrados.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         cargarDatos()
@@ -361,7 +359,7 @@ function AdminDispositivos() {
                         overflowY: "auto"
                     }}>
                         <Table stickyHeader size="small" sx={{ minWidth: 1650 }}>
-                            <TableHead>
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="100" align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width="100" align="center"><strong>Tipo</strong></TableCell>

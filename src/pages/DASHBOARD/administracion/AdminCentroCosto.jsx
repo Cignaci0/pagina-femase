@@ -408,8 +408,6 @@ function AdminCentroCosto() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, cencosFiltradas.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         const cargarDatosIniciales = async () => {
@@ -543,7 +541,7 @@ function AdminCentroCosto() {
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative", }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
                         <Table stickyHeader sx={{ minWidth: 1650 }}>
-                            <TableHead>
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width={100} align="center"><strong>Acción</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Nombre</strong></TableCell>
@@ -587,9 +585,15 @@ function AdminCentroCosto() {
                                             <TableCell align="center">{cenco.usuario_creador}</TableCell>
                                             <TableCell align="center">
                                                 <IconButton onClick={() => {
-                                                    setEditId(cenco.cenco_id); setEditEmpresa(""); setEditDepartamento(cenco.departamento_id);
-                                                    setEditNombre(cenco.nombre_cenco); setEditEstado(cenco.estado_id); setEditDireccion(cenco.direccion);
-                                                    setEditEmailGnral(cenco.email_general); setEditEmailNoti(cenco.email_notificacion); setEditZonaExtrema(cenco.zona_extrema ? 1 : 2);
+                                                    setEditId(cenco.cenco_id);
+                                                    setEditEmpresa("");
+                                                    setEditDepartamento(cenco.departamento_id);
+                                                    setEditNombre(cenco.nombre_cenco);
+                                                    setEditEstado(cenco.estado_id);
+                                                    setEditDireccion(cenco.direccion);
+                                                    setEditEmailGnral(cenco.email_general);
+                                                    setEditEmailNoti(cenco.email_notificacion);
+                                                    setEditZonaExtrema(cenco.zona_extrema ? true : false);
 
                                                     const normalize = (str) => (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
                                                     const comunaStr = normalize(cenco.comuna);
@@ -629,7 +633,7 @@ function AdminCentroCosto() {
                                 ) : (
                                     <TableRow><TableCell colSpan={14} align="center" sx={{ py: 3 }}><Typography variant="body1" color="text.secondary">No se encontraron registros.</Typography></TableCell></TableRow>
                                 )}
-                                {filasVacias > 0 && (<TableRow style={{ height: 53 * filasVacias }}><TableCell colSpan={14} /></TableRow>)}
+
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -716,8 +720,8 @@ function AdminCentroCosto() {
                             <FormControl size="small" fullWidth >
                                 <InputLabel>Zona Extrema?</InputLabel>
                                 <Select label="Zona Extrema?" value={nuevoZonaExtrema} onChange={(e) => setNuevoZonaExtrema(e.target.value)}>
-                                    <MenuItem value={1}>SI</MenuItem>
-                                    <MenuItem value={2}>NO</MenuItem>
+                                    <MenuItem value={true}>SI</MenuItem>
+                                    <MenuItem value={false}>NO</MenuItem>
                                 </Select>
                                 {nuevoZonaExtrema === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                             </FormControl>
@@ -786,8 +790,8 @@ function AdminCentroCosto() {
                             <FormControl size="small" fullWidth >
                                 <InputLabel>Zona Extrema?</InputLabel>
                                 <Select label="Zona Extrema?" value={editZonaExtrema} onChange={(e) => setEditZonaExtrema(e.target.value)}>
-                                    <MenuItem value={1}>SI</MenuItem>
-                                    <MenuItem value={2}>NO</MenuItem>
+                                    <MenuItem value={true}>SI</MenuItem>
+                                    <MenuItem value={false}>NO</MenuItem>
                                 </Select>
                                 {editZonaExtrema === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                             </FormControl>

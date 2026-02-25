@@ -86,8 +86,6 @@ function AdminTurnosRotativos() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, cargosFiltrados.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         cargarEmpresasFiltro();
@@ -188,8 +186,8 @@ function AdminTurnosRotativos() {
                     position: "relative"
                 }}>
                     <TableContainer sx={{ flex: 1, minHeight: '366px' }}>
-                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Nombre</strong></TableCell>

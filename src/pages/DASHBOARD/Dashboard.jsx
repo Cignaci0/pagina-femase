@@ -75,37 +75,37 @@ const drawerWidth = 240;
 
 const COMPONENTES_VISTA = {
   // ADMINISTRACION
-  "Empresas": <AdminEmpresas />,
-  "Cargos": <AdminCargos />,
+  "Empresas": <AdminEmpresas />, //
+  "Cargos": <AdminCargos />, //
   "AFP": <AdminAFPs />,
-  "Centros de costo": <AdminCentroCosto />,
+  "Centros de costo": <AdminCentroCosto />, //
   "Error Rechazos": <AdminCodErrorRechazos />,
-  "Departamentos": <AdmiminDepartamentos />,
-  "Dispositivos": <AdminDispositivos />,
-  "Empleados": <AdminEmpleados />,
+  "Departamentos": <AdmiminDepartamentos />, //
+  "Dispositivos": <AdminDispositivos />, //
+  "Empleados": <AdminEmpleados />,//
   "Proveedor Correo": <AdminPreoveedorCorreo />,
-  "Tipos de dispositivos": <AdminTiposDispositivos />,
+  "Tipos de dispositivos": <AdminTiposDispositivos />, //
   "Feriados": <AdminFeriados />,
 
   // USUARIOS
-  "Gestion": <AdminUsuarios />,
-  "Perfiles": <AdminPerfilDeUsuarios />,
-  "Acceso perfil": <AdminAccesosPerfil />,
+  "Gestion": <AdminUsuarios />,//
+  "Perfiles": <AdminPerfilDeUsuarios />,//
+  "Acceso perfil": <AdminAccesosPerfil />,//
 
   // TURNOS
-  "Gestion turnos": <AdminTurnos />,
-  "Rotativos": <AdminTurnosRotativos />,
-  "Rotativos - Asignacion": <AdminTurnosRotativosAsignacion />,
-  "Asignacion Ciclica": <AdminAsignacionCiclica />,
-  "Turnos - Centros de costo": <AdminTurnosCentrosCostos />,
-  "Horarios": <AdminHorarios />,
+  "Gestion turnos": <AdminTurnos />, //
+  "Rotativos": <AdminTurnosRotativos />,//
+  "Rotativos - Asignacion": <AdminTurnosRotativosAsignacion />,//
+  "Asignacion Ciclica": <AdminAsignacionCiclica />,//
+  "Turnos - Centros de costo": <AdminTurnosCentrosCostos />, //
+  "Horarios": <AdminHorarios />, //
 
   // AUDITORIA
-  "Eventos Sistema": <AdminEventosSistema />,
-  "Usuarios Conectados": <AdminUsuariosConectados />,
+  "Eventos Sistema": <AdminEventosSistema />,//
+  "Usuarios Conectados": <AdminUsuariosConectados />,//
 
   // AUSENCIAS
-  "tipo Ausencia": <AdminTipoAusencia />,
+  "Tipo Ausencia": <AdminTipoAusencia />,
 
   // CALCULO ASISTENCIA
   "Calculo Asistencia": <AdminCalculoAsis />,

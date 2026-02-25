@@ -335,18 +335,18 @@ function AdminEmpleados() {
                 nombres: nuevoNombre,
                 apellido_paterno: nuevoApPaterno,
                 apellido_materno: nuevoApMaterno,
-                fecha_nacimiento: nuevoFechaNacimiento ? nuevoFechaNacimiento.format("YYYY-MM-DD") : null,
+                fecha_nacimiento: nuevoFechaNacimiento ? nuevoFechaNacimiento.toISOString() : null,
                 direccion: nuevoDireccion,
                 email: nuevoEmailPersonal,
                 sexo: nuevoSexo,
                 telefono_fijo: nuevoTelefonoFijo ? Number(nuevoTelefonoFijo) : null,
                 telefono_movil: nuevoTelefonoMovil ? Number(nuevoTelefonoMovil) : null,
                 comuna: nuevoComuna,
-                fecha_ini_contrato: nuevoFechaInicioContrato ? nuevoFechaInicioContrato.format("YYYY-MM-DD") : null,
+                fecha_ini_contrato: nuevoFechaInicioContrato ? nuevoFechaInicioContrato.toISOString() : null,
                 contrato_indefinido: nuevoContratoIndefinido,
                 fecha_fin_contrato: nuevoContratoIndefinido === true
-                    ? "3000-12-31"
-                    : (nuevoFechaTerminoContrato ? nuevoFechaTerminoContrato.format("YYYY-MM-DD") : null),
+                    ? "3000-12-31T00:00:00.000Z"
+                    : (nuevoFechaTerminoContrato ? nuevoFechaTerminoContrato.toISOString() : null),
                 art_22: nuevoArt22,
                 autoriza_ausencia: nuevoAutorizaAusencia,
                 clave: nuevoClave,
@@ -395,18 +395,18 @@ function AdminEmpleados() {
                 nombres: editNombre,
                 apellido_paterno: editApPaterno,
                 apellido_materno: editApMaterno,
-                fecha_nacimiento: editFechaNacimiento ? editFechaNacimiento.format("YYYY-MM-DD") : null,
+                fecha_nacimiento: editFechaNacimiento ? editFechaNacimiento.toISOString() : null,
                 direccion: editDireccion,
                 email: editEmailPersonal,
                 sexo: editSexo,
                 telefono_fijo: editTelefonoFijo ? Number(editTelefonoFijo) : null,
                 telefono_movil: editTelefonoMovil ? Number(editTelefonoMovil) : null,
                 comuna: editComuna,
-                fecha_ini_contrato: editFechaInicioContrato ? editFechaInicioContrato.format("YYYY-MM-DD") : null,
+                fecha_ini_contrato: editFechaInicioContrato ? editFechaInicioContrato.toISOString() : null,
                 contrato_indefinido: editContratoIndefinido,
                 fecha_fin_contrato: editContratoIndefinido === true
-                    ? "3000-12-31"
-                    : (editFechaTerminoContrato ? editFechaTerminoContrato.format("YYYY-MM-DD") : null),
+                    ? "3000-12-31T00:00:00.000Z"
+                    : (editFechaTerminoContrato ? editFechaTerminoContrato.toISOString() : null),
                 art_22: editArt22,
                 autoriza_ausencia: editAutorizaAusencia,
                 clave: editClave,
@@ -415,7 +415,8 @@ function AdminEmpleados() {
                 turno: editTurno,
                 estado: editEstado
             };
-            const respuesta = await actualizarEmpleado(editRun, datosEmpleado);
+           
+            const respuesta = await actualizarEmpleado(editId, datosEmpleado);
             setMensajeExito("Empleado actualizado exitosamente");
             llamarEmpleados();
             closeDialogEdit(true)
@@ -602,8 +603,6 @@ function AdminEmpleados() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, empleadosFiltrados.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
         llamarDatosParaFiltrado()
@@ -682,7 +681,7 @@ function AdminEmpleados() {
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative", }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
                         <Table stickyHeader sx={{ minWidth: 1650 }}>
-                            <TableHead>
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width={150} align="center"><strong>Run</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Nombre</strong></TableCell>
@@ -829,7 +828,7 @@ function AdminEmpleados() {
                                 ) : (
                                     <TableRow><TableCell colSpan={14} align="center" sx={{ py: 3 }}><Typography variant="body1" color="text.secondary">No se encontraron registros.</Typography></TableCell></TableRow>
                                 )}
-                                {filasVacias > 0 && (<TableRow style={{ height: 53 * filasVacias }}><TableCell colSpan={14} /></TableRow>)}
+
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -1113,7 +1112,7 @@ function AdminEmpleados() {
                                 <InputLabel>Estado</InputLabel>
                                 <Select label="Estado" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
                                     <MenuItem value={1}>Vigente</MenuItem>
-                                    <MenuItem value={2}>no Vigente</MenuItem>
+                                    <MenuItem value={2}>No Vigente</MenuItem>
                                 </Select>
                                 {nuevoEstado === "" && <FormHelperText>El estado es obligatorio</FormHelperText>}
                             </FormControl>
@@ -1456,7 +1455,7 @@ function AdminEmpleados() {
                                 <InputLabel>Estado</InputLabel>
                                 <Select label="Estado" value={editEstado} onChange={(e) => setEditEstado(e.target.value)}>
                                     <MenuItem value={1}>Vigente</MenuItem>
-                                    <MenuItem value={2}>no Vigente</MenuItem>
+                                    <MenuItem value={2}>No Vigente</MenuItem>
                                 </Select>
                                 {editEstado === "" && <FormHelperText>El estado es obligatorio</FormHelperText>}
                             </FormControl>
@@ -1501,6 +1500,7 @@ function AdminEmpleados() {
                                             textField: {
                                                 fullWidth: true,
                                                 size: "small",
+                                                error: false,
                                                 required: !editContratoIndefinido,
                                                 helperText: editContratoIndefinido ? "" : "La fecha de Termino de contrato es obligatoria",
                                             },

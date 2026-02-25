@@ -17,11 +17,14 @@ import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
 import * as XLSX from 'xlsx';
+import { obtenerAfp } from "../../../services/afpServices";
+import { crearAfp } from "../../../services/afpServices";
+import { editarAfp } from "../../../services/afpServices";
 
 function AdminAFPs() {
 
     // Estados de datos
-    const [empresas, setEmpresas] = useState([])
+    const [afp, setAfp] = useState([])
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("")
@@ -38,36 +41,52 @@ function AdminAFPs() {
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
+    const [editId, setEditId] = useState("")
     const [editNombre, setEditNombre] = useState("")
     const [editEstado, setEditEstado] = useState("")
 
-    // Carga de datos
-    const cargarDatos = async () => {
+    // Cargar datos
+    const cargarAfp = async () => {
         try {
-            const [dataEmpresas] = await Promise.all([
-                obtenerEmpresas(window.localStorage.getItem('token'))
-            ]);
-            console.log(dataEmpresas);
-            setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
-        } catch (err) {
-            setError(err.message);
+            const respuesta = await obtenerAfp()
+            setAfp(respuesta)
+        } catch (error) {
+            console.error("Error al cargar las AFP:", error)
         } finally {
-            setCargando(false);
+            setCargando(false)
         }
-    };
+    }
+
+    // Crear Afp
+    const handleCrearAfp = async () => {
+        try {
+            await crearAfp(nuevoNombre, nuevoEstado)
+            setOpen(false)
+            setMensajeExito("AFP creada exitosamente")
+            cargarAfp()
+        } catch (error) {
+            console.error("Error al crear la AFP:", error)
+        }
+    }
+
+    // Editar Afp
+    const handleEditarAfp = async () => {
+        try {
+            await editarAfp(editId, editNombre, editEstado)
+            setOpenEdit(false)
+            setMensajeExito("AFP editada exitosamente")
+            cargarAfp()
+        } catch (error) {
+            console.error("Error al editar la AFP:", error)
+        }
+    }
 
     // Exportacion
     const prepararDatosParaExportar = () => {
-        return empresasFiltradas.map(empresa => ({
-            "Nombre": empresa.nombre_empresa,
-            "Rut": empresa.rut_empresa,
-            "Direccion": empresa.direccion_empresa,
-            "Comuna": empresa.comuna_empresa,
-            "Estado": empresa.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
-            "Email": empresa.email_empresa,
-            "Fecha Creación": empresa.fecha_creacion,
-            "Fecha Actualización": empresa.fecha_actualizacion,
-            "Usuario Creador": empresa.usuario_creador
+        return afpsFiltradas.map(afp => ({
+            "ID": afp.afp_id,
+            "Nombre AFP": afp.nombre_afp,
+            "Estado": afp.estado_id === 1 ? 'Vigente' : 'No Vigente'
         }));
     };
 
@@ -76,7 +95,7 @@ function AdminAFPs() {
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Empresas");
-        XLSX.writeFile(wb, "Reporte_Empresas.xlsx");
+        XLSX.writeFile(wb, "Reporte_AFP.xlsx");
     };
 
     const descargarCSV = () => {
@@ -87,7 +106,7 @@ function AdminAFPs() {
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "Reporte_Empresas.csv");
+        link.setAttribute("download", "Reporte_AFP.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -109,7 +128,7 @@ function AdminAFPs() {
         const ventanaImpresion = window.open('', '', 'height=600,width=800');
         let html = '<html><head><title>Imprimir Empresas</title>';
         html += '<style>table {width: 100%; border-collapse: collapse; font-family: Arial;} th, td {border: 1px solid black; padding: 8px; text-align: left;} th {background-color: #f2f2f2;}</style>';
-        html += '</head><body><h1>Reporte de Empresas</h1><table>';
+        html += '</head><body><h1>Reporte de AFPs</h1><table>';
 
         if (data.length > 0) {
             html += '<thead><tr>';
@@ -145,8 +164,8 @@ function AdminAFPs() {
     }
 
     // Filtrado y paginacion
-    const empresasFiltradas = empresas.filter((empresa) => {
-        const textoBusqueda = `${empresa.nombre_empresa || ''} ${empresa.rut_empresa || ''} ${empresa.direccion_empresa || ''} ${empresa.rut_empresa || ''}`.toLowerCase();
+    const afpsFiltradas = afp.filter((afp) => {
+        const textoBusqueda = `${afp.nombre_afp || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
         const coincideTexto = textoBusqueda.includes(term)
 
@@ -162,11 +181,9 @@ function AdminAFPs() {
         setPagina(0);
     };
 
-    const filasVacias = filaPorPagina - Math.min(filaPorPagina, empresasFiltradas.length - pagina * filaPorPagina);
-
     // Effects
     useEffect(() => {
-        cargarDatos();
+        cargarAfp();
     }, []);
 
     useEffect(() => {
@@ -181,6 +198,8 @@ function AdminAFPs() {
             return () => clearTimeout(timer)
         }
     }, [mensajeExito])
+
+
 
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
@@ -285,8 +304,8 @@ function AdminAFPs() {
                 {/* Tabla principal */}
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative" }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
-                        <Table sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
-                            <TableHead>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="14.28%" align="center"><strong>Id</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Nombre</strong></TableCell>
@@ -296,42 +315,45 @@ function AdminAFPs() {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">
-                                        CAPITAL
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        AFP Capital
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <CircleIcon>
+                                {afpsFiltradas.length > 0 ? (
+                                    afpsFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((afp) => (
+                                            <TableRow>
+                                                <TableCell align="center">
+                                                    {afp.afp_id}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {afp.nombre_afp}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {afp.estado_id}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton onClick={() => {
+                                                        setEditId(afp.afp_id);
+                                                        setEditNombre(afp.nombre_afp);
+                                                        setEditEstado(afp.estado_id);
+                                                        setOpenEdit(true)
+                                                    }}>
+                                                        <EditIcon >
 
-                                        </CircleIcon>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => setOpenEdit(true)}>
-                                            <EditIcon >
-
-                                            </EditIcon>
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-
-                                {filasVacias > 0 && (
-                                    <TableRow style={{ height: 53 * filasVacias }}>
-                                        <TableCell colSpan={10} />
-                                    </TableRow>
+                                                        </EditIcon>
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (
+                                    afp.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={10} align="center" sx={{ alignItems: "center" }}>
+                                                <Typography variant="body1" color="text.secondary">
+                                                    No se encontraron AFPs.
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
                                 )}
 
-                                {empresas.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={10} align="center" sx={{ alignItems: "center" }}>
-                                            <Typography variant="body1" color="text.secondary">
-                                                No se encontraron AFPs.
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -341,7 +363,7 @@ function AdminAFPs() {
                 <TablePagination
                     rowsPerPageOptions={[]}
                     component="div"
-                    count={empresasFiltradas.length}
+                    count={afpsFiltradas.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -391,10 +413,9 @@ function AdminAFPs() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialog} color="error">Cancelar</Button>
                     <Button
-                       
+                        onClick={handleCrearAfp}
                         variant="contained"
                         color="primary"
-
                     >
                         Guardar
                     </Button>
@@ -440,6 +461,7 @@ function AdminAFPs() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialogEdit} color="error">Cancelar</Button>
                     <Button
+                        onClick={handleEditarAfp}
                         variant="contained"
                         color="primary"
                     >
