@@ -16,11 +16,12 @@ import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
 import * as XLSX from 'xlsx';
+import { obtenerProveedorCorreo, crearProveedorCorreo, actualizarProveedorCorreo } from "../../../services/proveedorCorreoServices";
 
 function AdminPreoveedorCorreo() {
 
     // Estados de datos
-    const [empresas, setEmpresas] = useState([])
+    const [proveedorCorreo, setProveedorCorreo] = useState([])
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("")
@@ -37,17 +38,15 @@ function AdminPreoveedorCorreo() {
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
+    const [editId, setEditId] = useState("")
     const [editNombre, setEditNombre] = useState("")
     const [editDominio, setEditDominio] = useState("")
 
     // Carga de datos
     const cargarDatos = async () => {
         try {
-            const [dataEmpresas] = await Promise.all([
-                obtenerEmpresas(window.localStorage.getItem('token'))
-            ]);
-            console.log(dataEmpresas);
-            setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
+            const respuesta = await obtenerProveedorCorreo();
+            setProveedorCorreo(respuesta);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -55,18 +54,44 @@ function AdminPreoveedorCorreo() {
         }
     };
 
+    //Crear proveedor correo
+    const clickCrearProveedorCorreo = async () => {
+        try {
+            const respuesta = await crearProveedorCorreo(nuevoNombre, nuevoDominio);
+            setMensajeExito("Proveedor correo creado exitosamente")
+            closeDialog()
+            cargarDatos()
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setCargando(false);
+        }
+    }
+
+    //Editar proveedor correo
+    const clcickEditarProveedorCorreo = async () => {
+        try {
+            const respuesta = await actualizarProveedorCorreo(editId, editNombre, editDominio);
+            setMensajeExito("Proveedor correo editado exitosamente")
+            closeDialogEdit()
+            cargarDatos()
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setCargando(false);
+        }
+    }
+
+
+
     // Exportacion
     const prepararDatosParaExportar = () => {
-        return empresasFiltradas.map(empresa => ({
-            "Nombre": empresa.nombre_empresa,
-            "Rut": empresa.rut_empresa,
-            "Direccion": empresa.direccion_empresa,
-            "Comuna": empresa.comuna_empresa,
-            "Estado": empresa.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
-            "Email": empresa.email_empresa,
-            "Fecha Creación": empresa.fecha_creacion,
-            "Fecha Actualización": empresa.fecha_actualizacion,
-            "Usuario Creador": empresa.usuario_creador
+        return proveedorFiltrado.map(pro => ({
+            "Id": pro.id,
+            "Nombre": pro.nombre,
+            "Dominio": pro.dominio,
+            "Fecha Creación": pro.fechaCreacion,
+            "Fecha Actualización": pro.fechaActualizacion
         }));
     };
 
@@ -74,8 +99,8 @@ function AdminPreoveedorCorreo() {
         const data = prepararDatosParaExportar();
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Empresas");
-        XLSX.writeFile(wb, "Reporte_Empresas.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Proveedores_Correo");
+        XLSX.writeFile(wb, "Reporte_Proveedores_Correo.xlsx");
     };
 
     const descargarCSV = () => {
@@ -86,7 +111,7 @@ function AdminPreoveedorCorreo() {
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "Reporte_Empresas.csv");
+        link.setAttribute("download", "Reporte_Proveedores_Correo.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -106,9 +131,9 @@ function AdminPreoveedorCorreo() {
     const imprimirDatos = () => {
         const data = prepararDatosParaExportar();
         const ventanaImpresion = window.open('', '', 'height=600,width=800');
-        let html = '<html><head><title>Imprimir Empresas</title>';
+        let html = '<html><head><title>Imprimir Proveedores de Correo</title>';
         html += '<style>table {width: 100%; border-collapse: collapse; font-family: Arial;} th, td {border: 1px solid black; padding: 8px; text-align: left;} th {background-color: #f2f2f2;}</style>';
-        html += '</head><body><h1>Reporte de Empresas</h1><table>';
+        html += '</head><body><h1>Reporte de Proveedores de Correo</h1><table>';
 
         if (data.length > 0) {
             html += '<thead><tr>';
@@ -136,7 +161,7 @@ function AdminPreoveedorCorreo() {
     const closeDialog = () => {
         setOpen(false);
         setNuevoDominio("")
-        setNuevonombre("")
+        setNuevoNombre("")
     }
 
     const closeDialogEdit = () => {
@@ -144,11 +169,10 @@ function AdminPreoveedorCorreo() {
     }
 
     // Filtrado y paginacion
-    const empresasFiltradas = empresas.filter((empresa) => {
-        const textoBusqueda = `${empresa.nombre_empresa || ''} ${empresa.rut_empresa || ''} ${empresa.direccion_empresa || ''} ${empresa.rut_empresa || ''}`.toLowerCase();
+    const proveedorFiltrado = proveedorCorreo.filter((pro) => {
+        const textoBusqueda = `${pro.nombre || ''} ${pro.dominio || ''} `.toLowerCase();
         const term = busqueda.toLowerCase();
         const coincideTexto = textoBusqueda.includes(term)
-
         return coincideTexto;
     });
 
@@ -295,32 +319,38 @@ function AdminPreoveedorCorreo() {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">
-                                        FEMASE
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        FEMASE.CL
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        femase.cl
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        2020-06-27 11:39:12
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        2020-06-27 18:00:00
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => setOpenEdit(true)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-
-                                
-
-                                {empresas.length === 0 && (
+                                {proveedorFiltrado.length > 0 ? (
+                                    proveedorFiltrado.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((pro) => (
+                                            <TableRow>
+                                                <TableCell align="center">
+                                                    {pro.id}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {pro.nombre}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {pro.dominio}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {pro.fechaCreacion}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {pro.fechaActualizacion}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton onClick={() => {
+                                                        setEditId(pro.id)
+                                                        setEditNombre(pro.nombre)
+                                                        setEditDominio(pro.dominio)
+                                                        setOpenEdit(true)
+                                                    }}>
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (proveedorCorreo.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={10} align="center" sx={{ alignItems: "center" }}>
                                             <Typography variant="body1" color="text.secondary">
@@ -328,7 +358,7 @@ function AdminPreoveedorCorreo() {
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
-                                )}
+                                ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -338,7 +368,7 @@ function AdminPreoveedorCorreo() {
                 <TablePagination
                     rowsPerPageOptions={[]}
                     component="div"
-                    count={empresasFiltradas.length}
+                    count={proveedorFiltrado.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -355,7 +385,7 @@ function AdminPreoveedorCorreo() {
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
 
-                                <DialogTitle sx={{ p: 0, mb: 3 }}>Agregar Nuevo Correo</DialogTitle>
+                                <DialogTitle sx={{ p: 0, mb: 3 }}>Agregar Nuevo Proveedor Correo</DialogTitle>
 
                                 {/* Campo nombre */}
                                 <Box sx={{ mb: 2 }}>
@@ -386,6 +416,7 @@ function AdminPreoveedorCorreo() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialog} color="error">Cancelar</Button>
                     <Button
+                    onClick={clickCrearProveedorCorreo}
                         variant="contained"
                         color="primary"
                     >
@@ -401,7 +432,7 @@ function AdminPreoveedorCorreo() {
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
 
-                                <DialogTitle sx={{ p: 0, mb: 3 }}>Editar Correo</DialogTitle>
+                                <DialogTitle sx={{ p: 0, mb: 3 }}>Editar Proveedor Correo</DialogTitle>
 
                                 {/* Campo nombre */}
                                 <Box sx={{ mb: 2 }}>
@@ -432,6 +463,7 @@ function AdminPreoveedorCorreo() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialogEdit} color="error">Cancelar</Button>
                     <Button
+                        onClick={clcickEditarProveedorCorreo}
                         variant="contained"
                         color="primary"
                     >

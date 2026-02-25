@@ -326,7 +326,12 @@ function AdminAFPs() {
                                                     {afp.nombre_afp}
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    {afp.estado_id}
+                                                    <CircleIcon
+                                                        sx={{
+                                                            fontSize: '1rem',
+                                                            color: afp.estado_id === 1 ? '#4caf50' : '#f44336'
+                                                        }}
+                                                    />
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     <IconButton onClick={() => {

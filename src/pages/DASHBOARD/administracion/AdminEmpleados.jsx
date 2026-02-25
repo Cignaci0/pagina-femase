@@ -415,7 +415,7 @@ function AdminEmpleados() {
                 turno: editTurno,
                 estado: editEstado
             };
-           
+
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
             setMensajeExito("Empleado actualizado exitosamente");
             llamarEmpleados();
@@ -713,9 +713,12 @@ function AdminEmpleados() {
                                                 {e.nombres}
                                             </TableCell>
                                             <TableCell align="center">
-                                                {<CircleIcon sx={{ color: e.estado?.estado_id === 1 ? "green" : "red" }}>
-
-                                                </CircleIcon>}
+                                                <CircleIcon
+                                                    sx={{
+                                                        fontSize: '1rem',
+                                                        color: e.estado?.estado_id === 1 ? '#4caf50' : '#f44336'
+                                                    }}
+                                                />
                                             </TableCell>
 
                                             <TableCell align="center">

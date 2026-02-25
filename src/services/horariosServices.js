@@ -25,7 +25,7 @@ export const obtenerHorarios = async () => {
 //Crear horario
 export const crearHorario = async (hora_entrada, hora_salida, empresa_id) => {
   const peticion = await fetch(`${API_URL}/horario`, {
-    method: "POST", 
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + window.localStorage.getItem("token"),
@@ -58,7 +58,7 @@ export const actualizarHorario = async (editId, hora_entrada, hora_salida, empre
       empresa: empresa
     }),
   });
-  
+
   const datos = await peticion.json();
   if (!peticion.ok) {
     throw new Error(datos.message || "Error al actualizar el horario");
