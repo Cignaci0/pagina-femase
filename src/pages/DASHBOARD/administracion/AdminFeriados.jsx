@@ -10,7 +10,6 @@ import {
     Checkbox
 } from "@mui/material";
 import { regiones, comunas } from "../../../utils/dataGeografica";
-import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -19,11 +18,12 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 dayjs.locale("es");
+import { crearFeriado, editarFeriado , obtenerFeriados} from "../../../services/feriadosServices";
 
 function AdminFeriados() {
 
     // Estados de datos
-    const [cencos, setCencos] = useState([])
+    const [feriados, setFeriados] = useState([])
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("");
@@ -38,7 +38,7 @@ function AdminFeriados() {
 
     // Estados crear
     const [open, setOpen] = useState(false);
-    const [nuevoNombre, setnuevoNombre] = useState("")
+    const [nuevoNombre, setNuevoNombre] = useState("")
     const [nuevoFecha, setNuevoFecha] = useState(null)
     const [nuevoTipo, setNuevoTipo] = useState("")
     const [nuevoTipoFeriado, setNuevoTipoFeriado] = useState("")
@@ -51,6 +51,7 @@ function AdminFeriados() {
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
+    const [editId, setEditId] = useState("")
     const [editNombre, setEditNombre] = useState("")
     const [editFecha, setEditFecha] = useState(null)
     const [editTipo, setEditTipo] = useState("")
@@ -65,16 +66,62 @@ function AdminFeriados() {
     // Carga de datos
     const cargarDatosIniciales = async () => {
         try {
-            const [dataCencos] = await Promise.all([
-                obtenerCentroCostos(),
-            ]);
-            setCencos(dataCencos);
+            const respuesta = await obtenerFeriados()
+            setFeriados(respuesta)
         } catch (err) {
             setError(err.message);
         } finally {
             setCargando(false);
         }
     };
+
+    //Crear feriados
+    const clickCrearFeriado = async () => {
+        try {
+            const datos = {
+                fecha: nuevoFecha ? nuevoFecha.format("DD-MM-YYYY") : null,
+                tipo_feriado: nuevoTipoFeriado,
+                nombre: nuevoNombre,
+                observacion: nuevoObservacion,
+                irrenunciable: nuevoIrrenunciable,
+                tipo: nuevoTipo,
+                respaldo_legal: nuevoRespaldoLegal,
+                region: regiones.find(r => r.id === nuevoRegion)?.nombre || nuevoRegion,
+                comuna: nuevoComuna
+            }
+            console.log(datos)
+            const respuesta = await crearFeriado(datos)
+            setMensajeExito("Feriado creado exitosamente")
+            closeDialog()
+            cargarDatosIniciales()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    //Editar feriados
+    const clickEditarFeriado = async () => {
+        try {
+            const datos = {
+                fecha: editFecha ? editFecha.format("DD-MM-YYYY") : null,
+                tipo_feriado: editTipoFeriado,
+                nombre: editNombre,
+                observacion: editObservacion,
+                irrenunciable: editIrrenunciable,
+                tipo: editTipo,
+                respaldo_legal: editRespaldoLegal,
+                region: regiones.find(r => r.id === editRegion)?.nombre || editRegion,
+                comuna: editComuna
+            }
+            console.log(datos)
+            const respuesta = await editarFeriado(editId, datos)
+            setMensajeExito("Feriado editado exitosamente")
+            closeDialogEdit()
+            cargarDatosIniciales()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
 
     // Manejo de region y comuna
     const handleCambioRegion = (evento) => {
@@ -98,7 +145,7 @@ function AdminFeriados() {
         setOpen(false)
         setNuevoFecha(null)
         setNuevoTipoFeriado("")
-        setnuevoNombre("")
+        setNuevoNombre("")
         setNuevoObservacion("")
         setNuevoIrrenunciable("")
         setNuevoTipo("")
@@ -112,13 +159,14 @@ function AdminFeriados() {
     }
 
     // Filtrado y paginacion
-    const cencosFiltradas = cencos.filter((cenco) => {
-        const textoBusqueda = `${cenco.nombre_cenco || ''}`.toLowerCase();
+    const feriadosFiltrados = feriados.filter((f) => {
+        const textoBusqueda = `${f.nombre || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
-        const coincideTexto = textoBusqueda.includes(term)
-        const coincideDepartamento = filtroMes ? cenco.departamento?.departamento_id === filtroMes : true
-        const coincideEstado = filtroTipoFeriado ? cenco.estado?.estado_id === filtroTipoFeriado : true
-        return coincideTexto && coincideEstado && coincideDepartamento
+        const coincideTexto = textoBusqueda.includes(term);
+        const coincideAno = f.fecha.includes(filtroAño);
+        const coincideMes = f.fecha.includes(filtroMes);
+        const coincideTipoFeriado = !filtroTipoFeriado || (f.tipo_feriado || "").toLowerCase().includes(filtroTipoFeriado.toLowerCase());
+        return coincideTexto && coincideAno && coincideMes && coincideTipoFeriado;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -137,7 +185,7 @@ function AdminFeriados() {
 
     useEffect(() => {
         setPagina(0);
-    }, [busqueda, filtroAño, filtroTipoFeriado]);
+    }, [busqueda, filtroAño, filtroMes, filtroTipoFeriado]);
 
     useEffect(() => {
         if (mensajeExito) {
@@ -198,18 +246,18 @@ function AdminFeriados() {
                         <InputLabel>Mes</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
-                            <MenuItem value="enero"><em>Enero</em></MenuItem>
-                            <MenuItem value="febrero"><em>Febrero</em></MenuItem>
-                            <MenuItem value="marzo"><em>Marzo</em></MenuItem>
-                            <MenuItem value="abril"><em>Abril</em></MenuItem>
-                            <MenuItem value="mayo"><em>Mayo</em></MenuItem>
-                            <MenuItem value="junio"><em>Junio</em></MenuItem>
-                            <MenuItem value="julio"><em>Julio</em></MenuItem>
-                            <MenuItem value="agosto"><em>Agosto</em></MenuItem>
-                            <MenuItem value="septiembre"><em>Septiembre</em></MenuItem>
-                            <MenuItem value="octubre"><em>Octubre</em></MenuItem>
-                            <MenuItem value="noviembre"><em>Noviembre</em></MenuItem>
-                            <MenuItem value="diciembre"><em>Diciembre</em></MenuItem>
+                            <MenuItem value="-01-"><em>Enero</em></MenuItem>
+                            <MenuItem value="-02-"><em>Febrero</em></MenuItem>
+                            <MenuItem value="-03-"><em>Marzo</em></MenuItem>
+                            <MenuItem value="-04-"><em>Abril</em></MenuItem>
+                            <MenuItem value="-05-"><em>Mayo</em></MenuItem>
+                            <MenuItem value="-06-"><em>Junio</em></MenuItem>
+                            <MenuItem value="-07-"><em>Julio</em></MenuItem>
+                            <MenuItem value="-08-"><em>Agosto</em></MenuItem>
+                            <MenuItem value="-09-"><em>Septiembre</em></MenuItem>
+                            <MenuItem value="-10-"><em>Octubre</em></MenuItem>
+                            <MenuItem value="-11-"><em>Noviembre</em></MenuItem>
+                            <MenuItem value="-12-"><em>Diciembre</em></MenuItem>
                         </Select>
                     </FormControl>
 
@@ -218,7 +266,7 @@ function AdminFeriados() {
                         <InputLabel>Tipo Feriado</InputLabel>
                         <Select sx={{ width: "20vh" }} label="Estado" value={filtroTipoFeriado} onChange={(e) => setFiltroTipoFeriado(e.target.value)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
-                            <MenuItem value="Regional"><em>Regional</em></MenuItem>
+                            <MenuItem value="regional"><em>Regional</em></MenuItem>
                             <MenuItem value="comunal"><em>Comunal</em></MenuItem>
                             <MenuItem value="nacional"><em>Nacional</em></MenuItem>
                         </Select>
@@ -246,53 +294,87 @@ function AdminFeriados() {
                                     <TableCell align="center"><strong>Respaldo Legal</strong></TableCell>
                                     <TableCell align="center"><strong>Región</strong></TableCell>
                                     <TableCell align="center"><strong>Comuna</strong></TableCell>
-                                    <TableCell align="center"><strong>Fecha creación</strong></TableCell>
-                                    <TableCell align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">
-                                        2026-01-01
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Nacional
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Año nuevo
-                                    </TableCell>
-                                    <TableCell align="center">
+                                {feriadosFiltrados.length > 0 ? (
+                                    feriadosFiltrados.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((f) => (
+                                            <TableRow>
+                                                <TableCell align="center">
+                                                    {f.fecha}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.tipo_feriado}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.nombre}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.observacion}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.irrenunciable ? "si" : "no"}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.tipo}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.respaldo_legal}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {regiones.find(r => r.id === f.region || r.nombre === f.region)?.nombre || f.region}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {f.comuna}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton onClick={() => {
+                                                        setOpenEdit(true)
+                                                        setEditId(f.id)
+                                                        setEditNombre(f.nombre)
 
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Si
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Civil
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Ley 2.977, Ley 19.973
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Region Metropolitana
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Maipu
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        2026-01-06 12:33:00
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        2026-01-06 21:40:47
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => setOpenEdit(true)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
+                                                        const partesFecha = (f.fecha || "").split("-");
+                                                        if (partesFecha.length === 3) {
+                                                            setEditFecha(dayjs(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`));
+                                                        } else {
+                                                            setEditFecha(dayjs(f.fecha));
+                                                        }
+
+                                                        setEditTipo(f.tipo ? f.tipo.toLowerCase() : "")
+                                                        setEditTipoFeriado(f.tipo_feriado ? f.tipo_feriado.toLowerCase() : "")
+                                                        setEditObservacion(f.observacion)
+                                                        setEditIrrenunciable(f.irrenunciable)
+                                                        setEditRespaldoLegal(f.respaldo_legal)
+
+                                                        const regFound = regiones.find(r => r.nombre === f.region || r.id === f.region);
+                                                        if (regFound) {
+                                                            setEditRegion(regFound.id);
+                                                            setComunasFiltradasEdit(comunas.filter(c => c.regionId === regFound.id));
+                                                        } else {
+                                                            setEditRegion("");
+                                                            setComunasFiltradasEdit([]);
+                                                        }
+
+                                                        setEditComuna(f.comuna)
+                                                    }}>
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (feriadosFiltrados.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={10} align="center" sx={{ alignItems: "center" }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                No se encontraron Feriados.
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -302,7 +384,7 @@ function AdminFeriados() {
                 <TablePagination
                     rowsPerPageOptions={[]}
                     component="div"
-                    count={cencosFiltradas.length}
+                    count={feriadosFiltrados.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -355,7 +437,7 @@ function AdminFeriados() {
 
                             {/* Campo nombre */}
                             <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Nombre" size="small" value={nuevoNombre} onChange={(e) => setnuevoNombre(e.target.value)} helperText={nuevoNombre.trim() === "" ? "El nombre es obligatorio" : ""} />
+                                <TextField fullWidth label="Nombre" size="small" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} helperText={nuevoNombre.trim() === "" ? "El nombre es obligatorio" : ""} />
                             </Box>
 
                             {/* Campo observacion */}
@@ -367,8 +449,8 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Irrenunciable</InputLabel>
                                 <Select label="Irrenunciable" value={nuevoIrrenunciable} onChange={(e) => setNuevoIrrenunciable(e.target.value)}>
-                                    <MenuItem value={1}>SI</MenuItem>
-                                    <MenuItem value={2}>NO</MenuItem>
+                                    <MenuItem value={true}>SI</MenuItem>
+                                    <MenuItem value={false}>NO</MenuItem>
                                 </Select>
                                 {nuevoIrrenunciable === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                             </FormControl>
@@ -377,8 +459,8 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Tipo</InputLabel>
                                 <Select label="Tipo" value={nuevoTipo} onChange={(e) => setNuevoTipo(e.target.value)}>
-                                    <MenuItem value={1}>Civil</MenuItem>
-                                    <MenuItem value={2}>Religioso</MenuItem>
+                                    <MenuItem value={"civil"}>Civil</MenuItem>
+                                    <MenuItem value={"religioso"}>Religioso</MenuItem>
                                 </Select>
                                 {nuevoTipo === "" && <FormHelperText>El Tipo es obligatorio</FormHelperText>}
                             </FormControl>
@@ -411,7 +493,7 @@ function AdminFeriados() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialog} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickCrearFeriado} variant="contained" color="primary">Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -470,8 +552,8 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Irrenunciable</InputLabel>
                                 <Select label="Irrenunciable" value={editIrrenunciable} onChange={(e) => setEditIrrenunciable(e.target.value)}>
-                                    <MenuItem value={1}>SI</MenuItem>
-                                    <MenuItem value={2}>NO</MenuItem>
+                                    <MenuItem value={true}>SI</MenuItem>
+                                    <MenuItem value={false}>NO</MenuItem>
                                 </Select>
                                 {editIrrenunciable === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                             </FormControl>
@@ -480,8 +562,8 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Tipo</InputLabel>
                                 <Select label="Tipo" value={editTipo} onChange={(e) => setEditTipo(e.target.value)}>
-                                    <MenuItem value={1}>Civil</MenuItem>
-                                    <MenuItem value={2}>Religioso</MenuItem>
+                                    <MenuItem value={"civil"}>Civil</MenuItem>
+                                    <MenuItem value={"religioso"}>Religioso</MenuItem>
                                 </Select>
                                 {editTipo === "" && <FormHelperText>El Tipo es obligatorio</FormHelperText>}
                             </FormControl>
@@ -514,7 +596,7 @@ function AdminFeriados() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialogEdit} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar Cambios</Button>
+                    <Button onClick={clickEditarFeriado} variant="contained" color="primary">Guardar Cambios</Button>
                 </DialogActions>
             </Dialog>
 

@@ -239,7 +239,7 @@ function AdminTurnosRotativosAsignacion() {
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9", mx: "auto" }}>
                                 <DialogTitle>Historial de turnos asignados</DialogTitle>
                                 <TableContainer component={Paper} variant="outlined" sx={{ flex: 1, minHeight: '366px', width: '100%', overflow: 'auto' }}>
-                                    <Table stickyHeader sx={{ minWidth: 650 }} aria-label="tabla de turnos" stickyHeader>
+                                    <Table stickyHeader sx={{ minWidth: 650 }} aria-label="tabla de turnos">
                                         <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                             <TableRow>
                                                 <TableCell width="20%" align="center" sx={{ fontWeight: 'bold' }}>Seleccionar</TableCell>

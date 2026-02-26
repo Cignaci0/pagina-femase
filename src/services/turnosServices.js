@@ -48,10 +48,10 @@ export const crearTurno = async (nombre, es_rotativo, empresa, estado, horario) 
 
 //Actualizar turno
 export const actualizarTurno = async (editId, nombre, es_rotativo, empresa, estado, horario) => {
-  const peticion = await fetch(`${API_URL}/turno/${editId}`, {
+  const peticion = await fetch(`${API_URL}/turno/actualizar/${editId}`, {
     method: "PATCH",
     headers: {
-      "Content-Type": "application/json", 
+      "Content-Type": "application/json",
       "Authorization": "Bearer " + window.localStorage.getItem("token"),
     },
     body: JSON.stringify({
@@ -62,7 +62,7 @@ export const actualizarTurno = async (editId, nombre, es_rotativo, empresa, esta
       horario: horario
     }),
   });
-  
+
   const data = await peticion.json();
 
   if (!peticion.ok) {
@@ -70,3 +70,23 @@ export const actualizarTurno = async (editId, nombre, es_rotativo, empresa, esta
   }
   return data;
 };
+
+export const asignarDias = async (id, dias) => {
+  const peticion = await fetch(`${API_URL}/turno/asignar-dias/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      dias: dias
+    }),
+  });
+
+  const data = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(data.message || "Error al asignar dias al turno");
+  }
+  return data;
+};
+

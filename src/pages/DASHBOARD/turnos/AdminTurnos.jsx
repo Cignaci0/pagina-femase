@@ -15,9 +15,7 @@ import {
 } from "@mui/material";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { obtenerDepartamentos, crearDepto, actualizarDepto } from "../../../services/departamentosServices";
-import { obtenerCargos, crearCargo, actualizarCargo } from "../../../services/cargosServices";
-import { obtenerTurnos, crearTurno, actualizarTurno} from "../../../services/turnosServices";
+import { obtenerTurnos, crearTurno, actualizarTurno, asignarDias } from "../../../services/turnosServices";
 import { obtenerHorarios } from "../../../services/horariosServices"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -25,9 +23,6 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
-import { Label } from "@mui/icons-material";
-import { FaFileExcel, FaFileCsv } from "react-icons/fa";
-import * as XLSX from 'xlsx';
 
 function AdminTurnos() {
 
@@ -35,7 +30,7 @@ function AdminTurnos() {
     const [turnos, setTurnos] = useState([])
     const [empresas, setEmpresas] = useState([])
     const [horarios, setHorarios] = useState([])
-    const [perfiles, setperfiles] = useState([]) // Del código original
+    const [perfiles, setperfiles] = useState([])
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("")
@@ -144,17 +139,20 @@ function AdminTurnos() {
         }
     }
 
-    // Exportacion
-    // (No definida en este archivo)
+
 
     // Manejo de dialogs
-    const [asignar, setAsignar] = useState("")
+    const [asignar, setAsignar] = useState(false)
     const [detalle, setDetalle] = useState(false)
-    const [detalleCrear, setDetalleCrear] = useState(false)
-    const [detalleEditar, setDetalleEditar] = useState(false)
+    const [idTurnoDias, setIdTurnoDias] = useState(null)
+    const [diasSeleccionados, setDiasSeleccionados] = useState([])
 
     const cerrarAsignar = () => { setAsignar(false) }
-    const cerrarDetalle = () => { setDetalle(false) }
+    const cerrarDetalle = () => {
+        setDetalle(false)
+        setIdTurnoDias(null)
+        setDiasSeleccionados([])
+    }
     const cerrarCrear = () => {
         setCrear(false)
         setEmpresaCrear("")
@@ -164,8 +162,6 @@ function AdminTurnos() {
         setHorarioCrear("")
     }
     const cerrarEditar = () => { setEditar(false) }
-    const cerrarDetallesCrear = () => { setDetalleCrear(false) }
-    const cerrarDetalleEditar = () => { setDetalleEditar(false) }
 
     const clickCrear = async () => {
         setCargando(true)
@@ -197,6 +193,35 @@ function AdminTurnos() {
             setError(err.message);
         } finally {
             setCargando(false);
+        }
+    }
+
+    const clickGuardarDias = async () => {
+        setCargando(true)
+        try {
+            // Aseguramos que solo viajen números del 1 al 7, por si quedó basura en el estado de React
+            const diasValidos = diasSeleccionados.filter(d => typeof d === 'number' && d >= 1 && d <= 7);
+            const diasOrdenados = [...diasValidos].sort((a, b) => a - b);
+
+            console.log("Lo que se envía a la API finalmente será: ", JSON.stringify({ dias: diasOrdenados }));
+
+            await asignarDias(idTurnoDias, diasOrdenados)
+            setMensajeExito("Días asignados correctamente")
+            cerrarDetalle()
+            cargarTurnos()
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setCargando(false)
+        }
+    }
+
+
+    const handleToggleDia = (valorDia) => {
+        if (diasSeleccionados.includes(valorDia)) {
+            setDiasSeleccionados(diasSeleccionados.filter(d => d !== valorDia));
+        } else {
+            setDiasSeleccionados([...diasSeleccionados, valorDia]);
         }
     }
 
@@ -410,6 +435,19 @@ function AdminTurnos() {
                                                         }}
                                                         onClick={() => {
                                                             setDetalle(true)
+                                                            setIdTurnoDias(tur.turno_id)
+                                                            if (tur.dias && Array.isArray(tur.dias)) {
+                                                                // Extraer el "cod_dia" de la semana en lugar del "id" relacional
+                                                                const diasExtraidos = [];
+                                                                for (let i = 0; i < tur.dias.length; i++) {
+                                                                    if (tur.dias[i].semana && tur.dias[i].semana.cod_dia) {
+                                                                        diasExtraidos.push(tur.dias[i].semana.cod_dia);
+                                                                    }
+                                                                }
+                                                                setDiasSeleccionados(diasExtraidos);
+                                                            } else {
+                                                                setDiasSeleccionados([]);
+                                                            }
                                                         }}
                                                     >
                                                         Asignar Días
@@ -452,7 +490,7 @@ function AdminTurnos() {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                
+
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -743,35 +781,40 @@ function AdminTurnos() {
                                 gap: 1.5
                             }}
                         >
-                            {["L", "M", "M", "J", "V", "S", "D"].map((dia, index) => (
-                                <FormControlLabel
-                                    key={index}
-                                    labelPlacement="top"
-                                    control={
-                                        <Checkbox
-                                            size="small"
-                                            sx={{
-                                                padding: 0.5,
-                                                '&.Mui-checked': { color: '#1976d2' }
-                                            }}
-                                        />
-                                    }
-                                    label={
-                                        <Typography
-                                            variant="caption"
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                color: 'text.secondary',
-                                                width: '20px', 
-                                                textAlign: 'center'
-                                            }}
-                                        >
-                                            {dia}
-                                        </Typography>
-                                    }
-                                    sx={{ margin: 0 }}
-                                />
-                            ))}
+                            {["L", "M", "M", "J", "V", "S", "D"].map((dia, index) => {
+                                const valorDia = index + 1;
+                                return (
+                                    <FormControlLabel
+                                        key={index}
+                                        labelPlacement="top"
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={diasSeleccionados.includes(valorDia)}
+                                                onChange={() => handleToggleDia(valorDia)}
+                                                sx={{
+                                                    padding: 0.5,
+                                                    '&.Mui-checked': { color: '#1976d2' }
+                                                }}
+                                            />
+                                        }
+                                        label={
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    fontWeight: 'bold',
+                                                    color: 'text.secondary',
+                                                    width: '20px',
+                                                    textAlign: 'center'
+                                                }}
+                                            >
+                                                {dia}
+                                            </Typography>
+                                        }
+                                        sx={{ margin: 0 }}
+                                    />
+                                )
+                            })}
                         </FormGroup>
 
                     </Box>
@@ -786,7 +829,7 @@ function AdminTurnos() {
                     <Button onClick={cerrarDetalle} color="error" sx={{ minWidth: 100 }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }}>
+                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} onClick={clickGuardarDias}>
                         Guardar
                     </Button>
                 </DialogActions>
