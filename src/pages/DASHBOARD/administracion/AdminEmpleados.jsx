@@ -1534,18 +1534,6 @@ function AdminEmpleados() {
                             </FormControl>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Turno</InputLabel>
-                                <Select label="Turno" value={editTurno} onChange={(e) => setEditTurno(e.target.value)}>
-                                    {turnos.map((turn) => (
-                                        <MenuItem key={turn.turno_id} value={turn.turno_id}>
-                                            {turn.nombre}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {editTurno === "" && <FormHelperText>El Turno es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Cargo</InputLabel>
                                 <Select label="Cargo" value={editCargo} onChange={(e) => setEditCargo(e.target.value)}>
                                     {cargos.map((car) => (

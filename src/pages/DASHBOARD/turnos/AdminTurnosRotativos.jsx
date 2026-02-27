@@ -21,7 +21,7 @@ function AdminTurnosRotativos() {
 
     // Estados de datos
     const [empresas, setEmpresas] = useState([])
-    const [cargos, setcargos] = useState("")
+    const [cargos, setcargos] = useState([])
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("")
 
@@ -237,7 +237,7 @@ function AdminTurnosRotativos() {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                     labelRowsPerPage=""
                     labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-                /> 
+                />
             </Paper>
 
             {/* Dialog crear */}
@@ -267,7 +267,7 @@ function AdminTurnosRotativos() {
                                     <TextField fullWidth label="Mins Colación" size="small" />
                                 </Box>
 
-                                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>                                    
+                                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                                     <FormControl size="small" fullWidth   >
                                         <InputLabel>Nocturno</InputLabel>
                                         <Select label="Nocturno">
@@ -331,7 +331,7 @@ function AdminTurnosRotativos() {
                                     <TextField fullWidth label="Mins Colación" size="small" />
                                 </Box>
 
-                                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>                                    
+                                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                                     <FormControl size="small" fullWidth >
                                         <InputLabel>Aplicar a todos los turnos</InputLabel>
                                         <Select label="Aplicar a todos los turnos" >

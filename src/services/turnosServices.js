@@ -90,3 +90,21 @@ export const asignarDias = async (id, dias) => {
   return data;
 };
 
+export const asignarEmpleados = async (id, empleadosIds)=>{
+  const peticion = await fetch(`${API_URL}/turno/asignar-empleados/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      empleadosIds: empleadosIds
+    }),
+  });
+
+  const data = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(data.message || "Error al asignar empleados al turno");
+  }
+  return data;
+}

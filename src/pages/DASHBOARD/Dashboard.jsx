@@ -122,7 +122,7 @@ const COMPONENTES_VISTA = {
   "Carga Vacaciones": <CargaVacaciones />,
 
   // CONFIGURACION DE SISTEMA
-  "modulos Sistema": <AdminModuloSistea />,
+  "Sistema": <AdminModuloSistea />,
   "Accesos": <AdminAccesos />,
 
   // MARCAS ASISTENCIA

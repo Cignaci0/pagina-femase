@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { obtenerTurnos, crearTurno, actualizarTurno, asignarDias } from "../../../services/turnosServices";
+import { obtenerTurnos, crearTurno, actualizarTurno, asignarDias, asignarEmpleados } from "../../../services/turnosServices";
 import { obtenerHorarios } from "../../../services/horariosServices"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -23,6 +23,11 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
+import { obtenerEmpleados } from "../../../services/empleadosServices"
+import { obtenerDepartamentos } from "../../../services/departamentosServices"
+import { obtenerCentroCostos } from "../../../services/centroCostosServices"
+import { obtenerCargos } from "../../../services/cargosServices"
+
 
 function AdminTurnos() {
 
@@ -30,7 +35,7 @@ function AdminTurnos() {
     const [turnos, setTurnos] = useState([])
     const [empresas, setEmpresas] = useState([])
     const [horarios, setHorarios] = useState([])
-    const [perfiles, setperfiles] = useState([])
+    const [empleados, setEmpleados] = useState([])
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("")
@@ -102,6 +107,17 @@ function AdminTurnos() {
         }
     };
 
+    const cargarEmpleados = async () => {
+        try {
+            const respuesta = await obtenerEmpleados()
+            setEmpleados(respuesta)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setCargando(false)
+        }
+    }
+
     const cargarHorariosFiltrosCrear = async () => {
         setCargando(true)
         try {
@@ -147,7 +163,51 @@ function AdminTurnos() {
     const [idTurnoDias, setIdTurnoDias] = useState(null)
     const [diasSeleccionados, setDiasSeleccionados] = useState([])
 
-    const cerrarAsignar = () => { setAsignar(false) }
+    const [idTurnoAsignar, setIdTurnoAsignar] = useState(null);
+    const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
+    const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
+    const [checkedEmpleados, setCheckedEmpleados] = useState([]);
+
+    // Filtros de asignacion
+    const [departamentos, setDepartamentos] = useState([]);
+    const [cencos, setCencos] = useState([]);
+    const [cargos, setCargos] = useState([]);
+
+    const [filtroEmpresaAsignar, setFiltroEmpresaAsignar] = useState("");
+    const [filtroDepartamentoAsignar, setFiltroDepartamentoAsignar] = useState("");
+    const [filtroCencoAsignar, setFiltroCencoAsignar] = useState("");
+    const [filtroCargoAsignar, setFiltroCargoAsignar] = useState("");
+
+    const cargarDatosFiltrosAsignacion = async () => {
+        try {
+            const [dataDeptos, dataCencos, dataCargos] = await Promise.all([
+                obtenerDepartamentos(),
+                obtenerCentroCostos(),
+                obtenerCargos()
+            ]);
+            setDepartamentos(Array.isArray(dataDeptos) ? dataDeptos : [dataDeptos]);
+            setCencos(Array.isArray(dataCencos) ? dataCencos : [dataCencos]);
+            setCargos(Array.isArray(dataCargos) ? dataCargos : [dataCargos]);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    useEffect(() => {
+        cargarDatosFiltrosAsignacion();
+    }, []);
+
+    const cerrarAsignar = () => {
+        setAsignar(false);
+        setIdTurnoAsignar(null);
+        setEmpleadosDisponibles([]);
+        setEmpleadosAsignados([]);
+        setCheckedEmpleados([]);
+        setFiltroEmpresaAsignar("");
+        setFiltroDepartamentoAsignar("");
+        setFiltroCencoAsignar("");
+        setFiltroCargoAsignar("");
+    }
     const cerrarDetalle = () => {
         setDetalle(false)
         setIdTurnoDias(null)
@@ -216,6 +276,58 @@ function AdminTurnos() {
         }
     }
 
+    const clickGuardarAsignacion = async () => {
+        setCargando(true);
+        try {
+            const empleadosIds = empleadosAsignados.map(emp => emp.empleado_id);
+            await asignarEmpleados(idTurnoAsignar, empleadosIds);
+            setMensajeExito("Empleados asignados correctamente");
+            cerrarAsignar();
+            cargarEmpleados();
+            cargarTurnos();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const handleToggleEmpleado = (value) => {
+        const currentIndex = checkedEmpleados.indexOf(value);
+        const newChecked = [...checkedEmpleados];
+
+        if (currentIndex === -1) {
+            newChecked.push(value);
+        } else {
+            newChecked.splice(currentIndex, 1);
+        }
+
+        setCheckedEmpleados(newChecked);
+    };
+
+    const handleAllRight = () => {
+        setEmpleadosAsignados(empleadosAsignados.concat(empleadosDisponibles));
+        setEmpleadosDisponibles([]);
+    };
+
+    const handleCheckedRight = () => {
+        const leftChecked = empleadosDisponibles.filter(emp => checkedEmpleados.includes(emp.empleado_id));
+        setEmpleadosDisponibles(empleadosDisponibles.filter(emp => !checkedEmpleados.includes(emp.empleado_id)));
+        setEmpleadosAsignados(empleadosAsignados.concat(leftChecked));
+        setCheckedEmpleados(checkedEmpleados.filter(id => !leftChecked.map(e => e.empleado_id).includes(id)));
+    };
+
+    const handleCheckedLeft = () => {
+        const rightChecked = empleadosAsignados.filter(emp => checkedEmpleados.includes(emp.empleado_id));
+        setEmpleadosAsignados(empleadosAsignados.filter(emp => !checkedEmpleados.includes(emp.empleado_id)));
+        setEmpleadosDisponibles(empleadosDisponibles.concat(rightChecked));
+        setCheckedEmpleados(checkedEmpleados.filter(id => !rightChecked.map(e => e.empleado_id).includes(id)));
+    };
+
+    const handleAllLeft = () => {
+        setEmpleadosDisponibles(empleadosDisponibles.concat(empleadosAsignados));
+        setEmpleadosAsignados([]);
+    };
 
     const handleToggleDia = (valorDia) => {
         if (diasSeleccionados.includes(valorDia)) {
@@ -247,6 +359,10 @@ function AdminTurnos() {
     // Effects
     useEffect(() => {
         cargarTurnos();
+    }, []);
+
+    useEffect(() => {
+        cargarEmpleados();
     }, []);
 
     useEffect(() => {
@@ -390,10 +506,8 @@ function AdminTurnos() {
                                     <TableCell width="20%" align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Rotativo</strong></TableCell>
                                     <TableCell width="10%" align="center"><strong>Estado</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Fecha creación</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Fecha Actualización</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Detalle</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Asignar</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Asiganar Dias</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Asignar Empleados</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
@@ -421,12 +535,7 @@ function AdminTurnos() {
                                                         }}
                                                     />
                                                 </TableCell>
-                                                <TableCell align="center">
-                                                    {tur.fecha_creacion}
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    {tur.fecha_actualizacion}
-                                                </TableCell>
+                                                
                                                 < TableCell align="center">
                                                     <Button
                                                         variant="contained"
@@ -456,7 +565,20 @@ function AdminTurnos() {
                                                 <TableCell align="center">
                                                     <Button
                                                         variant="contained"
-                                                        onClick={() => setAsignar(true)}
+                                                        onClick={() => {
+                                                            setAsignar(true);
+                                                            setIdTurnoAsignar(tur.turno_id);
+                                                            setFiltroEmpresaAsignar("");
+                                                            setFiltroDepartamentoAsignar("");
+                                                            setFiltroCencoAsignar("");
+                                                            setFiltroCargoAsignar("");
+
+                                                            const assigned = empleados.filter(emp => emp.turno?.turno_id === tur.turno_id);
+                                                            const available = empleados.filter(emp => !emp.turno || !emp.turno.turno_id);
+                                                            setEmpleadosAsignados(assigned);
+                                                            setEmpleadosDisponibles(available);
+                                                            setCheckedEmpleados([]);
+                                                        }}
                                                         sx={{
                                                             fontSize: "0.7rem", lineHeight: 1, color: "black", p: 0.9, bgcolor: "rgb(241, 241, 241)"
                                                         }}
@@ -689,29 +811,68 @@ function AdminTurnos() {
                                     <Stack direction="row" spacing={2} alignItems="center">
                                         <FormControl size="small" sx={{ minWidth: 170 }}>
                                             <InputLabel>Empresa</InputLabel>
-                                            <Select label="Perfil de usuario">
-                                                <MenuItem>hola</MenuItem>
+                                            <Select
+                                                label="Empresa"
+                                                value={filtroEmpresaAsignar}
+                                                onChange={(e) => {
+                                                    setFiltroEmpresaAsignar(e.target.value);
+                                                    setFiltroDepartamentoAsignar(""); // Reset upon change
+                                                    setFiltroCencoAsignar("");
+                                                }}
+                                            >
+                                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                                {empresas.map((emp) => (
+                                                    <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
+                                                ))}
                                             </Select>
                                         </FormControl>
 
-                                        <FormControl size="small" sx={{ minWidth: 170 }}>
+                                        <FormControl size="small" sx={{ minWidth: 170 }} disabled={!filtroEmpresaAsignar}>
                                             <InputLabel>Departamento</InputLabel>
-                                            <Select label="Perfil de usuario">
-                                                <MenuItem>hola</MenuItem>
+                                            <Select
+                                                label="Departamento"
+                                                value={filtroDepartamentoAsignar}
+                                                onChange={(e) => {
+                                                    setFiltroDepartamentoAsignar(e.target.value);
+                                                    setFiltroCencoAsignar(""); // Reset upon change
+                                                }}
+                                            >
+                                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                                {departamentos
+                                                    .filter(dep => dep.empresa?.empresa_id === filtroEmpresaAsignar)
+                                                    .map((dep) => (
+                                                        <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
+                                                    ))}
                                             </Select>
                                         </FormControl>
 
-                                        <FormControl size="small" sx={{ minWidth: 170 }}>
+                                        <FormControl size="small" sx={{ minWidth: 170 }} disabled={!filtroDepartamentoAsignar}>
                                             <InputLabel>Centro de costo</InputLabel>
-                                            <Select label="Perfil de usuario">
-                                                <MenuItem>hola</MenuItem>
+                                            <Select
+                                                label="Centro de costo"
+                                                value={filtroCencoAsignar}
+                                                onChange={(e) => setFiltroCencoAsignar(e.target.value)}
+                                            >
+                                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                                {cencos
+                                                    .filter(cenco => cenco.departamento?.departamento_id === filtroDepartamentoAsignar)
+                                                    .map((cenco) => (
+                                                        <MenuItem key={cenco.cenco_id} value={cenco.cenco_id}>{cenco.nombre_cenco}</MenuItem>
+                                                    ))}
                                             </Select>
                                         </FormControl>
 
                                         <FormControl size="small" sx={{ minWidth: 170 }}>
                                             <InputLabel>Cargo</InputLabel>
-                                            <Select label="Perfil de usuario">
-                                                <MenuItem>hola</MenuItem>
+                                            <Select
+                                                label="Cargo"
+                                                value={filtroCargoAsignar}
+                                                onChange={(e) => setFiltroCargoAsignar(e.target.value)}
+                                            >
+                                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                                {cargos.map((cargo) => (
+                                                    <MenuItem key={cargo.cargo_id} value={cargo.cargo_id}>{cargo.nombre}</MenuItem>
+                                                ))}
                                             </Select>
                                         </FormControl>
                                     </Stack>
@@ -725,17 +886,44 @@ function AdminTurnos() {
                                             Empleados disponibles
                                         </Typography>
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
-                                            <List dense>
-                                                <ListItemText primary="Izquierda" sx={{ pl: 2 }} />
+                                            <List dense component="div" role="list">
+                                                {empleadosDisponibles
+                                                    .filter(emp => {
+                                                        const matchEmpresa = filtroEmpresaAsignar ? emp.empresa?.empresa_id === filtroEmpresaAsignar : true;
+                                                        const matchCenco = filtroCencoAsignar
+                                                            ? emp.cencos?.some(c => c.cenco_id === filtroCencoAsignar)
+                                                            : true;
+                                                        const matchCargo = filtroCargoAsignar ? emp.cargo?.cargo_id === filtroCargoAsignar : true;
+                                                        return matchEmpresa && matchCenco && matchCargo;
+                                                    })
+                                                    .map((value) => {
+                                                        const labelId = `transfer-list-item-${value.empleado_id}-label`;
+                                                        return (
+                                                            <ListItem
+                                                                key={value.empleado_id}
+                                                                role="listitem"
+                                                                button
+                                                                onClick={() => handleToggleEmpleado(value.empleado_id)}
+                                                            >
+                                                                <Checkbox
+                                                                    checked={checkedEmpleados.indexOf(value.empleado_id) !== -1}
+                                                                    tabIndex={-1}
+                                                                    disableRipple
+                                                                    inputProps={{ 'aria-labelledby': labelId }}
+                                                                />
+                                                                <ListItemText id={labelId} primary={`${value.nombres} ${value.apellido_paterno} ${value.apellido_materno}`} />
+                                                            </ListItem>
+                                                        );
+                                                    })}
                                             </List>
                                         </Box>
                                     </Box>
 
                                     <Stack spacing={1} justifyContent="center">
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }}>&gt;&gt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }}>&gt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }}>&lt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }}>&lt;&lt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllRight}>&gt;&gt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedRight} disabled={empleadosDisponibles.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&gt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedLeft} disabled={empleadosAsignados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&lt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllLeft}>&lt;&lt;</Button>
                                     </Stack>
 
                                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -743,8 +931,26 @@ function AdminTurnos() {
                                             Empleados asignados
                                         </Typography>
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
-                                            <List dense>
-                                                <ListItemText primary="Derecha" sx={{ pl: 2 }} />
+                                            <List dense component="div" role="list">
+                                                {empleadosAsignados.map((value) => {
+                                                    const labelId = `transfer-list-item-${value.empleado_id}-label`;
+                                                    return (
+                                                        <ListItem
+                                                            key={value.empleado_id}
+                                                            role="listitem"
+                                                            button
+                                                            onClick={() => handleToggleEmpleado(value.empleado_id)}
+                                                        >
+                                                            <Checkbox
+                                                                checked={checkedEmpleados.indexOf(value.empleado_id) !== -1}
+                                                                tabIndex={-1}
+                                                                disableRipple
+                                                                inputProps={{ 'aria-labelledby': labelId }}
+                                                            />
+                                                            <ListItemText id={labelId} primary={`${value.nombres} ${value.apellido_paterno} ${value.apellido_materno}`} />
+                                                        </ListItem>
+                                                    );
+                                                })}
                                             </List>
                                         </Box>
                                     </Box>
@@ -756,7 +962,7 @@ function AdminTurnos() {
 
                 <DialogActions>
                     <Button onClick={cerrarAsignar} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar</Button>
+                    <Button variant="contained" color="primary" onClick={clickGuardarAsignacion}>Guardar</Button>
                 </DialogActions>
             </Dialog >
 
