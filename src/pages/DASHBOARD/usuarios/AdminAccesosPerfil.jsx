@@ -10,10 +10,7 @@ import {
 } from "@mui/material";
 
 import { obtenerPerfiles } from "../../../services/perfilUsuariosServices";
-import { 
-    obtenerSubMenus, 
-    obtenerSubMenusPerfil, 
-    agregarSubMenu 
+import { obtenerSubMenus, obtenerSubMenusPerfil, agregarSubMenu 
 } from "../../../services/menus/menuServices";
 
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -35,11 +32,6 @@ function AdminAccesosPerfil() {
     const [filtroPerfil, setFiltroPerfil] = useState("")
     const [busqueda, setBusqueda] = useState(""); // Definido en el original
 
-    // Estados crear
-    // (No definidos en este archivo)
-
-    // Estados editar
-    // (No definidos en este archivo)
 
     // Carga de datos
     const obtenerPerfilesData = async () => {
@@ -79,9 +71,6 @@ function AdminAccesosPerfil() {
             setError(error.message || "Error al asignar submenus");
         }
     }
-
-    // Exportacion
-    // (No definida en este archivo)
 
     // Manejo de dialogs
     const aplanarMenus = (data) => {

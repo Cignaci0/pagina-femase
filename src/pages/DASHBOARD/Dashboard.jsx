@@ -35,7 +35,6 @@ import AdminTurnos from "../DASHBOARD/turnos/AdminTurnos";
 import AdminTurnosRotativos from "../DASHBOARD/turnos/AdminTurnosRotativos";
 import AdminTurnosRotativosAsignacion from "../DASHBOARD/turnos/AdminTurnosRotativosAsignacion";
 import AdminAsignacionCiclica from "../DASHBOARD/turnos/AdminAsignacionCiclica";
-import AdminTurnosCentrosCostos from "../DASHBOARD/turnos/AdminTurnosCentrosCostos";
 import AdminHorarios from "../DASHBOARD/turnos/AdminHorarios";
 
 // AUDITORIA
@@ -69,7 +68,7 @@ import AdminTiposMarcasManuales from "../DASHBOARD/marcas asistencia/AdminTiposM
 // REPORTES/INFORMES
 import ReporteUsuarios from "../DASHBOARD/reportes informes/ReporteUsuarios";
 
-import {obtenerSubMenus} from "../../services/menus/menuServices";
+import { obtenerSubMenusPerfil} from "../../services/menus/menuServices";
 
 const drawerWidth = 240;
 
@@ -97,7 +96,6 @@ const COMPONENTES_VISTA = {
   "Rotativos": <AdminTurnosRotativos />,//
   "Rotativos - Asignacion": <AdminTurnosRotativosAsignacion />,//
   "Asignacion Ciclica": <AdminAsignacionCiclica />,//
-  "Turnos - Centros de costo": <AdminTurnosCentrosCostos />, //
   "Horarios": <AdminHorarios />, //
 
   // AUDITORIA
@@ -122,8 +120,8 @@ const COMPONENTES_VISTA = {
   "Carga Vacaciones": <CargaVacaciones />,
 
   // CONFIGURACION DE SISTEMA
-  "Sistema": <AdminModuloSistea />,
-  "Accesos": <AdminAccesos />,
+  //"Sistema": <AdminModuloSistea />,
+  //"Accesos": <AdminAccesos />,
 
   // MARCAS ASISTENCIA
   "Tipos Marcas Manuales": <AdminTiposMarcasManuales />,
@@ -200,7 +198,7 @@ function Dashboard(props) {
       try {
         const storedUser = localStorage.getItem("perfilId");
 
-        const data = await obtenerSubMenus(storedUser);
+        const data = await obtenerSubMenusPerfil(storedUser);
 
         if (Array.isArray(data)) {
           const menusFormateados = data.map(m => ({

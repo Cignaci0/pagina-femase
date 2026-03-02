@@ -8,12 +8,12 @@ import {
     FormHelperText
 } from "@mui/material";
 
-import { obtenerCargos } from "../../../services/cargosServices";
+import { obtenerUsuariosConectados } from "../../../services/usuariosConectados";
 
 import SearchIcon from '@mui/icons-material/Search';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'; 
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'; 
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { FaFileExcel, FaFileCsv } from "react-icons/fa";
 import PrintIcon from '@mui/icons-material/Print';
 import * as XLSX from 'xlsx';
@@ -25,40 +25,37 @@ function AdminUsuariosConectados() {
 
     // Estados de datos
     const [error, setError] = useState(null);
-    const [cargos, setCargos] = useState([]);
-    const [mensajeExito, setMensajeExito] = useState(""); // Agregado para consistencia con lógica de copiar
+    const [usuariosConectados, setUsuariosConectados] = useState([]);
+    const [mensajeExito, setMensajeExito] = useState("");
 
     // Estados de paginacion y filtrado
     const [busqueda, setBusqueda] = useState("");
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(7);
 
-    // Estados crear
-    // (No definidos en este archivo)
 
-    // Estados editar
-    // (No definidos en este archivo)
 
     // Carga de datos
-    const cargarCargos = async () => {
+    const cargarUsuariosConectados = async () => {
         try {
-            const respuesta = await obtenerCargos()
-            setCargos(respuesta)
+            const respuesta = await obtenerUsuariosConectados()
+            setUsuariosConectados(respuesta)
         } catch (error) {
-            setError("Error al traer los cargos")
+            setError("Error al traer los usuarios conectados")
+            console.log(error)
         }
     }
 
     // Exportacion
     const prepararDatosParaExportar = () => {
-        return cargosFiltrados.map(cargo => ({
-            "ID Cargo": cargo.cargo_id,
-            "Nombre Cargo": cargo.nombre,
-            "Empresa": cargo.empresa?.nombre_empresa || 'Sin Empresa',
-            "Estado": cargo.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
-            "Fecha Creación": cargo.fecha_creacion,
-            "Fecha Actualización": cargo.fecha_actualizacion,
-            "Usuario Creador": cargo.usuario_creador
+        return usuariosFiltrados.map(sesion => ({
+            "Nombre": `${sesion.user?.nombres || ''} ${sesion.user?.apellido_paterno || ''} ${sesion.user?.apellido_materno || ''}`.trim(),
+            "Usuario": sesion.user?.username || '',
+            "Perfil": sesion.user?.perfil?.nombre_perfil || '',
+            "IP": sesion.ip || '',
+            "Navegador": sesion.navegador || '',
+            "Sistema Operativo": sesion.sistema_operativo || '',
+            "Conectado desde": dayjs(sesion.fecha_conexion).format('DD-MM-YYYY HH:mm:ss'),
         }));
     };
 
@@ -66,8 +63,8 @@ function AdminUsuariosConectados() {
         const data = prepararDatosParaExportar();
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Cargos");
-        XLSX.writeFile(wb, "Reporte_Cargos.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Usuarios Conectados");
+        XLSX.writeFile(wb, "Reporte_Usuarios_Conectados.xlsx");
     };
 
     const descargarCSV = () => {
@@ -78,7 +75,7 @@ function AdminUsuariosConectados() {
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "Reporte_Cargos.csv");
+        link.setAttribute("download", "Reporte_Usuarios_Conectados.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -98,9 +95,9 @@ function AdminUsuariosConectados() {
     const imprimirDatos = () => {
         const data = prepararDatosParaExportar();
         const ventanaImpresion = window.open('', '', 'height=600,width=800');
-        let html = '<html><head><title>Imprimir Cargos</title>';
+        let html = '<html><head><title>Imprimir Usuarios Conectados</title>';
         html += '<style>table {width: 100%; border-collapse: collapse; font-family: Arial;} th, td {border: 1px solid black; padding: 8px; text-align: left;} th {background-color: #f2f2f2;}</style>';
-        html += '</head><body><h1>Reporte de Cargos</h1><table>';
+        html += '</head><body><h1>Reporte de Usuarios Conectados</h1><table>';
 
         if (data.length > 0) {
             html += '<thead><tr>';
@@ -130,7 +127,7 @@ function AdminUsuariosConectados() {
     const handleScroll = (direction) => {
         if (scrollContainerRef.current) {
             const { current } = scrollContainerRef;
-            const scrollAmount = 200; 
+            const scrollAmount = 200;
             if (direction === "left") {
                 current.scrollLeft -= scrollAmount;
             } else {
@@ -139,29 +136,23 @@ function AdminUsuariosConectados() {
         }
     };
 
-    const datosEstadisticos = [
-        { id: 1, numero: 2, label: "Jefe (a) Tecnico (a) Nacional" },
-        { id: 2, numero: 5, label: "Administrativo" },
-        { id: 3, numero: 1, label: "Super Admin" },
-        { id: 4, numero: 8, label: "Vendedores" },
-        { id: 5, numero: 3, label: "Soporte TI" },
-        { id: 6, numero: 0, label: "Logística" },
-        { id: 7, numero: 2, label: "Recursos Humanos" },
-        { id: 8, numero: 2, label: "Jefe (a) Tecnico (a) Nacional" },
-        { id: 9, numero: 5, label: "Administrativo" },
-        { id: 10, numero: 1, label: "Super Admin" },
-        { id: 11, numero: 8, label: "Vendedores" },
-        { id: 12, numero: 3, label: "Soporte TI" },
-        { id: 13, numero: 0, label: "Logística" },
-        { id: 14, numero: 2, label: "Recursos Humanos" },
-    ];
+    // Calcular perfiles conectados dinámicamente
+    const datosEstadisticos = Object.values(
+        usuariosConectados.reduce((acc, sesion) => {
+            const perfil = sesion.user?.perfil?.nombre_perfil || 'Sin Perfil';
+            if (!acc[perfil]) {
+                acc[perfil] = { label: perfil, numero: 0 };
+            }
+            acc[perfil].numero++;
+            return acc;
+        }, {})
+    );
 
     // Filtrado y paginacion
-    const cargosFiltrados = cargos.filter((car) => {
-        const nombreCargo = `${car.nombre || ''}`.toLowerCase();
+    const usuariosFiltrados = usuariosConectados.filter((sesion) => {
+        const nombreCompleto = `${sesion.user?.nombres || ''} ${sesion.user?.apellido_paterno || ''} ${sesion.user?.apellido_materno || ''} ${sesion.user?.username || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
-        const coincideTexto = nombreCargo.includes(term);
-        return coincideTexto;
+        return nombreCompleto.includes(term);
     });
 
     const handleChangePage = (event, newPage) => {
@@ -175,7 +166,7 @@ function AdminUsuariosConectados() {
 
     // Effects
     useEffect(() => {
-        cargarCargos()
+        cargarUsuariosConectados()
     }, [])
 
     useEffect(() => {
@@ -199,7 +190,7 @@ function AdminUsuariosConectados() {
             {/* Titulo */}
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">
-                    Admin Registro de Eventos
+                    Admin Usuarios Conectados
                 </Typography>
             </Box>
 
@@ -367,7 +358,7 @@ function AdminUsuariosConectados() {
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell width="10%"  align="center"><strong>Nombre</strong></TableCell>
+                                    <TableCell width="10%" align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width="10%" align="center"><strong>Usuario</strong></TableCell>
                                     <TableCell width="10%" align="center"><strong>Perfil</strong></TableCell>
                                     <TableCell width="1%" align="center"><strong>Ip</strong></TableCell>
@@ -378,15 +369,33 @@ function AdminUsuariosConectados() {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">Super Administrador</TableCell>
-                                    <TableCell align="center">superadmin</TableCell>
-                                    <TableCell align="center">Super Admin</TableCell>
-                                    <TableCell align="center">141.101.100.183</TableCell>
-                                    <TableCell align="center">Chrome-144.0.0.0</TableCell>
-                                    <TableCell align="center">Windows</TableCell>
-                                    <TableCell align="center">06-02-2026 17:30:55</TableCell>
-                                </TableRow>
+                                {usuariosFiltrados.length > 0 ? (
+                                    usuariosFiltrados
+                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((sesion) => (
+                                            <TableRow key={sesion.sesion_id}>
+                                                <TableCell align="center">
+                                                    {`${sesion.user?.nombres || ''} ${sesion.user?.apellido_paterno || ''} ${sesion.user?.apellido_materno || ''}`.trim()}
+                                                </TableCell>
+                                                <TableCell align="center">{sesion.user?.username}</TableCell>
+                                                <TableCell align="center">{sesion.user?.perfil?.nombre_perfil}</TableCell>
+                                                <TableCell align="center">{sesion.ip}</TableCell>
+                                                <TableCell align="center">{sesion.navegador}</TableCell>
+                                                <TableCell align="center">{sesion.sistema_operativo}</TableCell>
+                                                <TableCell align="center">
+                                                    {dayjs(sesion.fecha_conexion).format('DD-MM-YYYY HH:mm:ss')}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                No se encontraron usuarios conectados.
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -396,7 +405,7 @@ function AdminUsuariosConectados() {
                 <TablePagination
                     rowsPerPageOptions={[]}
                     component="div"
-                    count={cargosFiltrados.length}
+                    count={usuariosFiltrados.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}

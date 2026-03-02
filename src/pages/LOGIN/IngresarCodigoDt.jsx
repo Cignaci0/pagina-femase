@@ -23,6 +23,12 @@ function IngresarCodigoDt() {
     const [clave2, setClave2] = useState("");
     const hayError = clave2.length > 0 && clave1 !== clave2;
 
+    const esClaveValida = (clave) => {
+        const regex = /^(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{5,}$/;
+        return regex.test(clave);
+    };
+
+    const formValido = codigo.length === 6 && esClaveValida(clave1) && clave1 === clave2;
 
     // Carga de datos
     const clickVerificar = async () => {
@@ -37,7 +43,7 @@ function IngresarCodigoDt() {
         } finally { setCargando(false); }
     };
 
-    
+
     return (
         <AuthLayout>
             {/* Logo */}
@@ -74,7 +80,7 @@ function IngresarCodigoDt() {
 
             {/* Campos de clave */}
             <Grid item xs={12}>
-                <TextField label="Ingrese nueva clave" type="password" fullWidth value={clave1} onChange={(e) => setClave1(e.target.value)} variant="outlined" inputProps={{ style: { textAlign: 'center' } }} />
+                <TextField label="Ingrese nueva clave" type="password" fullWidth value={clave1} onChange={(e) => setClave1(e.target.value)} variant="outlined" inputProps={{ style: { textAlign: 'center' } }} helperText={clave1 !== "" && !esClaveValida(clave1) ? "Debe tener mín. 5 caracteres, 1 número y 1 símbolo" : ""} />
             </Grid>
 
             <Grid item xs={12}>
@@ -93,7 +99,7 @@ function IngresarCodigoDt() {
 
             {/* Boton de accion */}
             <Grid item xs={12}>
-                <Button variant="contained" fullWidth size="large" disabled={cargando} onClick={clickVerificar}>
+                <Button variant="contained" fullWidth size="large" disabled={cargando || !formValido} onClick={clickVerificar}>
                     {cargando ? <CircularProgress size={24} color="inherit" /> : "VERIFICAR"}
                 </Button>
             </Grid>

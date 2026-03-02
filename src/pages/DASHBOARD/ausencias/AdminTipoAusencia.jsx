@@ -20,11 +20,14 @@ import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
 import * as XLSX from 'xlsx';
+import { getTipoAusencia, updateTipoAusencia, createTipoAusencia } from "../../../services/tiposAusencia";
+
+
 
 function AdminTipoAusencia() {
 
     // Estados de datos
-    const [empresas, setEmpresas] = useState([])
+    const [tipoAusencia, setTipoAusencia] = useState([])
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("")
@@ -43,13 +46,8 @@ function AdminTipoAusencia() {
     const [nuevoNombre, setNuevoNombre] = useState("")
     const [nuevoTipo, setNuevoTipo] = useState("")
     const [nuevoEstado, setNuevoEstado] = useState("")
-    const [nuevoJustidicaHora, setNuevoJustidicaHora] = useState("")
+    const [nuevoJustificaHora, setNuevoJustificaHora] = useState("")
     const [nuevoPagadas, setNuevoPagadas] = useState("")
-    const [nuevoRun, setNuevoRun] = useState("") // Mantenido por lógica de limpiar estados
-    const [nuevoDireccion, setNuevoDireccion] = useState("") // Mantenido por lógica de limpiar estados
-    const [nuevoRegion, setNuevoRegion] = useState("") // Mantenido por lógica de limpiar estados
-    const [nuevoComuna, setNuevoComuna] = useState("") // Mantenido por lógica de limpiar estados
-    const [nuevoEmail, setNuevoEmail] = useState("") // Mantenido por lógica de limpiar estados
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
@@ -61,20 +59,64 @@ function AdminTipoAusencia() {
     const [editPagadas, setEditPagadas] = useState("")
 
     // Carga de datos
-    // (No definida explícitamente en el original como función asíncrona cargable)
+    const cargarDatos = async () => {
+        try {
+            const datos = await getTipoAusencia();
+            setTipoAusencia(datos);
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    const clickGuardarEdit = async () => {
+        try {
+            const datos = {
+                nombre: editNombre,
+                tipo: editTipo,
+                estado_id: editEstado,
+                justifica_hrs: editJustidicaHora,
+                pagada_empleador: editPagadas
+            }
+            const respuesta = await updateTipoAusencia(editId, datos)
+            setMensajeExito("Tipo de ausencia actualizado correctamente");
+            setOpenEdit(false);
+            cargarDatos();
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    const clickGuardarCrear = async () => {
+        try {
+            const datos = {
+                nombre: nuevoNombre,
+                tipo: nuevoTipo,
+                estado_id: nuevoEstado,
+                justifica_hrs: nuevoJustificaHora,
+                pagada_empleador: nuevoPagadas
+            }
+            const respuesta = await createTipoAusencia(datos)
+            setMensajeExito("Tipo de ausencia creado correctamente");
+            setOpen(false);
+            setNuevoNombre("")
+            setNuevoTipo("")
+            setNuevoEstado("")
+            setNuevoJustificaHora("")
+            setNuevoPagadas("")
+            cargarDatos();
+        } catch (error) {
+            setError(error.message);
+        }
+    }
 
     // Exportacion
     const prepararDatosParaExportar = () => {
-        return empresasFiltradas.map(empresa => ({
-            "Nombre": empresa.nombre_empresa,
-            "Rut": empresa.rut_empresa,
-            "Direccion": empresa.direccion_empresa,
-            "Comuna": empresa.comuna_empresa,
-            "Estado": empresa.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
-            "Email": empresa.email_empresa,
-            "Fecha Creación": empresa.fecha_creacion,
-            "Fecha Actualización": empresa.fecha_actualizacion,
-            "Usuario Creador": empresa.usuario_creador
+        return tipoAusenciaFiltradas.map(tipoAu => ({
+            "Nombre": tipoAu.nombre,
+            "Tipo": tipoAu.tipo === 1 ? "Remunerada" : "No Remunerada",
+            "Estado": tipoAu.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
+            "Justifica Hrs": tipoAu.justifica_hrs ? "Si" : "No",
+            "Pagada por empleador": tipoAu.pagada_empleador ? "Si" : "No",
         }));
     };
 
@@ -82,8 +124,8 @@ function AdminTipoAusencia() {
         const data = prepararDatosParaExportar();
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Empresas");
-        XLSX.writeFile(wb, "Reporte_Empresas.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Tipo Ausencia");
+        XLSX.writeFile(wb, "Reporte_Tipo_Ausencia.xlsx");
     };
 
     const descargarCSV = () => {
@@ -94,7 +136,7 @@ function AdminTipoAusencia() {
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "Reporte_Empresas.csv");
+        link.setAttribute("download", "Reporte_Tipo_Ausencia.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -114,9 +156,9 @@ function AdminTipoAusencia() {
     const imprimirDatos = () => {
         const data = prepararDatosParaExportar();
         const ventanaImpresion = window.open('', '', 'height=600,width=800');
-        let html = '<html><head><title>Imprimir Empresas</title>';
+        let html = '<html><head><title>Imprimir Tipo Ausencia</title>';
         html += '<style>table {width: 100%; border-collapse: collapse; font-family: Arial;} th, td {border: 1px solid black; padding: 8px; text-align: left;} th {background-color: #f2f2f2;}</style>';
-        html += '</head><body><h1>Reporte de Empresas</h1><table>';
+        html += '</head><body><h1>Reporte de Tipo Ausencia</h1><table>';
 
         if (data.length > 0) {
             html += '<thead><tr>';
@@ -146,12 +188,11 @@ function AdminTipoAusencia() {
     const cerrarDialog = () => {
         setOpen(false);
         setNuevoNombre("")
-        setNuevoRun("")
-        setNuevoDireccion("")
-        setNuevoRegion("")
-        setNuevoComuna("")
+        setNuevoTipo("")
         setNuevoEstado("")
-        setNuevoEmail("")
+        setNuevoJustificaHora("")
+        setNuevoPagadas("")
+
     }
 
     const cerrarDialogEdit = () => {
@@ -163,11 +204,17 @@ function AdminTipoAusencia() {
     }
 
     // Filtrado y paginacion
-    const empresasFiltradas = empresas.filter((empresa) => {
-        const textoBusqueda = `${empresa.nombre_empresa || ''} ${empresa.rut_empresa || ''} ${empresa.direccion_empresa || ''} ${empresa.rut_empresa || ''}`.toLowerCase();
+    const tipoAusenciaFiltradas = tipoAusencia.filter((tipoAu) => {
+        const textoBusqueda = `${tipoAu.nombre || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
         const coincideTexto = textoBusqueda.includes(term)
-        return coincideTexto;
+
+        const coincideTipo = filtroTipo ? tipoAu.tipo === filtroTipo : true
+        const coincideEstado = filtroEstado ? tipoAu.estado?.estado_id === filtroEstado : true
+        const coincideJustifica = filtrojustificaHrs !== "" ? tipoAu.justifica_hrs === filtrojustificaHrs : true
+        const coincidePagada = filtroPagada !== "" ? tipoAu.pagada_empleador === filtroPagada : true
+
+        return coincideTexto && coincideTipo && coincideEstado && coincideJustifica && coincidePagada;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -192,6 +239,10 @@ function AdminTipoAusencia() {
     useEffect(() => {
         setPagina(0);
     }, [busqueda]);
+
+    useEffect(() => {
+        cargarDatos();
+    }, []);
 
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
@@ -240,34 +291,39 @@ function AdminTipoAusencia() {
                     </Paper>
 
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value) }>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Tipo</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Tipo" >
+                        <Select sx={{ width: "15vh" }} label="Tipo" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value={1}>Remunerada</MenuItem>
+                            <MenuItem value={2}>No Remunerada</MenuItem>
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroEstado} onChange={(e) => setfiltroEstado(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} >
                         <InputLabel>Estado</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Estado" >
+                        <Select sx={{ width: "15vh" }} label="Estado" value={filtroEstado} onChange={(e) => setfiltroEstado(e.target.value)} >
+                            <MenuItem value="">Todos</MenuItem>
                             <MenuItem value={1}>Vigente</MenuItem>
                             <MenuItem value={2}>No vigente</MenuItem>
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtrojustificaHrs} onChange={(e) => setFiltrojustificaHrs(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Justifica Hrs</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" >
-                            <MenuItem value={1}>Si</MenuItem>
-                            <MenuItem value={2}>No</MenuItem>
+                        <Select sx={{ width: "15vh" }} label="Justifica Hrs" value={filtrojustificaHrs} onChange={(e) => setFiltrojustificaHrs(e.target.value)}>
+                            <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value={true}>Si</MenuItem>
+                            <MenuItem value={false}>No</MenuItem>
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}  values={filtroPagada} onChange={(e) => setFiltroPagada(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Pagada</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" >
-                            <MenuItem value={1}>Si</MenuItem>
-                            <MenuItem value={2}>No</MenuItem>
+                        <Select sx={{ width: "15vh" }} label="Pagada" value={filtroPagada} onChange={(e) => setFiltroPagada(e.target.value)}>
+                            <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value={true}>Si</MenuItem>
+                            <MenuItem value={false}>No</MenuItem>
                         </Select>
                     </FormControl>
 
@@ -310,28 +366,44 @@ function AdminTipoAusencia() {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">
-                                        Cuarentena Preventiva Grupo de Riesgo
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        No Remunerada
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <CircleIcon />
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Si
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Si
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => setOpenEdit(true)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
+                                {tipoAusenciaFiltradas.length > 0 ? (
+                                    tipoAusenciaFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((tipoAu) => (
+                                            <TableRow key={tipoAu.id}>
+                                                <TableCell align="center">
+                                                    {tipoAu.nombre}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tipoAu.tipo === 1 ? "Remunerada" : "No Remunerada"}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <CircleIcon sx={{ fontSize: "1rem", color: tipoAu.estado?.estado_id === 1 ? "#4caf50" : "#f44336" }} />
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tipoAu.justifica_hrs ? "Si" : "No"}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tipoAu.pagada_empleador ? "Si" : "No"}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton onClick={() => {
+                                                        setOpenEdit(true);
+                                                        setEditId(tipoAu.id);
+                                                        setEditNombre(tipoAu.nombre);
+                                                        setEditTipo(tipoAu.tipo);
+                                                        setEditEstado(tipoAu.estado?.estado_id);
+                                                        setEditJustidicaHora(tipoAu.justifica_hrs);
+                                                        setEditPagadas(tipoAu.pagada_empleador);
+                                                    }}>
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (
+                                    <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}><Typography variant="body1" color="text.secondary">No se encontraron registros.</Typography></TableCell></TableRow>
+                                )}
+
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -341,7 +413,7 @@ function AdminTipoAusencia() {
                 <TablePagination
                     rowsPerPageOptions={[]}
                     component="div"
-                    count={empresasFiltradas.length}
+                    count={tipoAusenciaFiltradas.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -367,6 +439,7 @@ function AdminTipoAusencia() {
                                         helperText={nuevoNombre.trim() === "" ? "El nombre es obligatorio" : ""}
                                     />
                                 </Box>
+
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Tipo</InputLabel>
                                     <Select
@@ -375,9 +448,12 @@ function AdminTipoAusencia() {
                                         onChange={(e) => setNuevoTipo(e.target.value)}
                                     >
                                         <MenuItem value="">Todos</MenuItem>
+                                        <MenuItem value={1}>Remunerada</MenuItem>
+                                        <MenuItem value={2}>No remunerada</MenuItem>
                                     </Select>
                                     {nuevoTipo === "" && <FormHelperText>El Tipo es obligatorio</FormHelperText>}
                                 </FormControl>
+
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Estado</InputLabel>
                                     <Select
@@ -390,17 +466,18 @@ function AdminTipoAusencia() {
                                     </Select>
                                     {nuevoEstado === "" && <FormHelperText>El Estado es obligatorio</FormHelperText>}
                                 </FormControl>
+
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Justifica horas</InputLabel>
                                     <Select
                                         label="Justifica horas"
-                                        value={nuevoJustidicaHora}
-                                        onChange={(e) => setNuevoJustidicaHora(e.target.value)}
+                                        value={nuevoJustificaHora}
+                                        onChange={(e) => setNuevoJustificaHora(e.target.value)}
                                     >
-                                        <MenuItem value={1}>Si</MenuItem>
-                                        <MenuItem value={2}>No</MenuItem>
+                                        <MenuItem value={true}>Si</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
                                     </Select>
-                                    {nuevoJustidicaHora === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
+                                    {nuevoJustificaHora === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                                 </FormControl>
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Pagadas</InputLabel>
@@ -409,8 +486,8 @@ function AdminTipoAusencia() {
                                         value={nuevoPagadas}
                                         onChange={(e) => setNuevoPagadas(e.target.value)}
                                     >
-                                        <MenuItem value={1}>Si</MenuItem>
-                                        <MenuItem value={2}>No</MenuItem>
+                                        <MenuItem value={true}>Si</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
                                     </Select>
                                     {nuevoPagadas === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                                 </FormControl>
@@ -420,7 +497,7 @@ function AdminTipoAusencia() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickGuardarCrear} variant="contained" color="primary">Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -448,6 +525,8 @@ function AdminTipoAusencia() {
                                         onChange={(e) => setEditTipo(e.target.value)}
                                     >
                                         <MenuItem value="">Todos</MenuItem>
+                                        <MenuItem value={1}>Remunerada</MenuItem>
+                                        <MenuItem value={2}>No remunerada</MenuItem>
                                     </Select>
                                     {editTipo === "" && <FormHelperText>El Tipo es obligatorio</FormHelperText>}
                                 </FormControl>
@@ -470,8 +549,8 @@ function AdminTipoAusencia() {
                                         value={editJustidicaHora}
                                         onChange={(e) => setEditJustidicaHora(e.target.value)}
                                     >
-                                        <MenuItem value={1}>Si</MenuItem>
-                                        <MenuItem value={2}>No</MenuItem>
+                                        <MenuItem value={true}>Si</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
                                     </Select>
                                     {editJustidicaHora === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                                 </FormControl>
@@ -482,8 +561,8 @@ function AdminTipoAusencia() {
                                         value={editPagadas}
                                         onChange={(e) => setEditPagadas(e.target.value)}
                                     >
-                                        <MenuItem value={1}>Si</MenuItem>
-                                        <MenuItem value={2}>No</MenuItem>
+                                        <MenuItem value={true}>Si</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
                                     </Select>
                                     {editPagadas === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                                 </FormControl>
@@ -493,7 +572,7 @@ function AdminTipoAusencia() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar Cambios</Button>
+                    <Button onClick={clickGuardarEdit} variant="contained" color="primary">Guardar Cambios</Button>
                 </DialogActions>
             </Dialog>
 

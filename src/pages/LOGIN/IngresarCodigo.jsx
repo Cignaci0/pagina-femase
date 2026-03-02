@@ -27,6 +27,8 @@ function IngresarCodigo() {
         return regex.test(clave);
     };
 
+    const formValido = codigo.length === 6 && esClaveValida(clave1) && clave1 === clave2;
+
     // Carga de datos
     const clickVerificar = async () => {
         setCargando(true);
@@ -66,11 +68,11 @@ function IngresarCodigo() {
                 </Grid>
 
                 {/* Campos de clave */}
-                <Grid item xs={12}><TextField label="Nueva Clave" type="password" value={clave1} onChange={(e) => setClave1(e.target.value)} variant="outlined" inputProps={{ style: { textAlign: 'center' } }} fullWidth helperText={clave1 !== "" && !esClaveValida(clave1) ? "Debe tener mín. 5 caracteres, 1 número y 1 símbolo" : ""} /></Grid>   
+                <Grid item xs={12}><TextField label="Nueva Clave" type="password" value={clave1} onChange={(e) => setClave1(e.target.value)} variant="outlined" inputProps={{ style: { textAlign: 'center' } }} fullWidth helperText={clave1 !== "" && !esClaveValida(clave1) ? "Debe tener mín. 5 caracteres, 1 número y 1 símbolo" : ""} /></Grid>
                 <Grid item xs={12}><TextField label="Repetir Clave" type="password" value={clave2} onChange={(e) => setClave2(e.target.value)} variant="outlined" inputProps={{ style: { textAlign: 'center' } }} fullWidth error={hayError} helperText={hayError ? "Las contraseñas no coinciden" : ""} /></Grid>
 
                 {/* Boton de accion */}
-                <Grid item xs={12}><Button variant="contained" fullWidth size="large" disabled={cargando} onClick={clickVerificar}>{cargando ? <CircularProgress size={24} color="inherit" /> : "VERIFICAR"}</Button></Grid>
+                <Grid item xs={12}><Button variant="contained" fullWidth size="large" disabled={cargando || !formValido} onClick={clickVerificar}>{cargando ? <CircularProgress size={24} color="inherit" /> : "VERIFICAR"}</Button></Grid>
             </Grid>
         </AuthLayout>
     );
