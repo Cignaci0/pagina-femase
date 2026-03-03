@@ -35,6 +35,8 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import Checkbox from '@mui/material/Checkbox';
 import { asignarCencosAEmpleados } from "../../../services/asignaciones/asignacionesServices"
+import { obtenerProveedorCorreo } from "../../../services/proveedorCorreoServices"
+
 
 const ItemArbol = ({ nodo, isChecked, toggleCheck, nivel = 0 }) => {
     const [abierto, setAbierto] = React.useState(false);
@@ -151,6 +153,9 @@ function AdminEmpleados() {
     const [nuevoTelefonoMovil, setNuevoTelefonoMovil] = useState("")
     const [nuevoTurno, setNuevoturno] = useState("")
     const [nuevoCargo, setNuevoCargo] = useState("")
+    const [nuevoEmailLaboral, setNuevoEmailLaboral] = useState("")
+    const [dominio, setDominio] = useState("")
+    const [dominioPersonal, setDominioPersonal] = useState("")
 
     const [comunasFiltradasCrear, setComunasFiltradasCrear] = useState([]);
 
@@ -184,6 +189,9 @@ function AdminEmpleados() {
     const [editTurno, setEditTurno] = useState("")
     const [editCargo, setEditCargo] = useState("")
     const [comunasFiltradasEdit, setComunasFiltradasEdit] = useState([])
+    const [editEmailLaboral, setEditEmailLaboral] = useState("")
+    const [editDominio, setEditDominio] = useState("")
+    const [editDominioPersonal, setEditDominioPersonal] = useState("")
 
     // Estados dialogs emails
     const [openDialogEmail, setOpenDialogEmail] = useState(false)
@@ -301,6 +309,8 @@ function AdminEmpleados() {
 
 
     // Carga de datos
+    const [proveedorCorreo, setProveedorCorreo] = useState([])
+
     const llamarDatosParaFiltrado = async () => {
         try {
             const respuestaEmpresa = await obtenerEmpresas()
@@ -313,6 +323,9 @@ function AdminEmpleados() {
             setTurnos(respuestaTurno)
             const respuestacargo = await obtenerCargos()
             setCargos(respuestacargo)
+            const repuestaProveedorcorreo = await obtenerProveedorCorreo()
+            setProveedorCorreo(repuestaProveedorcorreo)
+
         } catch (error) {
             setError(error.message)
         }
@@ -337,7 +350,7 @@ function AdminEmpleados() {
                 apellido_materno: nuevoApMaterno,
                 fecha_nacimiento: nuevoFechaNacimiento ? nuevoFechaNacimiento.toISOString() : null,
                 direccion: nuevoDireccion,
-                email: nuevoEmailPersonal,
+                email: nuevoEmailPersonal && dominioPersonal ? `${nuevoEmailPersonal}${dominioPersonal}` : null,
                 sexo: nuevoSexo,
                 telefono_fijo: nuevoTelefonoFijo ? Number(nuevoTelefonoFijo) : null,
                 telefono_movil: nuevoTelefonoMovil ? Number(nuevoTelefonoMovil) : null,
@@ -353,7 +366,8 @@ function AdminEmpleados() {
                 empresa: nuevoEmpresa,
                 cargo: nuevoCargo,
                 turno: nuevoTurno,
-                estado: nuevoEstado
+                estado: nuevoEstado,
+                email_laboral: nuevoEmailLaboral && dominio ? `${nuevoEmailLaboral}${dominio}` : null
             };
             const resultado = await crearEmpleado(datosParaEnviar);
             setMensajeExito("Empleado creado exitosamente");
@@ -380,7 +394,7 @@ function AdminEmpleados() {
             setNuevoTelefonoMovil("");
             setNuevoturno("");
             setNuevoCargo("");
-
+            setNuevoEmailLaboral("");
         } catch (err) {
             setError(err.message);
         } finally {
@@ -397,7 +411,7 @@ function AdminEmpleados() {
                 apellido_materno: editApMaterno,
                 fecha_nacimiento: editFechaNacimiento ? editFechaNacimiento.toISOString() : null,
                 direccion: editDireccion,
-                email: editEmailPersonal,
+                email: editEmailPersonal && editDominioPersonal ? `${editEmailPersonal}${editDominioPersonal}` : null,
                 sexo: editSexo,
                 telefono_fijo: editTelefonoFijo ? Number(editTelefonoFijo) : null,
                 telefono_movil: editTelefonoMovil ? Number(editTelefonoMovil) : null,
@@ -413,7 +427,8 @@ function AdminEmpleados() {
                 empresa: editEmpresa,
                 cargo: editCargo,
                 turno: editTurno,
-                estado: editEstado
+                estado: editEstado,
+                email_laboral: editEmailLaboral && editDominio ? `${editEmailLaboral}${editDominio}` : null
             };
 
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
@@ -687,7 +702,7 @@ function AdminEmpleados() {
                                     <TableCell width={100} align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Estado</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Cargo</strong></TableCell>
-                                    <TableCell width={100} align="center"><strong>Email</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Email Laboral</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Email Personal</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Inicio Contrato</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Fin Contrato</strong></TableCell>
@@ -728,7 +743,7 @@ function AdminEmpleados() {
                                             <TableCell align="center">
                                                 <IconButton onClick={() => {
                                                     setOpenDialogEmail(true),
-                                                        setEditEmail(e.empresa?.email_empresa)
+                                                        setEditEmailLaboral(e.email_laboral || "")
                                                 }}>
                                                     <DraftsIcon>
 
@@ -810,12 +825,29 @@ function AdminEmpleados() {
                                                         setEditRegion("");
                                                         setComunasFiltradasEdit([]);
                                                     }
+                                                    if (e.email_laboral && e.email_laboral.includes("@")) {
+                                                        const parts = e.email_laboral.split("@");
+                                                        setEditEmailLaboral(parts[0]);
+                                                        // Guardar el dominio con el @ incluido
+                                                        setEditDominio(`@${parts[1]}`);
+                                                    } else {
+                                                        setEditEmailLaboral("");
+                                                        setEditDominio("");
+                                                    }
+
                                                     setEditEmpresa(e.empresa?.empresa_id)
                                                     setEditSexo(e.sexo === "M" ? "M" : "F")
                                                     setEditComuna(e.comuna || "");
                                                     setEditArt22(e.art_22);
                                                     setEditContratoIndefinido(e.contrato_indefinido);
-                                                    setEditEmailPersonal(e.email || "");
+                                                    if (e.email && e.email.includes("@")) {
+                                                        const partsPersonal = e.email.split("@");
+                                                        setEditEmailPersonal(partsPersonal[0]);
+                                                        setEditDominioPersonal(`@${partsPersonal[1]}`);
+                                                    } else {
+                                                        setEditEmailPersonal(e.email || "");
+                                                        setEditDominioPersonal("");
+                                                    }
                                                     setEditTelefonoFijo(e.telefono_fijo ? String(e.telefono_fijo) : "");
                                                     setEditTelefonoMovil(e.telefono_movil ? String(e.telefono_movil) : "");
                                                     setEditTurno(e.turno?.turno_id || "");
@@ -841,14 +873,14 @@ function AdminEmpleados() {
                 <TablePagination rowsPerPageOptions={[]} component="div" count={empleadosFiltrados.length} rowsPerPage={filaPorPagina} page={pagina} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} labelRowsPerPage="" labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`} />
             </Paper >
 
-            {/* Dialog email */}
+            {/* Dialog email laboral */}
             < Dialog sx={{ textAlign: "center" }
             } open={openDialogEmail} >
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                                <DialogTitle>Email</DialogTitle>
+                                <DialogTitle>Email Laboral</DialogTitle>
                                 <Box>
                                     <Typography
                                         variant="body2"
@@ -860,7 +892,7 @@ function AdminEmpleados() {
                                             mb: 2
                                         }}
                                     >
-                                        {editEmail}
+                                        {editEmailLaboral}
                                     </Typography>
                                 </Box>
                                 <Button variant="outlined" color="error" onClick={closeDialogEmail}>cerrar</Button>
@@ -960,22 +992,41 @@ function AdminEmpleados() {
                                 <TextField fullWidth label="Dirección" size="small" value={nuevoDireccion} onChange={(e) => setNuevoDireccion(e.target.value)} helperText={nuevoDireccion.trim() === "" ? "La dirección es obligatoria" : ""} />
                             </Box>
 
-                            <Box sx={{ mb: 2 }}>
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                                 <TextField
                                     fullWidth
                                     label="Email Personal"
                                     size="small"
                                     value={nuevoEmailPersonal}
-                                    onChange={(e) => setNuevoEmailPersonal(e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/@/g, "");
+                                        setNuevoEmailPersonal(val);
+                                    }}
                                     helperText={
                                         nuevoEmailPersonal.trim() === ""
                                             ? "El email es obligatorio"
-                                            : !esEmailValido(nuevoEmailPersonal)
-                                                ? "El email debe incluir @.dominio"
-                                                : ""
+                                            : ""
                                     }
                                 />
+                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select
+                                        label="Dominio"
+                                        value={dominioPersonal}
+                                        onChange={(e) => setDominioPersonal(e.target.value)}
+                                    >
+                                        {proveedorCorreo
+                                            .filter(p => !p.empresa || p.empresa === null)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>
+                                                    {prov.dominio}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
                             </Box>
+
+
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}  >
                                 <InputLabel>Sexo</InputLabel>
@@ -1106,7 +1157,6 @@ function AdminEmpleados() {
 
                                 {nuevoClave.length < 4 && (
                                     <FormHelperText error={false} sx={{ mt: 1, textAlign: 'center' }}>
-                                        {nuevoClave.length === 0 ? "La clave es obligatoria" : "Faltan dígitos"}
                                     </FormHelperText>
                                 )}
                             </Box>
@@ -1210,6 +1260,42 @@ function AdminEmpleados() {
 
                             </FormControl>
 
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Email Laboral"
+                                    size="small"
+                                    value={nuevoEmailLaboral}
+                                    onChange={(e) => {
+                                        // Evitar que ingrese @
+                                        const val = e.target.value.replace(/@/g, "");
+                                        setNuevoEmailLaboral(val);
+                                    }}
+                                    helperText={
+                                        nuevoEmailLaboral.trim() === ""
+                                            ? "El email es obligatorio"
+                                            : ""
+                                    }
+                                />
+                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select
+                                        label="Dominio"
+                                        value={dominio}
+                                        onChange={(e) => setDominio(e.target.value)}
+                                        disabled={!nuevoEmpresa}
+                                    >
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === nuevoEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>
+                                                    {prov.dominio}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Turno</InputLabel>
                                 <Select label="Turno" value={nuevoTurno} onChange={(e) => setNuevoturno(e.target.value)}>
@@ -1261,7 +1347,6 @@ function AdminEmpleados() {
                             nuevoRun.trim() === "" ||
                             !esRutValido(nuevoRun) ||
                             nuevoNombre.trim() === "" ||
-                            nuevoClave.trim() === "" ||
                             nuevoApPaterno.trim() === "" ||
                             nuevoApMaterno.trim() === "" ||
                             nuevoDireccion.trim() === "" ||
@@ -1373,17 +1458,41 @@ function AdminEmpleados() {
                                 />
                             </Box>
 
-                            <Box sx={{ mb: 2 }}>
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                                 <TextField
                                     fullWidth
                                     label="Email Personal"
                                     size="small"
                                     value={editEmailPersonal}
-                                    onChange={(e) => setEditEmailPersonal(e.target.value)}
-                                    error={editEmailPersonal !== "" && !esEmailValido(editEmailPersonal)}
-                                    helperText={editEmailPersonal !== "" && !esEmailValido(editEmailPersonal) ? "Ingrese un email válido" : ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/@/g, "");
+                                        setEditEmailPersonal(val);
+                                    }}
+                                    helperText={
+                                        editEmailPersonal.trim() === ""
+                                            ? "El email es obligatorio"
+                                            : ""
+                                    }
                                 />
+                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select
+                                        label="Dominio"
+                                        value={editDominioPersonal}
+                                        onChange={(e) => setEditDominioPersonal(e.target.value)}
+                                    >
+                                        {proveedorCorreo
+                                            .filter(p => !p.empresa || p.empresa === null)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>
+                                                    {prov.dominio}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
                             </Box>
+
+
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Sexo</InputLabel>
@@ -1532,6 +1641,41 @@ function AdminEmpleados() {
                                 </Select>
                                 {editEmpresa === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
                             </FormControl>
+
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Email Laboral"
+                                    size="small"
+                                    value={editEmailLaboral}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/@/g, "");
+                                        setEditEmailLaboral(val);
+                                    }}
+                                    helperText={
+                                        editEmailLaboral.trim() === ""
+                                            ? "El email es obligatorio"
+                                            : ""
+                                    }
+                                />
+                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select
+                                        label="Dominio"
+                                        value={editDominio}
+                                        onChange={(e) => setEditDominio(e.target.value)}
+                                        disabled={!editEmpresa}
+                                    >
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === editEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>
+                                                    {prov.dominio}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Cargo</InputLabel>

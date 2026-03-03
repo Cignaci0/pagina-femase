@@ -536,7 +536,7 @@ function AdminDispositivos() {
                                     <TextField fullWidth label="Firmware" size="small"
                                         value={firmware}
                                         onChange={(e) => setFirmware(e.target.value)}
-                                        helperText={firmware.trim() === "" ? "El Firmware es obligatorio" : ""} />
+                                    />
                                 </Box>
 
                                 {/* Campo direccion IP */}
@@ -545,7 +545,6 @@ function AdminDispositivos() {
                                         fullWidth label="Dirección IP" size="small"
                                         value={direccionIp}
                                         onChange={(e) => setDireccionIp(e.target.value)}
-                                        helperText={direccionIp.trim() === "" ? "La Dirección IP es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -554,7 +553,6 @@ function AdminDispositivos() {
                                     <TextField fullWidth label="Gateway" size="small"
                                         value={gateway}
                                         onChange={(e) => setGateway(e.target.value)}
-                                        helperText={gateway.trim() === "" ? "El Gateway es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -563,7 +561,6 @@ function AdminDispositivos() {
                                     <TextField fullWidth label="DNS" size="small"
                                         value={DNS}
                                         onChange={(e) => setDNS(e.target.value)}
-                                        helperText={DNS.trim() === "" ? "El DNS es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -583,11 +580,7 @@ function AdminDispositivos() {
                             region === "" ||
                             comuna === "" ||
                             estado === "" ||
-                            modelo.trim() === "" ||
-                            firmware.trim() === "" ||
-                            direccionIp.trim() === "" ||
-                            gateway.trim() === "" ||
-                            DNS.trim() == ""
+                            modelo.trim() === ""
                         }
                     >
                         Guardar
@@ -698,7 +691,6 @@ function AdminDispositivos() {
                                         fullWidth label="Firmware" size="small"
                                         value={editFirmware}
                                         onChange={(e) => setEditFirmware(e.target.value)}
-                                        helperText={editFirmware.trim() === "" ? "El Firmware es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -708,7 +700,6 @@ function AdminDispositivos() {
                                         fullWidth label="Dirección IP" size="small"
                                         value={editDireccionIp}
                                         onChange={(e) => setEditDireccionIp(e.target.value)}
-                                        helperText={editDireccionIp.trim() === "" ? "La Dirección IP es obligatoria" : ""}
                                     />
                                 </Box>
 
@@ -718,7 +709,6 @@ function AdminDispositivos() {
                                         fullWidth label="Gateway" size="small"
                                         value={editGateway}
                                         onChange={(e) => setEditGateway(e.target.value)}
-                                        helperText={editGateway.trim() === "" ? "El Gateway es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -728,7 +718,6 @@ function AdminDispositivos() {
                                         fullWidth label="DNS" size="small"
                                         value={editDNS}
                                         onChange={(e) => setEditDNS(e.target.value)}
-                                        helperText={editDNS.trim() === "" ? "El DNS es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -750,11 +739,7 @@ function AdminDispositivos() {
                             editComuna === "" ||
                             editEstado === "" ||
                             editmodelo.trim() === "" ||
-                            editFabricante.trim() === "" ||
-                            editFirmware.trim() === "" ||
-                            editGateway.trim() === "" ||
-                            editDireccionIp.trim() === "" ||
-                            editDNS.trim() === ""
+                            editFabricante.trim() === ""
                         }
                     >
                         Guardar Cambios

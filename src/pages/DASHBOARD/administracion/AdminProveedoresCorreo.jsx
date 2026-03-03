@@ -33,20 +33,24 @@ function AdminPreoveedorCorreo() {
 
     // Estados crear
     const [open, setOpen] = useState(false);
-    const [nuevoNombre, setNuevoNombre] = useState("")
+    const [nuevoEmpresa, setNuevoEmpresa] = useState("")
     const [nuevoDominio, setNuevoDominio] = useState("")
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
     const [editId, setEditId] = useState("")
-    const [editNombre, setEditNombre] = useState("")
+    const [editEmpresa, setEditEmpresa] = useState("")
     const [editDominio, setEditDominio] = useState("")
+
+    const [empresas, setEmpresas] = useState([]);
 
     // Carga de datos
     const cargarDatos = async () => {
         try {
             const respuesta = await obtenerProveedorCorreo();
             setProveedorCorreo(respuesta);
+            const respuestaE = await obtenerEmpresas()
+            setEmpresas(respuestaE);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -57,7 +61,7 @@ function AdminPreoveedorCorreo() {
     //Crear proveedor correo
     const clickCrearProveedorCorreo = async () => {
         try {
-            const respuesta = await crearProveedorCorreo(nuevoNombre, nuevoDominio);
+            const respuesta = await crearProveedorCorreo(nuevoDominio, nuevoEmpresa);
             setMensajeExito("Proveedor correo creado exitosamente")
             closeDialog()
             cargarDatos()
@@ -71,7 +75,7 @@ function AdminPreoveedorCorreo() {
     //Editar proveedor correo
     const clcickEditarProveedorCorreo = async () => {
         try {
-            const respuesta = await actualizarProveedorCorreo(editId, editNombre, editDominio);
+            const respuesta = await actualizarProveedorCorreo(editId, editDominio, editEmpresa);
             setMensajeExito("Proveedor correo editado exitosamente")
             closeDialogEdit()
             cargarDatos()
@@ -161,7 +165,7 @@ function AdminPreoveedorCorreo() {
     const closeDialog = () => {
         setOpen(false);
         setNuevoDominio("")
-        setNuevoNombre("")
+        setNuevoEmpresa("")
     }
 
     const closeDialogEdit = () => {
@@ -310,7 +314,7 @@ function AdminPreoveedorCorreo() {
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="14.28%" align="center"><strong>Id</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Nombre</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Dominio</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Fecha Creación</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Fecha Actualización</strong></TableCell>
@@ -327,7 +331,7 @@ function AdminPreoveedorCorreo() {
                                                     {pro.id}
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    {pro.nombre}
+                                                    {pro.empresa?.nombre_empresa}
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     {pro.dominio}
@@ -341,7 +345,7 @@ function AdminPreoveedorCorreo() {
                                                 <TableCell align="center">
                                                     <IconButton onClick={() => {
                                                         setEditId(pro.id)
-                                                        setEditNombre(pro.nombre)
+                                                        setEditEmpresa(pro.empresa?.empresa_id)
                                                         setEditDominio(pro.dominio)
                                                         setOpenEdit(true)
                                                     }}>
@@ -354,7 +358,7 @@ function AdminPreoveedorCorreo() {
                                     <TableRow>
                                         <TableCell colSpan={10} align="center" sx={{ alignItems: "center" }}>
                                             <Typography variant="body1" color="text.secondary">
-                                                No se encontraron AFPs.
+                                                No se encontraron proveedores de correo.
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -387,16 +391,18 @@ function AdminPreoveedorCorreo() {
 
                                 <DialogTitle sx={{ p: 0, mb: 3 }}>Agregar Nuevo Proveedor Correo</DialogTitle>
 
-                                {/* Campo nombre */}
-                                <Box sx={{ mb: 2 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Nombre"
-                                        value={nuevoNombre}
-                                        onChange={(e) => setNuevoNombre(e.target.value)}
-                                        helperText={nuevoNombre.trim() === "" ? "El nombre es obligatorio" : ""}
-                                    />
-                                </Box>
+                                {/* Campo empresa */}
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel>Empresa</InputLabel>
+                                    <Select label="Empresa" value={nuevoEmpresa} onChange={(e) => setNuevoEmpresa(e.target.value)}>
+                                        {empresas.map((emp) => (
+                                            <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
+                                                {emp.nombre_empresa}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    {nuevoEmpresa === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
+                                </FormControl>
 
                                 {/* Campo dominio */}
                                 <Box sx={{ mb: 2 }}>
@@ -416,7 +422,7 @@ function AdminPreoveedorCorreo() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialog} color="error">Cancelar</Button>
                     <Button
-                    onClick={clickCrearProveedorCorreo}
+                        onClick={clickCrearProveedorCorreo}
                         variant="contained"
                         color="primary"
                     >
@@ -434,16 +440,18 @@ function AdminPreoveedorCorreo() {
 
                                 <DialogTitle sx={{ p: 0, mb: 3 }}>Editar Proveedor Correo</DialogTitle>
 
-                                {/* Campo nombre */}
-                                <Box sx={{ mb: 2 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Nombre"
-                                        value={editNombre}
-                                        onChange={(e) => setEditNombre(e.target.value)}
-                                        helperText={editNombre.trim() === "" ? "El nombre es obligatorio" : ""}
-                                    />
-                                </Box>
+                                {/* Campo empresa */}
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel>Empresa</InputLabel>
+                                    <Select label="Empresa" value={editEmpresa} onChange={(e) => setEditEmpresa(e.target.value)}>
+                                        {empresas.map((emp) => (
+                                            <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
+                                                {emp.nombre_empresa}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    {editEmpresa === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
+                                </FormControl>
 
                                 {/* Campo dominio */}
                                 <Box sx={{ mb: 2 }}>
