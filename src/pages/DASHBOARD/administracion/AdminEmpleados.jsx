@@ -158,6 +158,9 @@ function AdminEmpleados() {
     const [dominio, setDominio] = useState("")
     const [dominioPersonal, setDominioPersonal] = useState("")
 
+    const [nuevoDepartamento, setNuevoDepartamento] = useState("")
+    const [nuevoCenco, setNuevoCenco] = useState("")
+
     const [comunasFiltradasCrear, setComunasFiltradasCrear] = useState([]);
 
     // Estados editar
@@ -216,7 +219,10 @@ function AdminEmpleados() {
     const arbolDatos = React.useMemo(() => {
         if (!empresas.length) return []
 
-        return empresas.map(emp => {
+        // Filtrar solo la empresa del empleado
+        const empresasEmp = editEmpresa ? empresas.filter(emp => emp.empresa_id === editEmpresa) : empresas;
+
+        return empresasEmp.map(emp => {
             const misDeptos = departamentos.filter(d => d.empresa?.empresa_id === emp.empresa_id)
             const deptosConHijos = misDeptos.map(dep => {
                 const misCencos = cencos.filter(c => c.departamento?.departamento_id === dep.departamento_id)
@@ -243,7 +249,7 @@ function AdminEmpleados() {
                 hijos: deptosConHijos
             };
 
-        }, [empresas, departamentos, cencos])
+        }, [empresas, departamentos, cencos, editEmpresa])
     })
 
     const obtenerIdsDescendientes = (nodo) => {
@@ -400,6 +406,8 @@ function AdminEmpleados() {
             setNuevoturno("");
             setNuevoCargo("");
             setNuevoEmailLaboral("");
+            setNuevoDepartamento("");
+            setNuevoCenco("");
         } catch (err) {
             setError(err.message);
         } finally {
@@ -470,6 +478,7 @@ function AdminEmpleados() {
         setNuevoEstado(""); setNuevoDireccion("");
         setNuevoEmailPersonal(""); setNuevoRegion("");
         setNuevoComuna("");
+        setNuevoDepartamento(""); setNuevoCenco("");
     }
 
     const closeDialogEdit = () => { setOpenEdit(false) }
@@ -785,6 +794,7 @@ function AdminEmpleados() {
                                                     onClick={() => {
                                                         setEditId(e.empleado_id);
                                                         setEditRun(e.run);
+                                                        setEditEmpresa(e.empresa?.empresa_id);
                                                         setAbrirAsignar(true);
                                                         if (e.cencos && e.cencos.length > 0) {
                                                             const misCencosIds = e.cencos.map(c => `cen-${c.cenco_id}`);
@@ -858,7 +868,25 @@ function AdminEmpleados() {
                                                     }
                                                     setEditTelefonoFijo(e.telefono_fijo ? String(e.telefono_fijo) : "");
                                                     setEditTelefonoMovil(e.telefono_movil ? String(e.telefono_movil) : "");
-                                                    setEditTurno(e.turno?.turno_id || "");
+
+                                                    // Buscamos a qué cenco pertenece el turno actual para pre-poblar los desplegables
+                                                    const turnoActualId = e.turno?.turno_id || "";
+                                                    let cencoAsociado = "";
+                                                    let deptoAsociado = "";
+
+                                                    if (turnoActualId !== "") {
+                                                        for (const cenco of cencos) {
+                                                            if (cenco.turnos && cenco.turnos.some(t => t.turno_id === turnoActualId)) {
+                                                                cencoAsociado = cenco.cenco_id;
+                                                                deptoAsociado = cenco.departamento?.departamento_id || cenco.departamento_id || "";
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    setEditDepartamento(deptoAsociado);
+                                                    setEditCenco(cencoAsociado);
+                                                    setEditTurno(turnoActualId);
                                                     setEditCargo(e.cargo?.cargo_id || "");
                                                 }}>
                                                     <EditIcon>
@@ -1259,7 +1287,16 @@ function AdminEmpleados() {
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Empresa</InputLabel>
-                                <Select label="Empresa" value={nuevoEmpresa} onChange={(e) => setNuevoEmpresa(e.target.value)}>
+                                <Select
+                                    label="Empresa"
+                                    value={nuevoEmpresa}
+                                    onChange={(e) => {
+                                        setNuevoEmpresa(e.target.value);
+                                        setNuevoDepartamento("");
+                                        setNuevoCenco("");
+                                        setNuevoturno("");
+                                    }}
+                                >
                                     {empresas.map((emp) => (
                                         <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
                                             {emp.nombre_empresa}
@@ -1267,7 +1304,6 @@ function AdminEmpleados() {
                                     ))}
                                 </Select>
                                 {nuevoEmpresa === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
-
                             </FormControl>
 
                             <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
@@ -1307,13 +1343,65 @@ function AdminEmpleados() {
                             </Box>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
+                                <InputLabel>Departamento</InputLabel>
+                                <Select
+                                    label="Departamento"
+                                    value={nuevoDepartamento}
+                                    onChange={(e) => {
+                                        setNuevoDepartamento(e.target.value);
+                                        setNuevoCenco("");
+                                        setNuevoturno("");
+                                    }}
+                                    disabled={!nuevoEmpresa}
+                                >
+                                    {departamentos
+                                        .filter(dep => dep.empresa?.empresa_id === nuevoEmpresa)
+                                        .map((dep) => (
+                                            <MenuItem key={dep.departamento_id} value={dep.departamento_id}>
+                                                {dep.nombre_departamento}
+                                            </MenuItem>
+                                        ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }} >
+                                <InputLabel>Centro de Costo</InputLabel>
+                                <Select
+                                    label="Centro de Costo"
+                                    value={nuevoCenco}
+                                    onChange={(e) => {
+                                        setNuevoCenco(e.target.value);
+                                        setNuevoturno("");
+                                    }}
+                                    disabled={!nuevoDepartamento}
+                                >
+                                    {cencos
+                                        .filter(cen => cen.departamento?.departamento_id === nuevoDepartamento)
+                                        .map((cen) => (
+                                            <MenuItem key={cen.cenco_id} value={cen.cenco_id}>
+                                                {cen.nombre_cenco}
+                                            </MenuItem>
+                                        ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Turno</InputLabel>
-                                <Select label="Turno" value={nuevoTurno} onChange={(e) => setNuevoturno(e.target.value)}>
-                                    {turnos.map((turn) => (
-                                        <MenuItem key={turn.turno_id} value={turn.turno_id}>
-                                            {turn.nombre}
-                                        </MenuItem>
-                                    ))}
+                                <Select
+                                    label="Turno"
+                                    value={nuevoTurno}
+                                    onChange={(e) => setNuevoturno(e.target.value)}
+                                    disabled={!nuevoCenco}
+                                >
+                                    {(() => {
+                                        const cencoSeleccionado = cencos.find(c => c.cenco_id === nuevoCenco);
+                                        const turnosDelCenco = cencoSeleccionado && cencoSeleccionado.turnos ? cencoSeleccionado.turnos : [];
+                                        return turnosDelCenco.map((turn) => (
+                                            <MenuItem key={turn.turno_id} value={turn.turno_id}>
+                                                {turn.nombre}
+                                            </MenuItem>
+                                        ));
+                                    })()}
                                 </Select>
                                 {nuevoTurno === "" && <FormHelperText>El Turno es obligatorio</FormHelperText>}
                             </FormControl>
@@ -1321,7 +1409,7 @@ function AdminEmpleados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Cargo</InputLabel>
                                 <Select label="Cargo" value={nuevoCargo} onChange={(e) => setNuevoCargo(e.target.value)}>
-                                    {cargos.map((car) => (
+                                    {cargos.filter(car => car.empresa?.empresa_id === nuevoEmpresa).map((car) => (
                                         <MenuItem key={car.cargo_id} value={car.cargo_id}>
                                             {car.nombre}
                                         </MenuItem>
@@ -1691,7 +1779,16 @@ function AdminEmpleados() {
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Empresa</InputLabel>
-                                <Select label="Empresa" value={editEmpresa} onChange={(e) => setEditEmpresa(e.target.value)}>
+                                <Select
+                                    label="Empresa"
+                                    value={editEmpresa}
+                                    onChange={(e) => {
+                                        setEditEmpresa(e.target.value);
+                                        setEditDepartamento("");
+                                        setEditCenco("");
+                                        setEditTurno("");
+                                    }}
+                                >
                                     {empresas.map((emp) => (
                                         <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
                                             {emp.nombre_empresa}
@@ -1737,9 +1834,73 @@ function AdminEmpleados() {
                             </Box>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>Departamento</InputLabel>
+                                <Select
+                                    label="Departamento"
+                                    value={editDepartamento}
+                                    onChange={(e) => {
+                                        setEditDepartamento(e.target.value);
+                                        setEditCenco("");
+                                        setEditTurno("");
+                                    }}
+                                    disabled={!editEmpresa}
+                                >
+                                    {departamentos
+                                        .filter(dep => dep.empresa?.empresa_id === editEmpresa)
+                                        .map((dep) => (
+                                            <MenuItem key={dep.departamento_id} value={dep.departamento_id}>
+                                                {dep.nombre_departamento}
+                                            </MenuItem>
+                                        ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>Centro de Costo</InputLabel>
+                                <Select
+                                    label="Centro de Costo"
+                                    value={editCenco}
+                                    onChange={(e) => {
+                                        setEditCenco(e.target.value);
+                                        setEditTurno("");
+                                    }}
+                                    disabled={!editDepartamento}
+                                >
+                                    {cencos
+                                        .filter(cen => cen.departamento?.departamento_id === editDepartamento)
+                                        .map((cen) => (
+                                            <MenuItem key={cen.cenco_id} value={cen.cenco_id}>
+                                                {cen.nombre_cenco}
+                                            </MenuItem>
+                                        ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>Turno</InputLabel>
+                                <Select
+                                    label="Turno"
+                                    value={editTurno}
+                                    onChange={(e) => setEditTurno(e.target.value)}
+                                    disabled={!editCenco}
+                                >
+                                    {(() => {
+                                        const cencoSeleccionado = cencos.find(c => c.cenco_id === editCenco);
+                                        const turnosDelCenco = cencoSeleccionado && cencoSeleccionado.turnos ? cencoSeleccionado.turnos : [];
+                                        return turnosDelCenco.map((turn) => (
+                                            <MenuItem key={turn.turno_id} value={turn.turno_id}>
+                                                {turn.nombre}
+                                            </MenuItem>
+                                        ));
+                                    })()}
+                                </Select>
+                                {editTurno === "" && <FormHelperText>El Turno es obligatorio</FormHelperText>}
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Cargo</InputLabel>
                                 <Select label="Cargo" value={editCargo} onChange={(e) => setEditCargo(e.target.value)}>
-                                    {cargos.map((car) => (
+                                    {cargos.filter(car => car.empresa?.empresa_id === editEmpresa).map((car) => (
                                         <MenuItem key={car.cargo_id} value={car.cargo_id}>
                                             {car.nombre}
                                         </MenuItem>

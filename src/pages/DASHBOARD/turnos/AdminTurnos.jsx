@@ -305,14 +305,22 @@ function AdminTurnos() {
         setCheckedEmpleados(newChecked);
     };
 
+    const empleadosDisponiblesFiltrados = empleadosDisponibles.filter(emp => {
+        const matchEmpresa = filtroEmpresaAsignar ? emp.empresa?.empresa_id == filtroEmpresaAsignar : true;
+        const matchCenco = filtroCencoAsignar ? emp.cencos?.some(c => c.cenco_id == filtroCencoAsignar) : true;
+        const matchCargo = filtroCargoAsignar ? emp.cargo?.cargo_id == filtroCargoAsignar : true;
+
+        return matchEmpresa && matchCenco && matchCargo;
+    });
+
     const handleAllRight = () => {
-        setEmpleadosAsignados(empleadosAsignados.concat(empleadosDisponibles));
-        setEmpleadosDisponibles([]);
+        setEmpleadosAsignados(empleadosAsignados.concat(empleadosDisponiblesFiltrados));
+        setEmpleadosDisponibles(empleadosDisponibles.filter(emp => !empleadosDisponiblesFiltrados.includes(emp)));
     };
 
     const handleCheckedRight = () => {
-        const leftChecked = empleadosDisponibles.filter(emp => checkedEmpleados.includes(emp.empleado_id));
-        setEmpleadosDisponibles(empleadosDisponibles.filter(emp => !checkedEmpleados.includes(emp.empleado_id)));
+        const leftChecked = empleadosDisponiblesFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id));
+        setEmpleadosDisponibles(empleadosDisponibles.filter(emp => !leftChecked.includes(emp)));
         setEmpleadosAsignados(empleadosAsignados.concat(leftChecked));
         setCheckedEmpleados(checkedEmpleados.filter(id => !leftChecked.map(e => e.empleado_id).includes(id)));
     };
@@ -343,7 +351,9 @@ function AdminTurnos() {
         const term = busqueda.toLowerCase();
         const coincideTexto = nombreTurno.includes(term);
         const coincideEstado = filtroestado ? tur.estado?.estado_id === filtroestado : true;
-        const coincideEmpresa = empresasFiltro ? tur.empresa?.empresa_id === empresasFiltro : true
+        const coincideEmpresa = empresasFiltro ? tur.empresa?.empresa_id === empresasFiltro : true;
+
+
         return coincideTexto && coincideEstado && coincideEmpresa;
     });
 
@@ -535,7 +545,7 @@ function AdminTurnos() {
                                                         }}
                                                     />
                                                 </TableCell>
-                                                
+
                                                 < TableCell align="center">
                                                     <Button
                                                         variant="contained"
@@ -568,7 +578,7 @@ function AdminTurnos() {
                                                         onClick={() => {
                                                             setAsignar(true);
                                                             setIdTurnoAsignar(tur.turno_id);
-                                                            setFiltroEmpresaAsignar("");
+                                                            setFiltroEmpresaAsignar(tur.empresa?.empresa_id || "");
                                                             setFiltroDepartamentoAsignar("");
                                                             setFiltroCencoAsignar("");
                                                             setFiltroCargoAsignar("");
@@ -809,7 +819,7 @@ function AdminTurnos() {
 
                                 <Box sx={{ mb: 4, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
                                     <Stack direction="row" spacing={2} alignItems="center">
-                                        <FormControl size="small" sx={{ minWidth: 170 }}>
+                                        <FormControl size="small" sx={{ minWidth: 170 }} disabled>
                                             <InputLabel>Empresa</InputLabel>
                                             <Select
                                                 label="Empresa"
@@ -870,9 +880,11 @@ function AdminTurnos() {
                                                 onChange={(e) => setFiltroCargoAsignar(e.target.value)}
                                             >
                                                 <MenuItem value=""><em>Todos</em></MenuItem>
-                                                {cargos.map((cargo) => (
-                                                    <MenuItem key={cargo.cargo_id} value={cargo.cargo_id}>{cargo.nombre}</MenuItem>
-                                                ))}
+                                                {cargos
+                                                    .filter(cargo => filtroEmpresaAsignar ? cargo.empresa?.empresa_id === filtroEmpresaAsignar : true)
+                                                    .map((cargo) => (
+                                                        <MenuItem key={cargo.cargo_id} value={cargo.cargo_id}>{cargo.nombre}</MenuItem>
+                                                    ))}
                                             </Select>
                                         </FormControl>
                                     </Stack>
@@ -887,41 +899,39 @@ function AdminTurnos() {
                                         </Typography>
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                                             <List dense component="div" role="list">
-                                                {empleadosDisponibles
-                                                    .filter(emp => {
-                                                        const matchEmpresa = filtroEmpresaAsignar ? emp.empresa?.empresa_id === filtroEmpresaAsignar : true;
-                                                        const matchCenco = filtroCencoAsignar
-                                                            ? emp.cencos?.some(c => c.cenco_id === filtroCencoAsignar)
-                                                            : true;
-                                                        const matchCargo = filtroCargoAsignar ? emp.cargo?.cargo_id === filtroCargoAsignar : true;
-                                                        return matchEmpresa && matchCenco && matchCargo;
-                                                    })
-                                                    .map((value) => {
-                                                        const labelId = `transfer-list-item-${value.empleado_id}-label`;
-                                                        return (
-                                                            <ListItem
-                                                                key={value.empleado_id}
-                                                                role="listitem"
-                                                                button
-                                                                onClick={() => handleToggleEmpleado(value.empleado_id)}
-                                                            >
-                                                                <Checkbox
-                                                                    checked={checkedEmpleados.indexOf(value.empleado_id) !== -1}
-                                                                    tabIndex={-1}
-                                                                    disableRipple
-                                                                    inputProps={{ 'aria-labelledby': labelId }}
-                                                                />
-                                                                <ListItemText id={labelId} primary={`${value.nombres} ${value.apellido_paterno} ${value.apellido_materno}`} />
-                                                            </ListItem>
-                                                        );
-                                                    })}
+                                                {!filtroCencoAsignar ? (
+                                                    <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
+                                                        Seleccione un centro de costo para ver empleados
+                                                    </Typography>
+                                                ) : (
+                                                    empleadosDisponiblesFiltrados
+                                                        .map((value) => {
+                                                            const labelId = `transfer-list-item-${value.empleado_id}-label`;
+                                                            return (
+                                                                <ListItem
+                                                                    key={value.empleado_id}
+                                                                    role="listitem"
+                                                                    button
+                                                                    onClick={() => handleToggleEmpleado(value.empleado_id)}
+                                                                >
+                                                                    <Checkbox
+                                                                        checked={checkedEmpleados.indexOf(value.empleado_id) !== -1}
+                                                                        tabIndex={-1}
+                                                                        disableRipple
+                                                                        inputProps={{ 'aria-labelledby': labelId }}
+                                                                    />
+                                                                    <ListItemText id={labelId} primary={`${value.nombres} ${value.apellido_paterno} ${value.apellido_materno}`} />
+                                                                </ListItem>
+                                                            );
+                                                        })
+                                                )}
                                             </List>
                                         </Box>
                                     </Box>
 
                                     <Stack spacing={1} justifyContent="center">
                                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllRight}>&gt;&gt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedRight} disabled={empleadosDisponibles.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&gt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedRight} disabled={empleadosDisponiblesFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&gt;</Button>
                                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedLeft} disabled={empleadosAsignados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&lt;</Button>
                                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllLeft}>&lt;&lt;</Button>
                                     </Stack>

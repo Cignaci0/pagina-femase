@@ -78,7 +78,6 @@ const COMPONENTES_VISTA = {
   "Cargos": <AdminCargos />, //
   "AFP": <AdminAFPs />,
   "Centros de costo": <AdminCentroCosto />, //
-  "Error Rechazos": <AdminCodErrorRechazos />,
   "Departamentos": <AdmiminDepartamentos />, //
   "Dispositivos": <AdminDispositivos />, //
   "Empleados": <AdminEmpleados />,//

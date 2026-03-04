@@ -18,7 +18,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 dayjs.locale("es");
-import { crearFeriado, editarFeriado , obtenerFeriados} from "../../../services/feriadosServices";
+import { crearFeriado, editarFeriado, obtenerFeriados } from "../../../services/feriadosServices";
 
 function AdminFeriados() {
 
@@ -87,7 +87,7 @@ function AdminFeriados() {
                 tipo: nuevoTipo,
                 respaldo_legal: nuevoRespaldoLegal,
                 region: regiones.find(r => r.id === nuevoRegion)?.nombre || nuevoRegion,
-                comuna: nuevoComuna
+                comuna: nuevoComuna ? nuevoComuna : "no tiene comuna"
             }
             console.log(datos)
             const respuesta = await crearFeriado(datos)
@@ -111,7 +111,7 @@ function AdminFeriados() {
                 tipo: editTipo,
                 respaldo_legal: editRespaldoLegal,
                 region: regiones.find(r => r.id === editRegion)?.nombre || editRegion,
-                comuna: editComuna
+                comuna: editComuna ? editComuna : "no tiene comuna"
             }
             console.log(datos)
             const respuesta = await editarFeriado(editId, datos)
@@ -474,6 +474,7 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Región</InputLabel>
                                 <Select label="Región" value={nuevoRegion} onChange={handleCambioRegion}>
+                                    <MenuItem value={"No tiene region"}>No tiene región</MenuItem>
                                     {regiones.map((reg) => (<MenuItem key={reg.id} value={reg.id}>{reg.nombre}</MenuItem>))}
                                 </Select>
                                 {nuevoRegion === "" && <FormHelperText>La región es obligatoria</FormHelperText>}
@@ -483,6 +484,7 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Comuna</InputLabel>
                                 <Select label="Comuna" value={nuevoComuna} onChange={(e) => setNuevoComuna(e.target.value)} disabled={comunasFiltradasCrear.length === 0}>
+                                    <MenuItem value={"No tiene comuna"}>No tiene comuna</MenuItem>
                                     {comunasFiltradasCrear.map((com, index) => (<MenuItem key={index} value={com.nombre}>{com.nombre}</MenuItem>))}
                                 </Select>
                                 {nuevoComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}
@@ -577,6 +579,7 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Región</InputLabel>
                                 <Select label="Región" value={editRegion} onChange={handleCambioRegionEdit}>
+                                    <MenuItem value={"No tiene region"}>No tiene región</MenuItem>
                                     {regiones.map((reg) => (<MenuItem key={reg.id} value={reg.id}>{reg.nombre}</MenuItem>))}
                                 </Select>
                                 {editRegion === "" && <FormHelperText>La región es obligatoria</FormHelperText>}
@@ -586,6 +589,7 @@ function AdminFeriados() {
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Comuna</InputLabel>
                                 <Select label="Comuna" value={editComuna} onChange={(e) => setEditComuna(e.target.value)} disabled={comunasFiltradasEdit.length === 0}>
+                                    <MenuItem value={"No tiene comuna"}>No tiene comuna</MenuItem>
                                     {comunasFiltradasEdit.map((com, index) => (<MenuItem key={index} value={com.nombre}>{com.nombre}</MenuItem>))}
                                 </Select>
                                 {editComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}

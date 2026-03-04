@@ -87,6 +87,8 @@ function AdminCentroCosto() {
     const [turnosLeft, setTurnosLeft] = useState([])
     const [abrirTurnos, setAbrirTurnos] = useState("")
     const [turnosSeleccionados, setTurnosSeleccionados] = useState([])
+    const [filtroHoraDesdeTurnos, setFiltroHoraDesdeTurnos] = useState("")
+    const [filtroHoraHastaTurnos, setFiltroHoraHastaTurnos] = useState("")
 
     // Estados email y cenco en edicion
     const [abrirEmailNoti, setAbrirEmailNoti] = useState(false)
@@ -287,6 +289,8 @@ function AdminCentroCosto() {
         setTurnosLeft(disponibles);
 
         setTurnosSeleccionados([]);
+        setFiltroHoraDesdeTurnos("");
+        setFiltroHoraHastaTurnos("");
         setAbrirTurnos(true);
     }
 
@@ -327,9 +331,27 @@ function AdminCentroCosto() {
         setTurnosSeleccionados(nuevaListaCheck)
     }
 
+    const turnosDisponiblesFiltrados = turnosLeft.filter((tur) => {
+        let coincideHora = true;
+        if (filtroHoraDesdeTurnos || filtroHoraHastaTurnos) {
+            const turnoEntrada = tur.horario?.hora_entrada; // formato "HH:MM:SS"
+            const turnoSalida = tur.horario?.hora_salida;
+            if (turnoEntrada && turnoSalida) {
+                const timeEntrada = turnoEntrada.substring(0, 5);
+                const timeSalida = turnoSalida.substring(0, 5);
+
+                if (filtroHoraDesdeTurnos && timeEntrada < filtroHoraDesdeTurnos) coincideHora = false;
+                if (filtroHoraHastaTurnos && timeSalida > filtroHoraHastaTurnos) coincideHora = false;
+            } else {
+                coincideHora = false; // si no tiene hora pero estamos filtrando por hora
+            }
+        }
+        return coincideHora;
+    });
+
     const handleAllRightTurnos = () => {
-        setTurnosRight(turnosRight.concat(turnosLeft));
-        setTurnosLeft([]);
+        setTurnosRight(turnosRight.concat(turnosDisponiblesFiltrados));
+        setTurnosLeft(notTurnos(turnosLeft, turnosDisponiblesFiltrados));
     };
 
     const handleCheckedRightTurnos = () => {
@@ -377,6 +399,8 @@ function AdminCentroCosto() {
             })}
         </List>
     );
+
+
 
     // Filtrado de departamentos
     const departamentosFiltrados = (departamentos.departamentos || departamentos || []).filter((dep) => {
@@ -862,12 +886,35 @@ function AdminCentroCosto() {
 
                                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                                            Turnos Disponibles ({turnosLeft.length})
+                                            Turnos Disponibles ({turnosDisponiblesFiltrados.length})
                                         </Typography>
+
+                                        {/* Filtros de Hora */}
+                                        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                                            <TextField
+                                                label="Hora Desde"
+                                                type="time"
+                                                value={filtroHoraDesdeTurnos}
+                                                onChange={(e) => setFiltroHoraDesdeTurnos(e.target.value)}
+                                                InputLabelProps={{ shrink: true }}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                            <TextField
+                                                label="Hora Hasta"
+                                                type="time"
+                                                value={filtroHoraHastaTurnos}
+                                                onChange={(e) => setFiltroHoraHastaTurnos(e.target.value)}
+                                                InputLabelProps={{ shrink: true }}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                        </Box>
+
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
-                                            {turnosLeft.length === 0
+                                            {turnosDisponiblesFiltrados.length === 0
                                                 ? <Typography variant="body2" sx={{ p: 2, color: 'text.secondary', textAlign: 'center' }}>No hay disponibles</Typography>
-                                                : customListTurnos(turnosLeft)
+                                                : customListTurnos(turnosDisponiblesFiltrados)
                                             }
                                         </Box>
                                     </Box>
