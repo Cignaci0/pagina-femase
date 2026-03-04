@@ -131,6 +131,7 @@ function AdminEmpleados() {
 
     // Estados crear
     const [open, setOpen] = useState(false);
+    const [nuevoNumFicha, setNuevoNumFicha] = useState("")
     const [nuevoClave, setNuevoClave] = useState("")
     const [nuevoRun, setNuevoRun] = useState("")
     const [nuevoNombre, setnuevoNombre] = useState("")
@@ -163,6 +164,7 @@ function AdminEmpleados() {
     const [openEdit, setOpenEdit] = useState(false)
     const [editId, setEditId] = useState("")
 
+    const [editNumFicha, setEditNumFicha] = useState("")
     const [editRun, setEditRun] = useState("")
     const [editClave, setEditClave] = useState("")
     const [editNombre, setEditNombre] = useState("")
@@ -344,6 +346,7 @@ function AdminEmpleados() {
         try {
             setCargando(true);
             const datosParaEnviar = {
+
                 run: nuevoRun,
                 nombres: nuevoNombre,
                 apellido_paterno: nuevoApPaterno,
@@ -367,12 +370,14 @@ function AdminEmpleados() {
                 cargo: nuevoCargo,
                 turno: nuevoTurno,
                 estado: nuevoEstado,
-                email_laboral: nuevoEmailLaboral && dominio ? `${nuevoEmailLaboral}${dominio}` : null
+                email_laboral: nuevoEmailLaboral && dominio ? `${nuevoEmailLaboral}${dominio}` : null,
+                num_ficha: nuevoNumFicha
             };
             const resultado = await crearEmpleado(datosParaEnviar);
             setMensajeExito("Empleado creado exitosamente");
             cerrarDialog();
             llamarEmpleados();
+            setNuevoNumFicha("");
             setNuevoClave("");
             setNuevoRun("");
             setnuevoNombre("");
@@ -405,6 +410,7 @@ function AdminEmpleados() {
     const clickEditar = async () => {
         try {
             const datosEmpleado = {
+                num_ficha: editNumFicha,
                 run: editRun,
                 nombres: editNombre,
                 apellido_paterno: editApPaterno,
@@ -459,6 +465,7 @@ function AdminEmpleados() {
 
     const cerrarDialog = () => {
         setOpen(false);
+        setNuevoNumFicha("");
         setnuevoNombre(""); setNuevoEmpresa("");
         setNuevoEstado(""); setNuevoDireccion("");
         setNuevoEmailPersonal(""); setNuevoRegion("");
@@ -806,6 +813,7 @@ function AdminEmpleados() {
                                                 <IconButton onClick={() => {
                                                     setEditId(e.empleado_id),
                                                         setOpenEdit(true)
+                                                    setEditNumFicha(e.num_ficha || "");
                                                     setEditRun(e.run || "");
                                                     setEditNombre(e.nombres || "");
                                                     setEditApPaterno(e.apellido_paterno || "");
@@ -956,7 +964,9 @@ function AdminEmpleados() {
                                 />
                             </Box>
 
-
+                            <Box sx={{ mb: 2 }}>
+                                <TextField fullWidth label="Número de Ficha" size="small" value={nuevoNumFicha} onChange={(e) => setNuevoNumFicha(e.target.value)} />
+                            </Box>
 
                             <Box sx={{ mb: 2 }}>
                                 <TextField fullWidth label="Nombres" size="small" value={nuevoNombre} onChange={(e) => setnuevoNombre(e.target.value)} helperText={nuevoNombre.trim() === "" ? "El nombre es obligatorio" : ""} />
@@ -1336,7 +1346,7 @@ function AdminEmpleados() {
                             </FormControl>
                         </Paper>
                     </Box>
-                </DialogContent>
+                </DialogContent >
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
                     <Button
@@ -1371,7 +1381,8 @@ function AdminEmpleados() {
             </Dialog >
 
             {/* Dialog editar */}
-            < Dialog open={openEdit} onClose={closeDialogEdit} sx={{ textAlign: "center" }}>
+            < Dialog open={openEdit} onClose={closeDialogEdit} sx={{ textAlign: "center" }
+            }>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
@@ -1393,6 +1404,10 @@ function AdminEmpleados() {
                                             : (!esRutValido(editRun) ? "RUT inválido" : "")
                                     }
                                 />
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <TextField fullWidth label="Número de Ficha" size="small" value={editNumFicha} onChange={(e) => setEditNumFicha(e.target.value)} />
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
@@ -1562,6 +1577,50 @@ function AdminEmpleados() {
                                 </Select>
                                 {editComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}
                             </FormControl>
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
+                                    Clave (4 dígitos)
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                                    {[0, 1, 2, 3].map((index) => (
+                                        <TextField
+                                            key={index}
+                                            id={`otp-edit-${index}`}
+                                            size="small"
+                                            value={editClave ? editClave[index] || "" : ""}
+                                            inputProps={{
+                                                maxLength: 1,
+                                                style: { textAlign: 'center', width: '30px', padding: '8px' }
+                                            }}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (!/^\d*$/.test(val)) return;
+
+                                                const nuevaClaveArray = (editClave || "").split("");
+                                                nuevaClaveArray[index] = val;
+                                                const resultado = nuevaClaveArray.join("").slice(0, 4);
+                                                setEditClave(resultado);
+
+                                                if (val && index < 3) {
+                                                    document.getElementById(`otp-edit-${index + 1}`).focus();
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Backspace" && (!editClave || !editClave[index]) && index > 0) {
+                                                    document.getElementById(`otp-edit-${index - 1}`).focus();
+                                                }
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+
+                                {(editClave || "").length < 4 && (
+                                    <FormHelperText error={false} sx={{ mt: 1, textAlign: 'center' }}>
+                                    </FormHelperText>
+                                )}
+                            </Box>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Estado</InputLabel>
@@ -1737,7 +1796,7 @@ function AdminEmpleados() {
             </Dialog >
 
             {/* DIALOG ASIGNAR CENTROS DE COSTO */}
-            <Dialog open={abrirAsignar} onClose={cerrarAsignar} fullWidth maxWidth="lg">
+            < Dialog open={abrirAsignar} onClose={cerrarAsignar} fullWidth maxWidth="lg" >
                 <DialogTitle sx={{ pb: 1 }}>Asignar Centros de Costo</DialogTitle>
                 <DialogContent sx={{ bgcolor: "#f5f5f5", p: 3 }}>
                     <Box sx={{ display: "flex", gap: 2, height: "60vh", mt: 1 }}>
@@ -1823,7 +1882,7 @@ function AdminEmpleados() {
                     <Button onClick={cerrarAsignar} color="error">Cancelar</Button>
                     <Button onClick={guardarAsignar} variant="contained" color="primary" disableElevation>Guardar Asignación</Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
 
         </>
     );
