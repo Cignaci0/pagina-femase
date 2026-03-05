@@ -313,6 +313,14 @@ function AdminTurnos() {
         return matchEmpresa && matchCenco && matchCargo;
     });
 
+    const empleadosAsignadosFiltrados = empleadosAsignados.filter(emp => {
+        const matchEmpresa = filtroEmpresaAsignar ? emp.empresa?.empresa_id == filtroEmpresaAsignar : true;
+        const matchCenco = filtroCencoAsignar ? emp.cencos?.some(c => c.cenco_id == filtroCencoAsignar) : true;
+        const matchCargo = filtroCargoAsignar ? emp.cargo?.cargo_id == filtroCargoAsignar : true;
+
+        return matchEmpresa && matchCenco && matchCargo;
+    });
+
     const handleAllRight = () => {
         setEmpleadosAsignados(empleadosAsignados.concat(empleadosDisponiblesFiltrados));
         setEmpleadosDisponibles(empleadosDisponibles.filter(emp => !empleadosDisponiblesFiltrados.includes(emp)));
@@ -326,15 +334,15 @@ function AdminTurnos() {
     };
 
     const handleCheckedLeft = () => {
-        const rightChecked = empleadosAsignados.filter(emp => checkedEmpleados.includes(emp.empleado_id));
-        setEmpleadosAsignados(empleadosAsignados.filter(emp => !checkedEmpleados.includes(emp.empleado_id)));
+        const rightChecked = empleadosAsignadosFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id));
+        setEmpleadosAsignados(empleadosAsignados.filter(emp => !rightChecked.map(e => e.empleado_id).includes(emp.empleado_id)));
         setEmpleadosDisponibles(empleadosDisponibles.concat(rightChecked));
         setCheckedEmpleados(checkedEmpleados.filter(id => !rightChecked.map(e => e.empleado_id).includes(id)));
     };
 
     const handleAllLeft = () => {
-        setEmpleadosDisponibles(empleadosDisponibles.concat(empleadosAsignados));
-        setEmpleadosAsignados([]);
+        setEmpleadosDisponibles(empleadosDisponibles.concat(empleadosAsignadosFiltrados));
+        setEmpleadosAsignados(empleadosAsignados.filter(emp => !empleadosAsignadosFiltrados.map(e => e.empleado_id).includes(emp.empleado_id)));
     };
 
     const handleToggleDia = (valorDia) => {
@@ -815,7 +823,15 @@ function AdminTurnos() {
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
 
-                                <DialogTitle>Asignar turno</DialogTitle>
+                                <DialogTitle>
+                                    Asignar turno
+                                    {idTurnoAsignar && (() => {
+                                        const turnoSel = turnos.find(t => t.turno_id === idTurnoAsignar);
+                                        return turnoSel?.horario
+                                            ? ` (${turnoSel.horario.hora_entrada.slice(0, 5)} - ${turnoSel.horario.hora_salida.slice(0, 5)})`
+                                            : "";
+                                    })()}
+                                </DialogTitle>
 
                                 <Box sx={{ mb: 4, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
                                     <Stack direction="row" spacing={2} alignItems="center">
@@ -932,18 +948,18 @@ function AdminTurnos() {
                                     <Stack spacing={1} justifyContent="center">
                                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllRight}>&gt;&gt;</Button>
                                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedRight} disabled={empleadosDisponiblesFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&gt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedLeft} disabled={empleadosAsignados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&lt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedLeft} disabled={empleadosAsignadosFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&lt;</Button>
                                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllLeft}>&lt;&lt;</Button>
                                     </Stack>
 
                                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                                            Empleados asignados
+                                            Empleados asignados ({empleadosAsignadosFiltrados.length})
                                         </Typography>
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                                             <List dense component="div" role="list">
-                                                {empleadosAsignados.map((value) => {
-                                                    const labelId = `transfer-list-item-${value.empleado_id}-label`;
+                                                {empleadosAsignadosFiltrados.map((value) => {
+                                                    const labelId = `transfer-list-item-assigned-${value.empleado_id}-label`;
                                                     return (
                                                         <ListItem
                                                             key={value.empleado_id}

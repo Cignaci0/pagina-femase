@@ -8,6 +8,7 @@ import {
     FormHelperText
 } from "@mui/material";
 import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
+import { obtenerProveedorCorreo } from "../../../services/proveedorCorreoServices";
 import { regiones, comunas } from "../../../utils/dataGeografica";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -42,6 +43,8 @@ function AdminEmpresas() {
     const [nuevoComuna, setNuevoComuna] = useState("")
     const [nuevoEstado, setNuevoEstado] = useState("")
     const [nuevoEmail, setNuevoEmail] = useState("")
+    const [nuevoEmailLocal, setNuevoEmailLocal] = useState("")
+    const [nuevoEmailDominio, setNuevoEmailDominio] = useState("")
 
     // Estados editar
     const [mostrarEdit, setMostrarEdit] = useState(false)
@@ -53,6 +56,8 @@ function AdminEmpresas() {
     const [editComuna, setEditComuna] = useState("")
     const [editEstado, setEditEstado] = useState("")
     const [editEmail, setEditEmail] = useState("")
+    const [editEmailLocal, setEditEmailLocal] = useState("")
+    const [editEmailDominio, setEditEmailDominio] = useState("")
 
     // Estados region y comuna
     const [comunasFiltradas, setComunasFiltradas] = useState([]);
@@ -60,15 +65,24 @@ function AdminEmpresas() {
     // Estados email
     const [abrirEmail, setAbrirEmail] = useState("")
     const [EmpresaSeleccionada, setEmpresaSeleccionada] = useState(null);
+    const [proveedorCorreo, setProveedorCorreo] = useState([]);
+
+    // Estados contacto
+    const [contactoNombre, setContactoNombre] = useState("")
+    const [contactoTelefono, setContactoTelefono] = useState("")
+    const [contactoEmailLocal, setContactoEmailLocal] = useState("")
+    const [contactoEmailDominio, setContactoEmailDominio] = useState("")
 
     // Carga de datos
     const cargarDatos = async () => {
         try {
-            const [dataEmpresas] = await Promise.all([
-                obtenerEmpresas(window.localStorage.getItem('token'))
+            const [dataEmpresas, dataProveedores] = await Promise.all([
+                obtenerEmpresas(window.localStorage.getItem('token')),
+                obtenerProveedorCorreo()
             ]);
             console.log(dataEmpresas);
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
+            setProveedorCorreo(Array.isArray(dataProveedores) ? dataProveedores : []);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -208,7 +222,7 @@ function AdminEmpresas() {
         nuevoDireccion.trim() !== "" &&
         nuevoRegion !== "" &&
         nuevoComuna !== "" &&
-        esEmailValido(nuevoEmail);
+        nuevoEstado !== "";
 
     // Manejo de region y comuna
     const handleCambioRegion = (evento) => {
@@ -230,6 +244,8 @@ function AdminEmpresas() {
         setNuevoComuna("")
         setNuevoEstado("")
         setNuevoEmail("")
+        setNuevoEmailLocal("")
+        setNuevoEmailDominio("")
     }
 
     const cerrarDialogEdit = () => {
@@ -238,16 +254,47 @@ function AdminEmpresas() {
 
     const cerrarEmail = () => {
         setAbrirEmail(false)
+        setEmpresaSeleccionada(null)
+        setContactoNombre("")
+        setContactoTelefono("")
+        setContactoEmailLocal("")
+        setContactoEmailDominio("")
+    }
+
+    const guardarContacto = async () => {
+        if (!EmpresaSeleccionada) return;
+        const emailContacto = contactoEmailLocal && contactoEmailDominio
+            ? `${contactoEmailLocal}${contactoEmailDominio}`
+            : "";
+        try {
+            await actualizarEmpresa(
+                EmpresaSeleccionada.empresa_id,
+                EmpresaSeleccionada.nombre_empresa,
+                EmpresaSeleccionada.rut_empresa,
+                EmpresaSeleccionada.direccion_empresa,
+                EmpresaSeleccionada.comuna_empresa,
+                EmpresaSeleccionada.estado?.estado_id,
+                emailContacto || EmpresaSeleccionada.email_empresa,
+                contactoNombre,
+                contactoTelefono
+            )
+            setMensajeExito("Contacto guardado con exito")
+            cerrarEmail()
+            cargarDatos()
+        } catch (error) {
+            setError(error.message || "Error al guardar contacto")
+        }
     }
 
     // Acciones crear y editar
     const clickCrearEmpresa = async () => {
+        const emailFinal = nuevoEmailLocal && nuevoEmailDominio ? `${nuevoEmailLocal}${nuevoEmailDominio}` : nuevoEmail;
         try {
             const respuesta = await crearEmpresa(nuevoNombre,
                 nuevoRun.trim(),
                 nuevoDireccion,
                 nuevoComuna,
-                nuevoEmail,
+                emailFinal,
                 nuevoEstado)
             setOpen(false)
             setMensajeExito("Empresa creada con exito")
@@ -263,6 +310,7 @@ function AdminEmpresas() {
     }
 
     const clickGuardarEdit = async () => {
+        const emailFinal = editEmailLocal && editEmailDominio ? `${editEmailLocal}${editEmailDominio}` : editEmail;
         try {
             const respuesta = await actualizarEmpresa(editId,
                 editNombre,
@@ -270,7 +318,7 @@ function AdminEmpresas() {
                 editDireccion,
                 editComuna,
                 editEstado,
-                editEmail)
+                emailFinal)
             setMostrarEdit(false)
             setMensajeExito("Se edito con exito")
             cargarDatos()
@@ -432,7 +480,7 @@ function AdminEmpresas() {
                                     <TableCell width="14.28%" align="center"><strong>Direccion</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Comuna</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Estado</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Email</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Datos contacto</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Fecha creación</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Creador</strong></TableCell>
@@ -467,7 +515,20 @@ function AdminEmpresas() {
                                                     />
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    <IconButton onClick={() => { setEmpresaSeleccionada(empresa); setAbrirEmail(true); }}>
+                                                    <IconButton onClick={() => {
+                                                        setEmpresaSeleccionada(empresa);
+                                                        setContactoNombre(empresa.nombre_contacto || "");
+                                                        setContactoTelefono(empresa.telefono_contacto || "");
+                                                        if (empresa.email_empresa && empresa.email_empresa.includes("@")) {
+                                                            const parts = empresa.email_empresa.split("@");
+                                                            setContactoEmailLocal(parts[0]);
+                                                            setContactoEmailDominio(`@${parts[1]}`);
+                                                        } else {
+                                                            setContactoEmailLocal(empresa.email_empresa || "");
+                                                            setContactoEmailDominio("");
+                                                        }
+                                                        setAbrirEmail(true);
+                                                    }}>
                                                         <DraftsIcon />
                                                     </IconButton>
                                                 </TableCell>
@@ -486,7 +547,17 @@ function AdminEmpresas() {
                                                         setEditNombre(empresa.nombre_empresa);
                                                         setEditRun(empresa.rut_empresa);
                                                         setEditDireccion(empresa.direccion_empresa);
-                                                        setEditEmail(empresa.email_empresa);
+                                                        // Split email
+                                                        if (empresa.email_empresa && empresa.email_empresa.includes("@")) {
+                                                            const parts = empresa.email_empresa.split("@");
+                                                            setEditEmail(empresa.email_empresa);
+                                                            setEditEmailLocal(parts[0]);
+                                                            setEditEmailDominio(`@${parts[1]}`);
+                                                        } else {
+                                                            setEditEmail(empresa.email_empresa || "");
+                                                            setEditEmailLocal("");
+                                                            setEditEmailDominio("");
+                                                        }
                                                         setEditEstado(empresa.estado?.estado_id);
                                                         const comunaEncontrada = comunas.find(c => c.nombre === empresa.comuna_empresa);
                                                         if (comunaEncontrada) {
@@ -512,7 +583,7 @@ function AdminEmpresas() {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                
+
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -626,22 +697,6 @@ function AdminEmpresas() {
                                     {nuevoEstado === "" && <FormHelperText>El Estado es obligatorio</FormHelperText>}
                                 </FormControl>
 
-                                {/* Campo email */}
-                                <Box>
-                                    <TextField
-                                        fullWidth
-                                        label="Email"
-                                        value={nuevoEmail}
-                                        onChange={(e) => setNuevoEmail(e.target.value)}
-                                        error={nuevoEmail.length > 0 && !esEmailValido(nuevoEmail)}
-                                        helperText={
-                                            nuevoEmail === ""
-                                                ? "El email es obligatorio"
-                                                : (!esEmailValido(nuevoEmail) ? "Ingrese un email válido (ej: usuario@dominio.com)" : "")
-                                        }
-                                    />
-                                </Box>
-
                             </Paper>
                         </Box>
                     </Box>
@@ -752,22 +807,6 @@ function AdminEmpresas() {
                                     {editEstado === "" && <FormHelperText>El estado es obligatorio</FormHelperText>}
                                 </FormControl>
 
-                                {/* Campo email */}
-                                <Box>
-                                    <TextField
-                                        fullWidth
-                                        label="Email"
-                                        value={editEmail}
-                                        onChange={(e) => setEditEmail(e.target.value)}
-                                        error={editEmail.length > 0 && !esEmailValido(editEmail)}
-                                        helperText={
-                                            editEmail.trim() === ""
-                                                ? "El email es obligatorio"
-                                                : (!esEmailValido(editEmail) ? "Ingrese un email válido (ej: usuario@dominio.com)" : "")
-                                        }
-                                    />
-                                </Box>
-
                             </Paper>
                         </Box>
                     </Box>
@@ -785,8 +824,7 @@ function AdminEmpresas() {
                             editDireccion.trim() === "" ||
                             editRegion === "" ||
                             editComuna === "" ||
-                            editEstado === "" ||
-                            !esEmailValido(editEmail)
+                            editEstado === ""
                         }
                     >
                         Guardar Cambios
@@ -794,44 +832,75 @@ function AdminEmpresas() {
                 </DialogActions>
             </Dialog>
 
-            {/* Dialog email */}
-            <Dialog open={abrirEmail} sx={{ textAlign: "center" }}>
+            {/* Dialog contacto */}
+            <Dialog open={abrirEmail} onClose={cerrarEmail} sx={{ textAlign: "center" }}>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+                                <DialogTitle sx={{ p: 0, mb: 3 }}>
+                                    Contacto {EmpresaSeleccionada?.nombre_empresa}
+                                </DialogTitle>
 
-                                <DialogTitle>Emails</DialogTitle>
-
+                                {/* Nombre contacto */}
                                 <Box sx={{ mb: 2 }}>
-                                    {EmpresaSeleccionada && (
-                                        <>
-                                            <Box>
-                                                <Typography
-                                                    variant="body2"
-                                                    sx={{
-                                                        border: '1px solid #E0E0E0',
-                                                        borderRadius: '40px',
-                                                        p: 0.5,
-                                                        color: '#424242'
-                                                    }}
-                                                >
-                                                    {EmpresaSeleccionada.email_empresa}
-                                                </Typography>
-                                            </Box>
-                                        </>
-                                    )}
+                                    <TextField
+                                        fullWidth
+                                        label="Nombre Contacto"
+                                        size="small"
+                                        value={contactoNombre}
+                                        onChange={(e) => setContactoNombre(e.target.value)}
+                                    />
                                 </Box>
 
-                                <Button variant="outlined" color="error" onClick={cerrarEmail}>
-                                    cerrar
-                                </Button>
+                                {/* Teléfono contacto */}
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Teléfono Contacto"
+                                        size="small"
+                                        value={contactoTelefono}
+                                        onChange={(e) => setContactoTelefono(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                                        inputProps={{ inputMode: "numeric", maxLength: 9 }}
+                                    />
+                                </Box>
+
+                                {/* Email contacto + dominio de la empresa */}
+                                <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Email Contacto"
+                                        size="small"
+                                        value={contactoEmailLocal}
+                                        onChange={(e) => setContactoEmailLocal(e.target.value.replace(/@/g, ""))}
+                                    />
+                                    <FormControl size="small" sx={{ minWidth: 160 }}
+                                        disabled={!EmpresaSeleccionada}>
+                                        <InputLabel>Dominio</InputLabel>
+                                        <Select
+                                            label="Dominio"
+                                            value={contactoEmailDominio}
+                                            onChange={(e) => setContactoEmailDominio(e.target.value)}
+                                        >
+                                            {proveedorCorreo
+                                                .filter(p => p.empresa?.empresa_id === EmpresaSeleccionada?.empresa_id)
+                                                .map((prov) => (
+                                                    <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                                ))}
+                                        </Select>
+                                    </FormControl>
+                                </Box>
 
                             </Paper>
                         </Box>
                     </Box>
-
                 </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 0 }}>
+                    <Button onClick={cerrarEmail} color="error">Cancelar</Button>
+                    <Button onClick={guardarContacto} variant="contained" color="primary">
+                        Guardar
+                    </Button>
+                </DialogActions>
             </Dialog>
         </>
     );

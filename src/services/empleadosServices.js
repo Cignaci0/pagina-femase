@@ -53,7 +53,8 @@ export const crearEmpleado = async (datosEmpleado) => {
       turno: datosEmpleado.turno,
       estado: datosEmpleado.estado,
       email_laboral: datosEmpleado.email_laboral,
-      num_ficha: datosEmpleado.num_ficha
+      num_ficha: datosEmpleado.num_ficha,
+      cenco_id: datosEmpleado.cenco_id
     }),
   });
 
@@ -96,7 +97,8 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
       turno: datosEmpleado.turno,
       estado: datosEmpleado.estado,
       email_laboral: datosEmpleado.email_laboral,
-      num_ficha: datosEmpleado.num_ficha
+      num_ficha: datosEmpleado.num_ficha,
+      cenco_id: datosEmpleado.cenco_id
     }),
   });
   const datos = await peticion.json();

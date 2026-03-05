@@ -25,6 +25,7 @@ import { obtenerDispositivo } from "../../../services/dispositivosServices"
 import { asignarDispositivo } from "../../../services/asignaciones/asignacionesServices"
 import { obtenerTurnos } from "../../../services/turnosServices"
 import { asignarTurnos } from "../../../services/asignaciones/asignacionesServices"
+import { obtenerProveedorCorreo } from "../../../services/proveedorCorreoServices"
 
 function AdminCentroCosto() {
 
@@ -34,6 +35,7 @@ function AdminCentroCosto() {
     const [empresas, setEmpresas] = useState([])
     const [todosDispositivos, setTodosDispositivos] = useState([]);
     const [turnos, setTurnos] = useState([])
+    const [proveedorCorreo, setProveedorCorreo] = useState([])
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [mensajeExito, setMensajeExito] = useState("");
@@ -55,8 +57,10 @@ function AdminCentroCosto() {
     const [nuevoDireccion, setNuevoDireccion] = useState("")
     const [nuevoRegion, setNuevoRegion] = useState("")
     const [nuevoComuna, setNuevoComuna] = useState("")
-    const [nuevoEmailGnral, setNuevoEmailGnral] = useState("")
-    const [nuevoEmailNoti, setNuevoEmailNoti] = useState("")
+    const [nuevoEmailGnralLocal, setNuevoEmailGnralLocal] = useState("")
+    const [nuevoEmailGnralDominio, setNuevoEmailGnralDominio] = useState("")
+    const [nuevoEmailNotiLocal, setNuevoEmailNotiLocal] = useState("")
+    const [nuevoEmailNotiDominio, setNuevoEmailNotiDominio] = useState("")
     const [nuevoZonaExtrema, setNuevoZonaExtrema] = useState("")
     const [comunasFiltradasCrear, setComunasFiltradasCrear] = useState([]);
 
@@ -70,8 +74,10 @@ function AdminCentroCosto() {
     const [editDireccion, setEditDireccion] = useState("")
     const [editRegion, setEditRegion] = useState("")
     const [editComuna, setEditComuna] = useState("")
-    const [editEmailGnral, setEditEmailGnral] = useState("")
-    const [editEmailNoti, setEditEmailNoti] = useState("")
+    const [editEmailGnralLocal, setEditEmailGnralLocal] = useState("")
+    const [editEmailGnralDominio, setEditEmailGnralDominio] = useState("")
+    const [editEmailNotiLocal, setEditEmailNotiLocal] = useState("")
+    const [editEmailNotiDominio, setEditEmailNotiDominio] = useState("")
     const [editZonaExtrema, setEditZonaExtrema] = useState("")
     const [comunasFiltradasEdit, setComunasFiltradasEdit] = useState([]);
 
@@ -89,6 +95,7 @@ function AdminCentroCosto() {
     const [turnosSeleccionados, setTurnosSeleccionados] = useState([])
     const [filtroHoraDesdeTurnos, setFiltroHoraDesdeTurnos] = useState("")
     const [filtroHoraHastaTurnos, setFiltroHoraHastaTurnos] = useState("")
+    const [filtroDiasTurnos, setFiltroDiasTurnos] = useState([])
 
     // Estados email y cenco en edicion
     const [abrirEmailNoti, setAbrirEmailNoti] = useState(false)
@@ -111,6 +118,15 @@ function AdminCentroCosto() {
             setTurnos(respuesta)
         } catch (error) {
             setError(error.message)
+        }
+    }
+
+    const llamarProveedorCorreo = async () => {
+        try {
+            const respuesta = await obtenerProveedorCorreo()
+            setProveedorCorreo(Array.isArray(respuesta) ? respuesta : [])
+        } catch (error) {
+            console.error("Error cargando proveedores de correo", error)
         }
     }
 
@@ -138,8 +154,9 @@ function AdminCentroCosto() {
     const cerrarDialog = () => {
         setOpen(false);
         setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa("");
-        setNuevoEstado(""); setNuevoEmailGnral(""); setNuevoDireccion("");
-        setNuevoEmailNoti(""); setNuevoZonaExtrema(""); setNuevoRegion("");
+        setNuevoEstado(""); setNuevoEmailGnralLocal(""); setNuevoEmailGnralDominio("");
+        setNuevoEmailNotiLocal(""); setNuevoEmailNotiDominio("");
+        setNuevoDireccion(""); setNuevoZonaExtrema(""); setNuevoRegion("");
         setNuevoComuna("");
     }
 
@@ -155,15 +172,18 @@ function AdminCentroCosto() {
 
     // Acciones crear y editar
     const clikCrear = async () => {
+        const emailGnral = nuevoEmailGnralLocal && nuevoEmailGnralDominio ? `${nuevoEmailGnralLocal}${nuevoEmailGnralDominio}` : "";
+        const emailNoti = nuevoEmailNotiLocal && nuevoEmailNotiDominio ? `${nuevoEmailNotiLocal}${nuevoEmailNotiDominio}` : "";
         try {
-            await crearCentroCosto(nuevoNombre, nuevoDireccion, nuevoRegion, nuevoComuna, nuevoEmailGnral, nuevoEmailNoti, nuevoZonaExtrema, nuevoEstado, nuevoDepartamento,)
+            await crearCentroCosto(nuevoNombre, nuevoDireccion, nuevoRegion, nuevoComuna, emailGnral, emailNoti, nuevoZonaExtrema, nuevoEstado, nuevoDepartamento,)
             setOpen(false)
             setMensajeExito("Centro de costo creado con exito")
             const data = await obtenerCentroCostos();
             setCencos(data);
             setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa("");
-            setNuevoEstado(""); setNuevoEmailGnral(""); setNuevoDireccion("");
-            setNuevoEmailNoti(""); setNuevoZonaExtrema(""); setNuevoRegion("");
+            setNuevoEstado(""); setNuevoEmailGnralLocal(""); setNuevoEmailGnralDominio("");
+            setNuevoEmailNotiLocal(""); setNuevoEmailNotiDominio("");
+            setNuevoDireccion(""); setNuevoZonaExtrema(""); setNuevoRegion("");
             setNuevoComuna("");
         } catch (error) {
             setError(error.message || "Error al crear")
@@ -171,8 +191,10 @@ function AdminCentroCosto() {
     }
 
     const clickEditar = async () => {
+        const emailGnral = editEmailGnralLocal && editEmailGnralDominio ? `${editEmailGnralLocal}${editEmailGnralDominio}` : "";
+        const emailNoti = editEmailNotiLocal && editEmailNotiDominio ? `${editEmailNotiLocal}${editEmailNotiDominio}` : "";
         try {
-            await actualizarCentroCosto(editId, editNombre, editDireccion, editRegion, editComuna, editEmailGnral, editEmailNoti, editZonaExtrema, editEstado, editDepartamento,)
+            await actualizarCentroCosto(editId, editNombre, editDireccion, editRegion, editComuna, emailGnral, emailNoti, editZonaExtrema, editEstado, editDepartamento,)
             setMostrarEdit(false)
             setMensajeExito("Se edito con exito")
             const data = await obtenerCentroCostos();
@@ -291,6 +313,7 @@ function AdminCentroCosto() {
         setTurnosSeleccionados([]);
         setFiltroHoraDesdeTurnos("");
         setFiltroHoraHastaTurnos("");
+        setFiltroDiasTurnos([]);
         setAbrirTurnos(true);
     }
 
@@ -332,6 +355,7 @@ function AdminCentroCosto() {
     }
 
     const turnosDisponiblesFiltrados = turnosLeft.filter((tur) => {
+        // 1. Filtro de hora
         let coincideHora = true;
         if (filtroHoraDesdeTurnos || filtroHoraHastaTurnos) {
             const turnoEntrada = tur.horario?.hora_entrada; // formato "HH:MM:SS"
@@ -340,14 +364,33 @@ function AdminCentroCosto() {
                 const timeEntrada = turnoEntrada.substring(0, 5);
                 const timeSalida = turnoSalida.substring(0, 5);
 
-                if (filtroHoraDesdeTurnos && timeEntrada < filtroHoraDesdeTurnos) coincideHora = false;
-                if (filtroHoraHastaTurnos && timeSalida > filtroHoraHastaTurnos) coincideHora = false;
+                if (filtroHoraDesdeTurnos && timeEntrada !== filtroHoraDesdeTurnos) coincideHora = false;
+                if (filtroHoraHastaTurnos && timeSalida !== filtroHoraHastaTurnos) coincideHora = false;
             } else {
                 coincideHora = false; // si no tiene hora pero estamos filtrando por hora
             }
         }
-        return coincideHora;
+
+        // 2. Filtro de días
+        let coincideDias = true;
+        if (filtroDiasTurnos.length > 0) {
+            if (!tur.dias || tur.dias.length === 0) {
+                coincideDias = false; // no tiene días, por ende no matchea
+            } else {
+                // revisamos si tiene TODOS los días que el usuario seleccionó en el filtro
+                coincideDias = filtroDiasTurnos.every(diaBuscado =>
+                    tur.dias.some(td => td.semana && td.semana.cod_dia === diaBuscado)
+                );
+            }
+        }
+
+        return coincideHora && coincideDias;
+    }).sort((a, b) => {
+        const horaA = a.horario?.hora_entrada || "";
+        const horaB = b.horario?.hora_entrada || "";
+        return horaA.localeCompare(horaB);
     });
+
 
     const handleAllRightTurnos = () => {
         setTurnosRight(turnosRight.concat(turnosDisponiblesFiltrados));
@@ -375,14 +418,15 @@ function AdminCentroCosto() {
 
     const customListTurnos = (items) => (
         <List dense component="div" role="list">
-            {items.map((value) => {
+            {items.map((value, index) => {
+                const uniqueKey = `list-turno-${value.turno_id}-${index}`;
                 const labelId = `transfer-list-item-turno-${value.turno_id}-label`;
                 const textoHorario = value.horario
                     ? `${value.horario.hora_entrada} - ${value.horario.hora_salida}`
                     : (value.es_rotativo ? "Rotativo" : "Sin horario");
 
                 return (
-                    <ListItem key={value.turno_id} role="listitem" button onClick={handleToggleTurno(value)}>
+                    <ListItem key={uniqueKey} role="listitem" button onClick={handleToggleTurno(value)}>
                         <ListItemIcon>
                             <Checkbox
                                 checked={turnosSeleccionados.indexOf(value) !== -1}
@@ -507,6 +551,10 @@ function AdminCentroCosto() {
         llamarTurnos()
     }, [])
 
+    useEffect(() => {
+        llamarProveedorCorreo()
+    }, [])
+
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
     if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
@@ -610,13 +658,31 @@ function AdminCentroCosto() {
                                             <TableCell align="center">
                                                 <IconButton onClick={() => {
                                                     setEditId(cenco.cenco_id);
-                                                    setEditEmpresa("");
                                                     setEditDepartamento(cenco.departamento_id);
                                                     setEditNombre(cenco.nombre_cenco);
                                                     setEditEstado(cenco.estado_id);
                                                     setEditDireccion(cenco.direccion);
-                                                    setEditEmailGnral(cenco.email_general);
-                                                    setEditEmailNoti(cenco.email_notificacion);
+                                                    // Split email_general
+                                                    let dominioGnral = "";
+                                                    if (cenco.email_general && cenco.email_general.includes("@")) {
+                                                        const partsG = cenco.email_general.split("@");
+                                                        setEditEmailGnralLocal(partsG[0]);
+                                                        dominioGnral = `@${partsG[1]}`;
+                                                        setEditEmailGnralDominio(dominioGnral);
+                                                    } else {
+                                                        setEditEmailGnralLocal(cenco.email_general || "");
+                                                        setEditEmailGnralDominio("");
+                                                    }
+                                                    // Split email_notificacion
+                                                    if (cenco.email_notificacion && cenco.email_notificacion.includes("@")) {
+                                                        const partsN = cenco.email_notificacion.split("@");
+                                                        setEditEmailNotiLocal(partsN[0]);
+                                                        setEditEmailNotiDominio(`@${partsN[1]}`);
+                                                    } else {
+                                                        setEditEmailNotiLocal(cenco.email_notificacion || "");
+                                                        setEditEmailNotiDominio("");
+                                                    }
+                                                    setEditEmpresa("");
                                                     setEditZonaExtrema(cenco.zona_extrema ? true : false);
 
                                                     const normalize = (str) => (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -735,11 +801,39 @@ function AdminCentroCosto() {
                                 </Select>
                                 {nuevoComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}
                             </FormControl>
-                            <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Email Gnral" size="small" value={nuevoEmailGnral} onChange={(e) => setNuevoEmailGnral(e.target.value)} error={nuevoEmailGnral !== "" && !esEmailValido(nuevoEmailGnral)} helperText={nuevoEmailGnral !== "" && !esEmailValido(nuevoEmailGnral) ? "Ingrese un email válido" : ""} />
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth label="Email General" size="small"
+                                    value={nuevoEmailGnralLocal}
+                                    onChange={(e) => setNuevoEmailGnralLocal(e.target.value.replace(/@/g, ""))}
+                                />
+                                <FormControl size="small" sx={{ minWidth: 160 }} disabled={!nuevoEmpresa}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select label="Dominio" value={nuevoEmailGnralDominio} onChange={(e) => setNuevoEmailGnralDominio(e.target.value)}>
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === nuevoEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
                             </Box>
-                            <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Email Noti" size="small" value={nuevoEmailNoti} onChange={(e) => setNuevoEmailNoti(e.target.value)} error={nuevoEmailNoti !== "" && !esEmailValido(nuevoEmailNoti)} helperText={nuevoEmailNoti !== "" && !esEmailValido(nuevoEmailNoti) ? "Ingrese un email válido" : ""} />
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth label="Email Notificación" size="small"
+                                    value={nuevoEmailNotiLocal}
+                                    onChange={(e) => setNuevoEmailNotiLocal(e.target.value.replace(/@/g, ""))}
+                                />
+                                <FormControl size="small" sx={{ minWidth: 160 }} disabled={!nuevoEmpresa}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select label="Dominio" value={nuevoEmailNotiDominio} onChange={(e) => setNuevoEmailNotiDominio(e.target.value)}>
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === nuevoEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
                             </Box>
                             <FormControl size="small" fullWidth >
                                 <InputLabel>Zona Extrema?</InputLabel>
@@ -754,7 +848,7 @@ function AdminCentroCosto() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
-                    <Button onClick={clikCrear} variant="contained" color="primary" disabled={nuevoDepartamento === "" || nuevoNombre.trim() === "" || nuevoDireccion.trim() == "" || nuevoEstado === "" || nuevoRegion === "" || nuevoComuna === "" || nuevoZonaExtrema === "" || (nuevoEmailGnral ? nuevoEmailGnral !== "" && !esEmailValido(nuevoEmailGnral) : "") || (nuevoEmailNoti !== "" && !esEmailValido(nuevoEmailNoti))}>Guardar</Button>
+                    <Button onClick={clikCrear} variant="contained" color="primary" disabled={nuevoDepartamento === "" || nuevoNombre.trim() === "" || nuevoDireccion.trim() === "" || nuevoEstado === "" || nuevoRegion === "" || nuevoComuna === "" || nuevoZonaExtrema === ""}>Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -805,11 +899,39 @@ function AdminCentroCosto() {
                                 </Select>
                                 {editComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}
                             </FormControl>
-                            <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Email Gnral" size="small" value={editEmailGnral} onChange={(e) => setEditEmailGnral(e.target.value)} helperText={editEmailGnral !== "" && !esEmailValido(editEmailGnral) ? "Ingrese un email válido" : ""} />
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth label="Email General" size="small"
+                                    value={editEmailGnralLocal}
+                                    onChange={(e) => setEditEmailGnralLocal(e.target.value.replace(/@/g, ""))}
+                                />
+                                <FormControl size="small" sx={{ minWidth: 160 }} disabled={!editEmpresa}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select label="Dominio" value={editEmailGnralDominio} onChange={(e) => setEditEmailGnralDominio(e.target.value)}>
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === editEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
                             </Box>
-                            <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Email Noti" size="small" value={editEmailNoti} onChange={(e) => setEditEmailNoti(e.target.value)} helperText={editEmailNoti !== "" && !esEmailValido(editEmailNoti) ? "Ingrese un email válido" : ""} />
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth label="Email Notificación" size="small"
+                                    value={editEmailNotiLocal}
+                                    onChange={(e) => setEditEmailNotiLocal(e.target.value.replace(/@/g, ""))}
+                                />
+                                <FormControl size="small" sx={{ minWidth: 160 }} disabled={!editEmpresa}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select label="Dominio" value={editEmailNotiDominio} onChange={(e) => setEditEmailNotiDominio(e.target.value)}>
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === editEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
                             </Box>
                             <FormControl size="small" fullWidth >
                                 <InputLabel>Zona Extrema?</InputLabel>
@@ -824,7 +946,7 @@ function AdminCentroCosto() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
-                    <Button onClick={clickEditar} variant="contained" color="primary" disabled={editDepartamento === "" || editNombre.trim() === "" || editEstado === "" || editRegion === "" || editComuna === "" || editZonaExtrema === "" || (editEmailGnral ? editEmailGnral !== "" && !esEmailValido(editEmailGnral) : "") || (editEmailNoti !== "" && !esEmailValido(editEmailNoti))}>Guardar Cambios</Button>
+                    <Button onClick={clickEditar} variant="contained" color="primary" disabled={editDepartamento === "" || editNombre.trim() === "" || editEstado === "" || editRegion === "" || editComuna === "" || editZonaExtrema === ""}>Guardar Cambios</Button>
                 </DialogActions>
             </Dialog>
 
@@ -889,8 +1011,8 @@ function AdminCentroCosto() {
                                             Turnos Disponibles ({turnosDisponiblesFiltrados.length})
                                         </Typography>
 
-                                        {/* Filtros de Hora */}
-                                        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                                        {/* Filtros */}
+                                        <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 1, mb: 2, alignItems: 'center' }}>
                                             <TextField
                                                 label="Hora Desde"
                                                 type="time"
@@ -898,7 +1020,7 @@ function AdminCentroCosto() {
                                                 onChange={(e) => setFiltroHoraDesdeTurnos(e.target.value)}
                                                 InputLabelProps={{ shrink: true }}
                                                 size="small"
-                                                variant="outlined"
+                                                sx={{ minWidth: "120px" }}
                                             />
                                             <TextField
                                                 label="Hora Hasta"
@@ -907,8 +1029,36 @@ function AdminCentroCosto() {
                                                 onChange={(e) => setFiltroHoraHastaTurnos(e.target.value)}
                                                 InputLabelProps={{ shrink: true }}
                                                 size="small"
-                                                variant="outlined"
+                                                sx={{ minWidth: "120px" }}
                                             />
+                                            <FormControl size="small" sx={{ minWidth: "160px", flex: 1 }}>
+                                                <InputLabel>Días</InputLabel>
+                                                <Select
+                                                    multiple
+                                                    value={filtroDiasTurnos}
+                                                    onChange={(e) => setFiltroDiasTurnos(e.target.value)}
+                                                    label="Días"
+                                                    renderValue={(selected) => {
+                                                        const mapDias = { 1: "Lun", 2: "Mar", 3: "Mié", 4: "Jue", 5: "Vie", 6: "Sáb", 7: "Dom" };
+                                                        return selected.map(val => mapDias[val]).join(", ");
+                                                    }}
+                                                >
+                                                    {[
+                                                        { id: 1, label: "Lunes" },
+                                                        { id: 2, label: "Martes" },
+                                                        { id: 3, label: "Miércoles" },
+                                                        { id: 4, label: "Jueves" },
+                                                        { id: 5, label: "Viernes" },
+                                                        { id: 6, label: "Sábado" },
+                                                        { id: 7, label: "Domingo" }
+                                                    ].map((dia) => (
+                                                        <MenuItem key={dia.id} value={dia.id}>
+                                                            <Checkbox checked={filtroDiasTurnos.indexOf(dia.id) > -1} />
+                                                            <ListItemText primary={dia.label} />
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
                                         </Box>
 
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
@@ -933,7 +1083,11 @@ function AdminCentroCosto() {
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                                             {turnosRight.length === 0
                                                 ? <Typography variant="body2" sx={{ p: 2, color: 'text.secondary', textAlign: 'center' }}>Ninguno asignado</Typography>
-                                                : customListTurnos(turnosRight)
+                                                : customListTurnos([...turnosRight].sort((a, b) => {
+                                                    const horaA = a.horario?.hora_entrada || "24:00:00";
+                                                    const horaB = b.horario?.hora_entrada || "24:00:00";
+                                                    return horaA.localeCompare(horaB);
+                                                }))
                                             }
                                         </Box>
                                     </Box>

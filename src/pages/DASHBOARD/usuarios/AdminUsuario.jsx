@@ -13,6 +13,7 @@ import { obtenerPerfiles } from "../../../services/perfilUsuariosServices"
 import { obtenerEmpresas } from "../../../services/empresasServices"
 import { obtenerCentroCostos } from "../../../services/centroCostosServices"
 import { obtenerDepartamentos } from "../../../services/departamentosServices"
+import { obtenerProveedorCorreo } from "../../../services/proveedorCorreoServices"
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Collapse from '@mui/material/Collapse';
@@ -109,7 +110,12 @@ function AdminUsuario() {
     const [open, setOpen] = useState(false);
 
     const abrirDialog = () => setOpen(true);
-    const cerrarDialog = () => setOpen(false);
+    const cerrarDialog = () => {setOpen(false),
+        setRun(""),setEmailLocal(""),
+        setEmailDominio(""),setNombres(""),
+        setApellidoPaterno(""),setApellidoMaterno(""),
+        setEmail(""),setEmpresa(""),setPerfilUsuario(""),
+        setEstado(""),setUsername(""),setPass1(""),setPass2("")};
 
     const [openEditar, setOpenEditar] = useState(false);
     const [datosEditados, setDatosEditados] = useState({});
@@ -144,15 +150,23 @@ function AdminUsuario() {
 
 
     const [mensajeExito, setmensajeExito] = useState("")
+    const [proveedorCorreo, setProveedorCorreo] = useState([])
+    const [emailLocal, setEmailLocal] = useState("")
+    const [emailDominio, setEmailDominio] = useState("")
+    const [editEmailLocal, setEditEmailLocal] = useState("")
+    const [editEmailDominio, setEditEmailDominio] = useState("")
 
     const clickCrear = async () => {
+        const emailFinal = emailLocal && emailDominio ? `${emailLocal}${emailDominio}` : email;
         try {
-            const respuesta = await crearUsuario(username, pass2, estado, nombres, apellidoPaterno, apellidoMaterno, email, perfilUsuario, run, empresa)
+            const respuesta = await crearUsuario(username, pass2, estado, nombres, apellidoPaterno, apellidoMaterno, emailFinal, perfilUsuario, run, empresa)
             setRun("")
             setNombres("")
             setApellidoPaterno("")
             setApellidoMaterno("")
             setEmail("")
+            setEmailLocal("")
+            setEmailDominio("")
             setEmpresa("")
             setPerfilUsuario("")
             setOpen(false)
@@ -192,8 +206,9 @@ function AdminUsuario() {
     const [editUsername, setEditUsername] = useState("");
 
     const clickEdit = async () => {
+        const emailFinal = editEmailLocal && editEmailDominio ? `${editEmailLocal}${editEmailDominio}` : editEmail;
         try {
-            const respuesta = await actualizarUsuario(editId, editUsername, editEstado, editNombres, editApellidoPaterno, editApellidoMaterno, editEmail, editPerfilUsuario, editRut, editEmpresa)
+            const respuesta = await actualizarUsuario(editId, editUsername, editEstado, editNombres, editApellidoPaterno, editApellidoMaterno, emailFinal, editPerfilUsuario, editRut, editEmpresa)
             cargarDatos()
             setOpenEditar(false)
             setmensajeExito("Usuario editado con exito")
@@ -204,14 +219,16 @@ function AdminUsuario() {
     // --- CARGA DE DATOS ---
     const cargarDatos = async () => {
         try {
-            const [dataUsuarios, dataPerfiles, dataEmpresas] = await Promise.all([
+            const [dataUsuarios, dataPerfiles, dataEmpresas, dataProveedores] = await Promise.all([
                 obtenerUsuarios(),
                 obtenerPerfiles(),
-                obtenerEmpresas()
+                obtenerEmpresas(),
+                obtenerProveedorCorreo()
             ]);
             setUsuarios(dataUsuarios);
             setPerfiles(dataPerfiles);
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
+            setProveedorCorreo(Array.isArray(dataProveedores) ? dataProveedores : []);
 
         } catch (err) {
             setError(err.message);
@@ -605,7 +622,17 @@ function AdminUsuario() {
                                                             setEditNombres(usuario.nombres)
                                                             setEditApellidoMaterno(usuario.apellido_materno)
                                                             setEditApellidoPaterno(usuario.apellido_paterno)
-                                                            setEditEmail(usuario.email)
+                                                            // Split email
+                                                            if (usuario.email && usuario.email.includes("@")) {
+                                                                const parts = usuario.email.split("@");
+                                                                setEditEmail(usuario.email);
+                                                                setEditEmailLocal(parts[0]);
+                                                                setEditEmailDominio(`@${parts[1]}`);
+                                                            } else {
+                                                                setEditEmail(usuario.email || "");
+                                                                setEditEmailLocal(usuario.email || "");
+                                                                setEditEmailDominio("");
+                                                            }
                                                             setEditEmpresa(usuario.empresa?.empresa_id)
                                                             setEditPerfilUsuario(usuario.perfil?.perfil_id)
                                                             setEditEstado(usuario.estado?.estado_id)
@@ -618,7 +645,7 @@ function AdminUsuario() {
                                         );
                                     })}
 
-                                
+
 
                                 {usuariosFiltrados.length === 0 && (
                                     <TableRow>
@@ -708,19 +735,7 @@ function AdminUsuario() {
                                         helperText={apellidoMaterno.trim() === "" ? "El Apellido Materno es obligatorio" : ""}
                                     />
 
-                                    <TextField
-                                        label="Email"
-                                        variant="outlined"
-                                        fullWidth
-                                        size="small"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        helperText={
-                                            email.trim() === ""
-                                                ? "El email es obligatorio"
-                                                : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "Ingrese un email válido (ej: usuario@dominio.com)" : "")
-                                        }
-                                    />
+
 
                                     <FormControl size="small" fullWidth >
                                         <InputLabel>Empresa</InputLabel>
@@ -737,6 +752,29 @@ function AdminUsuario() {
                                         </Select>
                                         {empresa === "" && <FormHelperText>Seleccione empresa</FormHelperText>}
                                     </FormControl>
+
+                                    {/* Email + Dominio */}
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <TextField
+                                            label="Email"
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{ flex: 1 }}
+                                            value={emailLocal}
+                                            onChange={(e) => setEmailLocal(e.target.value.replace(/@/g, ""))}
+                                            helperText={emailLocal.trim() === "" ? "El email es obligatorio" : ""}
+                                        />
+                                        <FormControl size="small" sx={{ minWidth: 150 }} disabled={!empresa}>
+                                            <InputLabel>Dominio</InputLabel>
+                                            <Select label="Dominio" value={emailDominio} onChange={(e) => setEmailDominio(e.target.value)}>
+                                                {proveedorCorreo
+                                                    .filter(p => p.empresa?.empresa_id === empresa)
+                                                    .map((prov) => (
+                                                        <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                                    ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
 
                                     <FormControl fullWidth size="small" >
                                         <InputLabel>Perfil de usuario</InputLabel>
@@ -813,7 +851,7 @@ function AdminUsuario() {
                             nombres.trim() === "" ||
                             apellidoMaterno.trim() === "" ||
                             apellidoPaterno.trim() === "" ||
-                            email.trim() === "" ||
+                            emailLocal.trim() === "" ||
                             empresa === "" ||
                             perfilUsuario === "" ||
                             estado === "" ||
@@ -881,12 +919,25 @@ function AdminUsuario() {
                                         helperText={editApellidoMaterno.trim() === "" ? "Obligatorio" : ""}
                                     />
 
-                                    <TextField
-                                        label="Email" variant="outlined" fullWidth size="small"
-                                        value={editEmail}
-                                        onChange={(e) => setEditEmail(e.target.value)}
-                                        helperText={editEmail.trim() === "" ? "El email es obligatorio" : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail) ? "Ingrese un email válido (ej: usuario@dominio.com)" : "")}
-                                    />
+                                    {/* Email + Dominio Edit */}
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <TextField
+                                            label="Email" variant="outlined" size="small" sx={{ flex: 1 }}
+                                            value={editEmailLocal}
+                                            onChange={(e) => setEditEmailLocal(e.target.value.replace(/@/g, ""))}
+                                            helperText={editEmailLocal.trim() === "" ? "El email es obligatorio" : ""}
+                                        />
+                                        <FormControl size="small" sx={{ minWidth: 150 }} disabled={!editEmpresa}>
+                                            <InputLabel>Dominio</InputLabel>
+                                            <Select label="Dominio" value={editEmailDominio} onChange={(e) => setEditEmailDominio(e.target.value)}>
+                                                {proveedorCorreo
+                                                    .filter(p => p.empresa?.empresa_id === editEmpresa)
+                                                    .map((prov) => (
+                                                        <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                                    ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
 
                                     <FormControl size="small" fullWidth>
                                         <InputLabel>Empresa</InputLabel>
@@ -947,11 +998,10 @@ function AdminUsuario() {
                             !esRutValido(editRut) ||
                             editNombres.trim() === "" ||
                             editUsername.trim() === "" ||
-                            editEmail.trim() === "" ||
+                            editEmailLocal.trim() === "" ||
                             editEmpresa === "" ||
                             editPerfilUsuario === "" ||
-                            editEstado === "" ||
-                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail)
+                            editEstado === ""
                         }
                     >
                         Guardar Cambios

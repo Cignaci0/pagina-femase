@@ -131,7 +131,8 @@ function AdminEmpleados() {
 
     // Estados crear
     const [open, setOpen] = useState(false);
-    const [nuevoNumFicha, setNuevoNumFicha] = useState("")
+    const [nuevoNumFicha, setNuevoNumFicha] = useState("");
+    const [nuevoLetraFicha, setNuevoLetraFicha] = useState("A");
     const [nuevoClave, setNuevoClave] = useState("")
     const [nuevoRun, setNuevoRun] = useState("")
     const [nuevoNombre, setnuevoNombre] = useState("")
@@ -168,6 +169,7 @@ function AdminEmpleados() {
     const [editId, setEditId] = useState("")
 
     const [editNumFicha, setEditNumFicha] = useState("")
+    const [editLetraFicha, setEditLetraFicha] = useState("A")
     const [editRun, setEditRun] = useState("")
     const [editClave, setEditClave] = useState("")
     const [editNombre, setEditNombre] = useState("")
@@ -374,16 +376,18 @@ function AdminEmpleados() {
                 clave: nuevoClave,
                 empresa: nuevoEmpresa,
                 cargo: nuevoCargo,
-                turno: nuevoTurno,
+                turno: nuevoTurno ? nuevoTurno : null,
                 estado: nuevoEstado,
                 email_laboral: nuevoEmailLaboral && dominio ? `${nuevoEmailLaboral}${dominio}` : null,
-                num_ficha: nuevoNumFicha
+                num_ficha: nuevoNumFicha ? `${nuevoNumFicha}${nuevoLetraFicha}` : null,
+                cenco_id: nuevoCenco
             };
             const resultado = await crearEmpleado(datosParaEnviar);
             setMensajeExito("Empleado creado exitosamente");
             cerrarDialog();
             llamarEmpleados();
             setNuevoNumFicha("");
+            setNuevoLetraFicha("A");
             setNuevoClave("");
             setNuevoRun("");
             setnuevoNombre("");
@@ -418,7 +422,7 @@ function AdminEmpleados() {
     const clickEditar = async () => {
         try {
             const datosEmpleado = {
-                num_ficha: editNumFicha,
+                num_ficha: editNumFicha ? `${editNumFicha}${editLetraFicha}` : null,
                 run: editRun,
                 nombres: editNombre,
                 apellido_paterno: editApPaterno,
@@ -440,9 +444,11 @@ function AdminEmpleados() {
                 clave: editClave,
                 empresa: editEmpresa,
                 cargo: editCargo,
-                turno: editTurno,
+                turno: editTurno ? editTurno : null,
                 estado: editEstado,
-                email_laboral: editEmailLaboral && editDominio ? `${editEmailLaboral}${editDominio}` : null
+                email_laboral: editEmailLaboral && editDominio ? `${editEmailLaboral}${editDominio}` : null,
+                num_ficha: editNumFicha ? `${editNumFicha}${editLetraFicha}` : null,
+                cenco_id: editCenco
             };
 
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
@@ -474,6 +480,7 @@ function AdminEmpleados() {
     const cerrarDialog = () => {
         setOpen(false);
         setNuevoNumFicha("");
+        setNuevoLetraFicha("A");
         setnuevoNombre(""); setNuevoEmpresa("");
         setNuevoEstado(""); setNuevoDireccion("");
         setNuevoEmailPersonal(""); setNuevoRegion("");
@@ -617,7 +624,7 @@ function AdminEmpleados() {
 
     // Filtrado y paginacion
     const empleadosFiltrados = empleados.filter((emp) => {
-        const textoBusqueda = `${emp.run || ''}`.toLowerCase();
+        const textoBusqueda = `${emp.run || ''}${emp.nombres || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
         const coincideTexto = textoBusqueda.includes(term)
         const coincideEmpresa = filtroEmpresa ? emp.empresa?.empresa_id === filtroEmpresa : true
@@ -823,7 +830,20 @@ function AdminEmpleados() {
                                                 <IconButton onClick={() => {
                                                     setEditId(e.empleado_id),
                                                         setOpenEdit(true)
-                                                    setEditNumFicha(e.num_ficha || "");
+
+                                                    const fichaStr = e.num_ficha || "";
+                                                    let letra = "A";
+                                                    let fichaBase = fichaStr;
+                                                    if (fichaStr.length > 0) {
+                                                        const lastChar = fichaStr.charAt(fichaStr.length - 1).toUpperCase();
+                                                        if (['A', 'B', 'C'].includes(lastChar)) {
+                                                            letra = lastChar;
+                                                            fichaBase = fichaStr.slice(0, -1);
+                                                        }
+                                                    }
+                                                    setEditLetraFicha(letra);
+                                                    setEditNumFicha(fichaBase);
+
                                                     setEditRun(e.run || "");
                                                     setEditNombre(e.nombres || "");
                                                     setEditApPaterno(e.apellido_paterno || "");
@@ -846,7 +866,6 @@ function AdminEmpleados() {
                                                     if (e.email_laboral && e.email_laboral.includes("@")) {
                                                         const parts = e.email_laboral.split("@");
                                                         setEditEmailLaboral(parts[0]);
-                                                        // Guardar el dominio con el @ incluido
                                                         setEditDominio(`@${parts[1]}`);
                                                     } else {
                                                         setEditEmailLaboral("");
@@ -869,10 +888,15 @@ function AdminEmpleados() {
                                                     setEditTelefonoFijo(e.telefono_fijo ? String(e.telefono_fijo) : "");
                                                     setEditTelefonoMovil(e.telefono_movil ? String(e.telefono_movil) : "");
 
-                                                    // Buscamos a qué cenco pertenece el turno actual para pre-poblar los desplegables
                                                     const turnoActualId = e.turno?.turno_id || "";
-                                                    let cencoAsociado = "";
+                                                    let cencoAsociado = e.departamento?.departamento_id || ""; // TODO verificar como viene en e
                                                     let deptoAsociado = "";
+
+                                                    if (e.departamento && e.departamento.departamento_id) {
+                                                        const miCenco = cencos.find(c => c.departamento?.departamento_id === e.departamento.departamento_id);
+                                                        if (miCenco) {
+                                                        }
+                                                    }
 
                                                     if (turnoActualId !== "") {
                                                         for (const cenco of cencos) {
@@ -882,10 +906,18 @@ function AdminEmpleados() {
                                                                 break;
                                                             }
                                                         }
+                                                    } else {
+                                                        const probableCenco = cencos.find(c => c.cenco_id === e.departamento?.departamento_id);
+                                                        if (probableCenco) {
+                                                            cencoAsociado = probableCenco.cenco_id;
+                                                            deptoAsociado = probableCenco.departamento?.departamento_id || probableCenco.departamento_id || "";
+                                                        } else {
+                                                            deptoAsociado = e.departamento?.departamento_id || "";
+                                                        }
                                                     }
 
                                                     setEditDepartamento(deptoAsociado);
-                                                    setEditCenco(cencoAsociado);
+                                                    setEditCenco([cencoAsociado]);
                                                     setEditTurno(turnoActualId);
                                                     setEditCargo(e.cargo?.cargo_id || "");
                                                 }}>
@@ -981,7 +1013,11 @@ function AdminEmpleados() {
                                     placeholder="12345678-K"
                                     size="small"
                                     value={nuevoRun}
-                                    onChange={(e) => setNuevoRun(formatearRut(e.target.value))}
+                                    onChange={(e) => {
+                                        const formatted = formatearRut(e.target.value);
+                                        setNuevoRun(formatted);
+                                        setNuevoNumFicha(formatted);
+                                    }}
                                     inputProps={{ maxLength: 12 }}
                                     error={nuevoRun.length > 0 && !esRutValido(nuevoRun)}
                                     helperText={
@@ -992,8 +1028,27 @@ function AdminEmpleados() {
                                 />
                             </Box>
 
-                            <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Número de Ficha" size="small" value={nuevoNumFicha} onChange={(e) => setNuevoNumFicha(e.target.value)} />
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Número de Ficha"
+                                    size="small"
+                                    value={nuevoNumFicha}
+                                    onChange={(e) => setNuevoNumFicha(e.target.value)}
+                                    helperText="Autocompletado con el RUN"
+                                />
+                                <FormControl size="small" sx={{ minWidth: 100 }}>
+                                    <InputLabel>Letra</InputLabel>
+                                    <Select
+                                        label="Letra"
+                                        value={nuevoLetraFicha}
+                                        onChange={(e) => setNuevoLetraFicha(e.target.value)}
+                                    >
+                                        <MenuItem value="A">A</MenuItem>
+                                        <MenuItem value="B">B</MenuItem>
+                                        <MenuItem value="C">C</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
@@ -1386,24 +1441,26 @@ function AdminEmpleados() {
                             </FormControl>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
-                                <InputLabel>Turno</InputLabel>
+                                <InputLabel>Turno (Opcional)</InputLabel>
                                 <Select
-                                    label="Turno"
+                                    label="Turno (Opcional)"
                                     value={nuevoTurno}
                                     onChange={(e) => setNuevoturno(e.target.value)}
+                                    // Make sure disabled is false so we can choose "Ninguno" freely if we have a centro de costo 
                                     disabled={!nuevoCenco}
                                 >
                                     {(() => {
                                         const cencoSeleccionado = cencos.find(c => c.cenco_id === nuevoCenco);
                                         const turnosDelCenco = cencoSeleccionado && cencoSeleccionado.turnos ? cencoSeleccionado.turnos : [];
-                                        return turnosDelCenco.map((turn) => (
+                                        const options = turnosDelCenco.map((turn) => (
                                             <MenuItem key={turn.turno_id} value={turn.turno_id}>
                                                 {turn.nombre}
                                             </MenuItem>
                                         ));
+                                        options.unshift(<MenuItem key="ninguno" value=""><em>Ninguno</em></MenuItem>);
+                                        return options;
                                     })()}
                                 </Select>
-                                {nuevoTurno === "" && <FormHelperText>El Turno es obligatorio</FormHelperText>}
                             </FormControl>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
@@ -1459,7 +1516,7 @@ function AdminEmpleados() {
                             !nuevoContratoIndefinido && nuevoContratoIndefinido !== false && nuevoContratoIndefinido !== true ||
                             !nuevoArt22 && nuevoArt22 !== false && nuevoArt22 !== true ||
                             nuevoEmpresa === "" ||
-                            nuevoTurno === "" ||
+                            // Removemos nuevoTurno de los checks
                             nuevoCargo === "" ||
                             !nuevoAutorizaAusencia && nuevoAutorizaAusencia !== false && nuevoAutorizaAusencia !== true}
                     >
@@ -1483,7 +1540,11 @@ function AdminEmpleados() {
                                     placeholder="12345678-K"
                                     size="small"
                                     value={editRun}
-                                    onChange={(e) => setEditRun(formatearRut(e.target.value))}
+                                    onChange={(e) => {
+                                        const formatted = formatearRut(e.target.value);
+                                        setEditRun(formatted);
+                                        setEditNumFicha(formatted);
+                                    }}
                                     inputProps={{ maxLength: 12 }}
                                     error={editRun.length > 0 && !esRutValido(editRun)}
                                     helperText={
@@ -1494,8 +1555,27 @@ function AdminEmpleados() {
                                 />
                             </Box>
 
-                            <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Número de Ficha" size="small" value={editNumFicha} onChange={(e) => setEditNumFicha(e.target.value)} />
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Número de Ficha"
+                                    size="small"
+                                    value={editNumFicha}
+                                    onChange={(e) => setEditNumFicha(e.target.value)}
+                                    helperText="Autocompletado con el RUN"
+                                />
+                                <FormControl size="small" sx={{ minWidth: 100 }}>
+                                    <InputLabel>Letra</InputLabel>
+                                    <Select
+                                        label="Letra"
+                                        value={editLetraFicha}
+                                        onChange={(e) => setEditLetraFicha(e.target.value)}
+                                    >
+                                        <MenuItem value="A">A</MenuItem>
+                                        <MenuItem value="B">B</MenuItem>
+                                        <MenuItem value="C">C</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
@@ -1894,7 +1974,6 @@ function AdminEmpleados() {
                                         ));
                                     })()}
                                 </Select>
-                                {editTurno === "" && <FormHelperText>El Turno es obligatorio</FormHelperText>}
                             </FormControl>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
@@ -1946,7 +2025,6 @@ function AdminEmpleados() {
                             (!editContratoIndefinido && editContratoIndefinido !== false && editContratoIndefinido !== true) ||
                             (!editArt22 && editArt22 !== false && editArt22 !== true) ||
                             editEmpresa === "" ||
-                            editTurno === "" ||
                             editCargo === "" ||
                             (!editAutorizaAusencia && editAutorizaAusencia !== false && editAutorizaAusencia !== true)
                         }

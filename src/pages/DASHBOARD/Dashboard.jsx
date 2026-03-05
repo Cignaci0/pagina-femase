@@ -57,6 +57,7 @@ import CargaInfoVacaciones from "../DASHBOARD/carga desde archivo/CargaInfoVacac
 import CargaMarcas from "../DASHBOARD/carga desde archivo/CargaMarcas";
 import CargaUsuarios from "../DASHBOARD/carga desde archivo/CargaUsuarios";
 import CargaVacaciones from "../DASHBOARD/carga desde archivo/CargaVacaciones";
+import CargaFeriados from "../DASHBOARD/carga desde archivo/Cargaferiados";
 
 // CONFIGURACION DE SISTEMA
 import AdminModuloSistea from "../DASHBOARD/configuracion de sistema/AdminModulosSistema";
@@ -117,6 +118,7 @@ const COMPONENTES_VISTA = {
   "Carga Marcas": <CargaMarcas />,
   "Carga Usuarios": <CargaUsuarios />,
   "Carga Vacaciones": <CargaVacaciones />,
+  "Carga Feriados": <CargaFeriados />,
 
   // CONFIGURACION DE SISTEMA
   //"Sistema": <AdminModuloSistea />,

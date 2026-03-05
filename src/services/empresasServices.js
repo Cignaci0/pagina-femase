@@ -29,7 +29,7 @@ export const crearEmpresa = async (
   direccion_empresa,
   comuna_empresa,
   email_empresa,
-  estado
+  estado,
 ) => {
   const peticion = await fetch(`${API_URL}/empresas/crear`, {
     method: "POST",
@@ -43,7 +43,7 @@ export const crearEmpresa = async (
       direccion_empresa: direccion_empresa,
       comuna_empresa: comuna_empresa,
       email_empresa: email_empresa,
-      estado: estado
+      estado: estado,
     }),
   });
 
@@ -62,7 +62,10 @@ export const actualizarEmpresa = async (
   editDireccion,
   editComuna,
   editEstado,
-  editEmail
+  editEmail,
+  editNombreContacto,
+  editTelefonoContacto,
+
 ) => {
   const peticion = await fetch(`${API_URL}/empresas/actualizar/${editId}`, {
     method: "PATCH",
@@ -77,6 +80,8 @@ export const actualizarEmpresa = async (
       comuna_empresa: editComuna,
       email_empresa: editEmail,
       estado: editEstado,
+      nombre_contacto: editNombreContacto || null,
+      telefono_contacto: editTelefonoContacto || null,
     }),
   });
   
