@@ -218,7 +218,7 @@ function AdminEmpleados() {
         setSeleccionados([]);
     }
 
-    
+
 
     const obtenerIdsDescendientes = (nodo) => {
         let ids = [nodo.id];
@@ -1830,13 +1830,14 @@ function AdminEmpleados() {
                             </FormControl>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Turno</InputLabel>
+                                <InputLabel>Turno (Opcional)</InputLabel>
                                 <Select
-                                    label="Turno"
+                                    label="Turno (Opcional)"
                                     value={editTurno}
                                     onChange={(e) => setEditTurno(e.target.value)}
                                     disabled={!editCenco}
                                 >
+                                    <MenuItem value="">Sin Turno</MenuItem>
                                     {(() => {
                                         const cencoSeleccionado = cencos.find(c => c.cenco_id === editCenco);
                                         const turnosDelCenco = cencoSeleccionado && cencoSeleccionado.turnos ? cencoSeleccionado.turnos : [];
@@ -1907,7 +1908,7 @@ function AdminEmpleados() {
                 </DialogActions>
             </Dialog >
 
-        
+
 
         </>
     );
