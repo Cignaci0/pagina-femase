@@ -132,7 +132,7 @@ function AdminEmpleados() {
     // Estados crear
     const [open, setOpen] = useState(false);
     const [nuevoNumFicha, setNuevoNumFicha] = useState("");
-    const [nuevoLetraFicha, setNuevoLetraFicha] = useState("A");
+    const [nuevoLetraFicha, setNuevoLetraFicha] = useState("");
     const [nuevoClave, setNuevoClave] = useState("")
     const [nuevoRun, setNuevoRun] = useState("")
     const [nuevoNombre, setnuevoNombre] = useState("")
@@ -169,7 +169,7 @@ function AdminEmpleados() {
     const [editId, setEditId] = useState("")
 
     const [editNumFicha, setEditNumFicha] = useState("")
-    const [editLetraFicha, setEditLetraFicha] = useState("A")
+    const [editLetraFicha, setEditLetraFicha] = useState("")
     const [editRun, setEditRun] = useState("")
     const [editClave, setEditClave] = useState("")
     const [editNombre, setEditNombre] = useState("")
@@ -218,41 +218,7 @@ function AdminEmpleados() {
         setSeleccionados([]);
     }
 
-    const arbolDatos = React.useMemo(() => {
-        if (!empresas.length) return []
-
-        // Filtrar solo la empresa del empleado
-        const empresasEmp = editEmpresa ? empresas.filter(emp => emp.empresa_id === editEmpresa) : empresas;
-
-        return empresasEmp.map(emp => {
-            const misDeptos = departamentos.filter(d => d.empresa?.empresa_id === emp.empresa_id)
-            const deptosConHijos = misDeptos.map(dep => {
-                const misCencos = cencos.filter(c => c.departamento?.departamento_id === dep.departamento_id)
-                const cencosFormateados = misCencos.map(cen => ({
-                    id: `cen-${cen.cenco_id}`,
-                    originalId: cen.cenco_id,
-                    nombre: cen.nombre_cenco,
-                    tipo: 'cenco',
-                    hijos: []
-                }))
-                return {
-                    id: `dep-${dep.departamento_id}`,
-                    originalId: dep.departamento_id,
-                    nombre: dep.nombre_departamento,
-                    tipo: 'depto',
-                    hijos: cencosFormateados
-                };
-            })
-            return {
-                id: `emp-${emp.empresa_id}`,
-                originalId: emp.empresa_id,
-                nombre: emp.nombre_empresa,
-                tipo: 'empresa',
-                hijos: deptosConHijos
-            };
-
-        }, [empresas, departamentos, cencos, editEmpresa])
-    })
+    
 
     const obtenerIdsDescendientes = (nodo) => {
         let ids = [nodo.id];
@@ -263,60 +229,6 @@ function AdminEmpleados() {
         }
         return ids;
     };
-
-    const handleCheck = (nodo, elChecked) => {
-        const idsAfectados = obtenerIdsDescendientes(nodo);
-
-        setSeleccionados(prev => {
-            if (elChecked) {
-                return [...new Set([...prev, ...idsAfectados])];
-            } else {
-                return prev.filter(id => !idsAfectados.includes(id));
-            }
-        });
-    };
-
-    const isChecked = (id) => seleccionados.includes(id);
-
-    const cencosSeleccionadosDetalle = React.useMemo(() => {
-        return cencos.filter(cencoReal =>
-            seleccionados.includes(`cen-${cencoReal.cenco_id}`)
-        );
-    }, [seleccionados, cencos]);
-
-    const eliminarCencoDesdeLista = (idCenco) => {
-        const idArbol = `cen-${idCenco}`;
-        setSeleccionados(prev => prev.filter(id => id !== idArbol));
-    };
-
-    const seleccionarTodosLosCencos = () => {
-        let todosLosIds = []
-        const recolectarIds = (nodos) => {
-            nodos.forEach(nodo => {
-                todosLosIds.push(nodo.id)
-                if (nodo.hijos && nodo.hijos.length > 0) {
-                    recolectarIds(nodo.hijos)
-                }
-            })
-        }
-        recolectarIds(arbolDatos);
-        setSeleccionados(todosLosIds);
-    }
-
-    const guardarAsignar = async () => {
-        try {
-            const listaIds = cencosSeleccionadosDetalle.map((cenco) => cenco.cenco_id);
-            await asignarCencosAEmpleados(editRun, listaIds);
-            await llamarEmpleados();
-            setAbrirAsignar(false);
-            setSeleccionados([]);
-            setMensajeExito("Asignado con éxito");
-
-        } catch (error) {
-            setError(error.message);
-        }
-    };
-
 
     // Carga de datos
     const [proveedorCorreo, setProveedorCorreo] = useState([])
@@ -387,7 +299,7 @@ function AdminEmpleados() {
             cerrarDialog();
             llamarEmpleados();
             setNuevoNumFicha("");
-            setNuevoLetraFicha("A");
+            setNuevoLetraFicha("");
             setNuevoClave("");
             setNuevoRun("");
             setnuevoNombre("");
@@ -422,7 +334,6 @@ function AdminEmpleados() {
     const clickEditar = async () => {
         try {
             const datosEmpleado = {
-                num_ficha: editNumFicha ? `${editNumFicha}${editLetraFicha}` : null,
                 run: editRun,
                 nombres: editNombre,
                 apellido_paterno: editApPaterno,
@@ -479,8 +390,9 @@ function AdminEmpleados() {
 
     const cerrarDialog = () => {
         setOpen(false);
+        setNuevoRun("");
         setNuevoNumFicha("");
-        setNuevoLetraFicha("A");
+        setNuevoLetraFicha("");
         setnuevoNombre(""); setNuevoEmpresa("");
         setNuevoEstado(""); setNuevoDireccion("");
         setNuevoEmailPersonal(""); setNuevoRegion("");
@@ -721,7 +633,7 @@ function AdminEmpleados() {
                         <Table stickyHeader sx={{ minWidth: 1650 }}>
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell width={150} align="center"><strong>Run</strong></TableCell>
+                                    <TableCell width={150} align="center"><strong>Num Ficha</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Estado</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Cargo</strong></TableCell>
@@ -730,7 +642,6 @@ function AdminEmpleados() {
                                     <TableCell width={100} align="center"><strong>Inicio Contrato</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Fin Contrato</strong></TableCell>
                                     <TableCell width={200} align="center"><strong>Turno</strong></TableCell>
-                                    <TableCell width={200} align="center"><strong>Admin Cenco</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha creación</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Creador</strong></TableCell>
@@ -744,7 +655,7 @@ function AdminEmpleados() {
                                     empleadosFiltrados.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((e) => (
                                         <TableRow key={e.empleado_id} >
                                             <TableCell align="center">
-                                                {e.run}
+                                                {e.num_ficha} {e.letra_ficha}
                                             </TableCell>
 
                                             <TableCell align="center">
@@ -796,24 +707,6 @@ function AdminEmpleados() {
                                             <TableCell align="center">
                                                 {e.turno?.nombre}
                                             </TableCell>
-                                            <TableCell align="center">
-                                                <IconButton
-                                                    onClick={() => {
-                                                        setEditId(e.empleado_id);
-                                                        setEditRun(e.run);
-                                                        setEditEmpresa(e.empresa?.empresa_id);
-                                                        setAbrirAsignar(true);
-                                                        if (e.cencos && e.cencos.length > 0) {
-                                                            const misCencosIds = e.cencos.map(c => `cen-${c.cenco_id}`);
-                                                            setSeleccionados(misCencosIds);
-                                                        } else {
-                                                            setSeleccionados([]);
-                                                        }
-                                                    }}
-                                                >
-                                                    <AssignmentIcon />
-                                                </IconButton>
-                                            </TableCell>
 
                                             <TableCell align="center">
                                                 ?
@@ -832,7 +725,7 @@ function AdminEmpleados() {
                                                         setOpenEdit(true)
 
                                                     const fichaStr = e.num_ficha || "";
-                                                    let letra = "A";
+                                                    let letra = "";
                                                     let fichaBase = fichaStr;
                                                     if (fichaStr.length > 0) {
                                                         const lastChar = fichaStr.charAt(fichaStr.length - 1).toUpperCase();
@@ -889,35 +782,11 @@ function AdminEmpleados() {
                                                     setEditTelefonoMovil(e.telefono_movil ? String(e.telefono_movil) : "");
 
                                                     const turnoActualId = e.turno?.turno_id || "";
-                                                    let cencoAsociado = e.departamento?.departamento_id || ""; // TODO verificar como viene en e
-                                                    let deptoAsociado = "";
-
-                                                    if (e.departamento && e.departamento.departamento_id) {
-                                                        const miCenco = cencos.find(c => c.departamento?.departamento_id === e.departamento.departamento_id);
-                                                        if (miCenco) {
-                                                        }
-                                                    }
-
-                                                    if (turnoActualId !== "") {
-                                                        for (const cenco of cencos) {
-                                                            if (cenco.turnos && cenco.turnos.some(t => t.turno_id === turnoActualId)) {
-                                                                cencoAsociado = cenco.cenco_id;
-                                                                deptoAsociado = cenco.departamento?.departamento_id || cenco.departamento_id || "";
-                                                                break;
-                                                            }
-                                                        }
-                                                    } else {
-                                                        const probableCenco = cencos.find(c => c.cenco_id === e.departamento?.departamento_id);
-                                                        if (probableCenco) {
-                                                            cencoAsociado = probableCenco.cenco_id;
-                                                            deptoAsociado = probableCenco.departamento?.departamento_id || probableCenco.departamento_id || "";
-                                                        } else {
-                                                            deptoAsociado = e.departamento?.departamento_id || "";
-                                                        }
-                                                    }
+                                                    const cencoAsociado = e.cenco?.cenco_id || "";
+                                                    const deptoAsociado = e.cenco?.departamento_id || "";
 
                                                     setEditDepartamento(deptoAsociado);
-                                                    setEditCenco([cencoAsociado]);
+                                                    setEditCenco(cencoAsociado);
                                                     setEditTurno(turnoActualId);
                                                     setEditCargo(e.cargo?.cargo_id || "");
                                                 }}>
@@ -1034,6 +903,7 @@ function AdminEmpleados() {
                                     label="Número de Ficha"
                                     size="small"
                                     value={nuevoNumFicha}
+                                    disabled
                                     onChange={(e) => setNuevoNumFicha(e.target.value)}
                                     helperText="Autocompletado con el RUN"
                                 />
@@ -1044,6 +914,7 @@ function AdminEmpleados() {
                                         value={nuevoLetraFicha}
                                         onChange={(e) => setNuevoLetraFicha(e.target.value)}
                                     >
+                                        <MenuItem value="">-</MenuItem>
                                         <MenuItem value="A">A</MenuItem>
                                         <MenuItem value="B">B</MenuItem>
                                         <MenuItem value="C">C</MenuItem>
@@ -1561,6 +1432,7 @@ function AdminEmpleados() {
                                     label="Número de Ficha"
                                     size="small"
                                     value={editNumFicha}
+                                    disabled
                                     onChange={(e) => setEditNumFicha(e.target.value)}
                                     helperText="Autocompletado con el RUN"
                                 />
@@ -1571,6 +1443,7 @@ function AdminEmpleados() {
                                         value={editLetraFicha}
                                         onChange={(e) => setEditLetraFicha(e.target.value)}
                                     >
+                                        <MenuItem value="">-</MenuItem>
                                         <MenuItem value="A">A</MenuItem>
                                         <MenuItem value="B">B</MenuItem>
                                         <MenuItem value="C">C</MenuItem>
@@ -2034,94 +1907,7 @@ function AdminEmpleados() {
                 </DialogActions>
             </Dialog >
 
-            {/* DIALOG ASIGNAR CENTROS DE COSTO */}
-            < Dialog open={abrirAsignar} onClose={cerrarAsignar} fullWidth maxWidth="lg" >
-                <DialogTitle sx={{ pb: 1 }}>Asignar Centros de Costo</DialogTitle>
-                <DialogContent sx={{ bgcolor: "#f5f5f5", p: 3 }}>
-                    <Box sx={{ display: "flex", gap: 2, height: "60vh", mt: 1 }}>
-                        {/* --- COLUMNA IZQUIERDA --- */}
-                        <Paper elevation={0} sx={{ flex: 1, border: "1px solid #e0e0e0", borderRadius: 2, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                            <Box sx={{ p: 1.5, borderBottom: "1px solid #e0e0e0", bgcolor: "#fff", display: "flex", justifyContent: "space-between" }}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    Seleccione un Cento de Costo
-                                </Typography>
-                                <Button size="small" color="primary" onClick={seleccionarTodosLosCencos} sx={{ fontSize: '0.7rem' }}>
-                                    Seleccionar Todo
-                                </Button>
-                            </Box>
-                            <Box sx={{ flex: 1, overflowY: "auto", p: 1, bgcolor: "#fff" }}>
-                                {arbolDatos.length > 0 ? (
-                                    arbolDatos.map((empresa) => (
-                                        <ItemArbol
-                                            key={empresa.id}
-                                            nodo={empresa}
-                                            isChecked={isChecked}
-                                            toggleCheck={handleCheck}
-                                            nivel={0}
-                                        />
-                                    ))
-                                ) : (
-                                    <Typography sx={{ p: 2, color: 'gray', fontSize: '0.9rem' }}>
-                                        Cargando estructura...
-                                    </Typography>
-                                )}
-                            </Box>
-                        </Paper>
-
-                        {/* --- COLUMNA DERECHA --- */}
-                        <Paper elevation={0} sx={{ flex: 1, border: "1px solid #e0e0e0", borderRadius: 2, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                            <Box sx={{ p: 1.5, borderBottom: "1px solid #e0e0e0", bgcolor: "#f9fafb", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    Centros Seleccionados ({cencosSeleccionadosDetalle.length})
-                                </Typography>
-                                {cencosSeleccionadosDetalle.length > 0 && (
-                                    <Button size="small" color="error" onClick={() => setSeleccionados([])} sx={{ fontSize: '0.7rem' }}>
-                                        Limpiar Todo
-                                    </Button>
-                                )}
-                            </Box>
-
-                            <Box sx={{ flex: 1, overflowY: "auto", bgcolor: "#fff" }}>
-                                <List dense>
-                                    {cencosSeleccionadosDetalle.length === 0 && (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999' }}>
-                                            <Typography variant="caption">No hay centros seleccionados</Typography>
-                                        </Box>
-                                    )}
-
-                                    {cencosSeleccionadosDetalle.map((cenco) => (
-                                        <React.Fragment key={cenco.cenco_id}>
-                                            <ListItem
-                                                secondaryAction={
-                                                    <IconButton edge="end" aria-label="delete" size="small" onClick={() => eliminarCencoDesdeLista(cenco.cenco_id)}>
-                                                        <Typography variant="caption" color="error" sx={{ fontWeight: 'bold' }}>✕</Typography>
-                                                    </IconButton>
-                                                }
-                                            >
-                                                <ListItemText
-                                                    primary={cenco.nombre_cenco}
-                                                    secondary={
-                                                        // Aquí intentamos mostrar a qué depto pertenece si tenemos la data cargada
-                                                        `${cenco.depto?.nombre_departamento || 'Depto'} - ${cenco.depto?.empresa?.nombre_empresa || 'Empresa'}`
-                                                    }
-                                                    primaryTypographyProps={{ fontSize: '0.9rem', color: '#333' }}
-                                                    secondaryTypographyProps={{ fontSize: '0.75rem' }}
-                                                />
-                                            </ListItem>
-                                            {/* Línea separadora suave */}
-                                            <Box sx={{ borderBottom: '1px solid #f0f0f0', ml: 2, mr: 2 }} />
-                                        </React.Fragment>
-                                    ))}
-                                </List>
-                            </Box>
-                        </Paper>
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ p: 2, borderTop: "1px solid #e0e0e0" }}>
-                    <Button onClick={cerrarAsignar} color="error">Cancelar</Button>
-                    <Button onClick={guardarAsignar} variant="contained" color="primary" disableElevation>Guardar Asignación</Button>
-                </DialogActions>
-            </Dialog >
+        
 
         </>
     );

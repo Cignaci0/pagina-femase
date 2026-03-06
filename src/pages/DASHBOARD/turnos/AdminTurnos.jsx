@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { obtenerTurnos, crearTurno, actualizarTurno, asignarDias, asignarEmpleados } from "../../../services/turnosServices";
+import { obtenerTurnos, crearTurno, actualizarTurno, asignarDias, asignarEmpleados, asignarTurnoACenco } from "../../../services/turnosServices";
 import { obtenerHorarios } from "../../../services/horariosServices"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -281,7 +281,12 @@ function AdminTurnos() {
         try {
             const empleadosIds = empleadosAsignados.map(emp => emp.empleado_id);
             await asignarEmpleados(idTurnoAsignar, empleadosIds);
-            setMensajeExito("Empleados asignados correctamente");
+
+            if (filtroCencoAsignar) {
+                await asignarTurnoACenco(idTurnoAsignar, filtroCencoAsignar);
+            }
+
+            setMensajeExito("Asignación guardada correctamente");
             cerrarAsignar();
             cargarEmpleados();
             cargarTurnos();
@@ -307,18 +312,20 @@ function AdminTurnos() {
 
     const empleadosDisponiblesFiltrados = empleadosDisponibles.filter(emp => {
         const matchEmpresa = filtroEmpresaAsignar ? emp.empresa?.empresa_id == filtroEmpresaAsignar : true;
-        const matchCenco = filtroCencoAsignar ? emp.cencos?.some(c => c.cenco_id == filtroCencoAsignar) : true;
+        const matchCenco = filtroCencoAsignar ? emp.cenco?.cenco_id == filtroCencoAsignar : true;
+        const matchDepartamento = filtroDepartamentoAsignar ? emp.cenco?.departamento_id == filtroDepartamentoAsignar : true;
         const matchCargo = filtroCargoAsignar ? emp.cargo?.cargo_id == filtroCargoAsignar : true;
 
-        return matchEmpresa && matchCenco && matchCargo;
+        return matchEmpresa && matchCenco && matchDepartamento && matchCargo;
     });
 
     const empleadosAsignadosFiltrados = empleadosAsignados.filter(emp => {
         const matchEmpresa = filtroEmpresaAsignar ? emp.empresa?.empresa_id == filtroEmpresaAsignar : true;
-        const matchCenco = filtroCencoAsignar ? emp.cencos?.some(c => c.cenco_id == filtroCencoAsignar) : true;
+        const matchCenco = filtroCencoAsignar ? emp.cenco?.cenco_id == filtroCencoAsignar : true;
+        const matchDepartamento = filtroDepartamentoAsignar ? emp.cenco?.departamento_id == filtroDepartamentoAsignar : true;
         const matchCargo = filtroCargoAsignar ? emp.cargo?.cargo_id == filtroCargoAsignar : true;
 
-        return matchEmpresa && matchCenco && matchCargo;
+        return matchEmpresa && matchCenco && matchDepartamento && matchCargo;
     });
 
     const handleAllRight = () => {

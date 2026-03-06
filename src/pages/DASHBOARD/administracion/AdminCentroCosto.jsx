@@ -302,7 +302,10 @@ function AdminCentroCosto() {
     const abrirDialogTurnosHandler = (cenco) => {
         setCencoEnEdicion(cenco);
 
-        const asignados = cenco.turnos || [];
+        const asignados = (cenco.turnos || []).map(tAsignado => {
+            const tGlobal = turnos.find(t => t.turno_id === tAsignado.turno_id);
+            return tGlobal || tAsignado;
+        });
         setTurnosRight(asignados);
 
         const disponibles = turnos.filter(tGlobal =>
@@ -354,42 +357,47 @@ function AdminCentroCosto() {
         setTurnosSeleccionados(nuevaListaCheck)
     }
 
-    const turnosDisponiblesFiltrados = turnosLeft.filter((tur) => {
-        // 1. Filtro de hora
-        let coincideHora = true;
-        if (filtroHoraDesdeTurnos || filtroHoraHastaTurnos) {
-            const turnoEntrada = tur.horario?.hora_entrada; // formato "HH:MM:SS"
-            const turnoSalida = tur.horario?.hora_salida;
-            if (turnoEntrada && turnoSalida) {
-                const timeEntrada = turnoEntrada.substring(0, 5);
-                const timeSalida = turnoSalida.substring(0, 5);
+    const filtrarTurnos = (listaTurnos) => {
+        return listaTurnos.filter((tur) => {
+            // 1. Filtro de hora
+            let coincideHora = true;
+            if (filtroHoraDesdeTurnos || filtroHoraHastaTurnos) {
+                const turnoEntrada = tur.horario?.hora_entrada; // formato "HH:MM:SS"
+                const turnoSalida = tur.horario?.hora_salida;
+                if (turnoEntrada && turnoSalida) {
+                    const timeEntrada = turnoEntrada.substring(0, 5);
+                    const timeSalida = turnoSalida.substring(0, 5);
 
-                if (filtroHoraDesdeTurnos && timeEntrada !== filtroHoraDesdeTurnos) coincideHora = false;
-                if (filtroHoraHastaTurnos && timeSalida !== filtroHoraHastaTurnos) coincideHora = false;
-            } else {
-                coincideHora = false; // si no tiene hora pero estamos filtrando por hora
+                    if (filtroHoraDesdeTurnos && timeEntrada !== filtroHoraDesdeTurnos) coincideHora = false;
+                    if (filtroHoraHastaTurnos && timeSalida !== filtroHoraHastaTurnos) coincideHora = false;
+                } else {
+                    coincideHora = false; // si no tiene hora pero estamos filtrando por hora
+                }
             }
-        }
 
-        // 2. Filtro de días
-        let coincideDias = true;
-        if (filtroDiasTurnos.length > 0) {
-            if (!tur.dias || tur.dias.length === 0) {
-                coincideDias = false; // no tiene días, por ende no matchea
-            } else {
-                // revisamos si tiene TODOS los días que el usuario seleccionó en el filtro
-                coincideDias = filtroDiasTurnos.every(diaBuscado =>
-                    tur.dias.some(td => td.semana && td.semana.cod_dia === diaBuscado)
-                );
+            // 2. Filtro de días
+            let coincideDias = true;
+            if (filtroDiasTurnos.length > 0) {
+                if (!tur.dias || tur.dias.length === 0) {
+                    coincideDias = false; // no tiene días, por ende no matchea
+                } else {
+                    // revisamos si tiene TODOS los días que el usuario seleccionó en el filtro
+                    coincideDias = filtroDiasTurnos.every(diaBuscado =>
+                        tur.dias.some(td => td.semana && td.semana.cod_dia === diaBuscado)
+                    );
+                }
             }
-        }
 
-        return coincideHora && coincideDias;
-    }).sort((a, b) => {
-        const horaA = a.horario?.hora_entrada || "";
-        const horaB = b.horario?.hora_entrada || "";
-        return horaA.localeCompare(horaB);
-    });
+            return coincideHora && coincideDias;
+        }).sort((a, b) => {
+            const horaA = a.horario?.hora_entrada || "";
+            const horaB = b.horario?.hora_entrada || "";
+            return horaA.localeCompare(horaB);
+        });
+    };
+
+    const turnosDisponiblesFiltrados = filtrarTurnos(turnosLeft);
+    const turnosAsignadosFiltrados = filtrarTurnos(turnosRight);
 
 
     const handleAllRightTurnos = () => {
@@ -412,8 +420,8 @@ function AdminCentroCosto() {
     };
 
     const handleAllLeftTurnos = () => {
-        setTurnosLeft(turnosLeft.concat(turnosRight));
-        setTurnosRight([]);
+        setTurnosLeft(turnosLeft.concat(turnosAsignadosFiltrados));
+        setTurnosRight(notTurnos(turnosRight, turnosAsignadosFiltrados));
     };
 
     const customListTurnos = (items) => (
@@ -1004,7 +1012,7 @@ function AdminCentroCosto() {
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
                                 <DialogTitle sx={{ p: 0, mb: 2 }}>Asignar Turnos</DialogTitle>
-                                <Box sx={{ display: 'flex', flex: 1, gap: 2, height: "250px" }}>
+                                <Box sx={{ display: 'flex', flex: 1, gap: 2, height: "55vh", minHeight: "450px" }}>
 
                                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
@@ -1078,16 +1086,12 @@ function AdminCentroCosto() {
 
                                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                                            Turnos Asignados ({turnosRight.length})
+                                            Turnos Asignados ({turnosAsignadosFiltrados.length})
                                         </Typography>
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
-                                            {turnosRight.length === 0
+                                            {turnosAsignadosFiltrados.length === 0
                                                 ? <Typography variant="body2" sx={{ p: 2, color: 'text.secondary', textAlign: 'center' }}>Ninguno asignado</Typography>
-                                                : customListTurnos([...turnosRight].sort((a, b) => {
-                                                    const horaA = a.horario?.hora_entrada || "24:00:00";
-                                                    const horaB = b.horario?.hora_entrada || "24:00:00";
-                                                    return horaA.localeCompare(horaB);
-                                                }))
+                                                : customListTurnos(turnosAsignadosFiltrados)
                                             }
                                         </Box>
                                     </Box>

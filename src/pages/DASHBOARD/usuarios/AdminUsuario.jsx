@@ -30,7 +30,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import { asignarCencos } from "../../../services/asignaciones/asignacionesServices"
 
 
-const ItemArbol = ({ nodo, isChecked, toggleCheck, nivel = 0 }) => {
+const ItemArbol = ({ nodo, isChecked, toggleCheck, nivel = 0, disabled = false }) => {
     const [abierto, setAbierto] = React.useState(false);
     const tieneHijos = nodo.hijos && nodo.hijos.length > 0;
 
@@ -68,6 +68,7 @@ const ItemArbol = ({ nodo, isChecked, toggleCheck, nivel = 0 }) => {
                     size="small"
                     onChange={(e) => toggleCheck(nodo, e.target.checked)}
                     onClick={(e) => e.stopPropagation()}
+                    disabled={disabled}
                 />
 
                 <ListItemText
@@ -90,6 +91,7 @@ const ItemArbol = ({ nodo, isChecked, toggleCheck, nivel = 0 }) => {
                                 isChecked={isChecked}
                                 toggleCheck={toggleCheck}
                                 nivel={nivel + 1}
+                                disabled={disabled}
                             />
                         ))}
                     </List>
@@ -110,12 +112,14 @@ function AdminUsuario() {
     const [open, setOpen] = useState(false);
 
     const abrirDialog = () => setOpen(true);
-    const cerrarDialog = () => {setOpen(false),
-        setRun(""),setEmailLocal(""),
-        setEmailDominio(""),setNombres(""),
-        setApellidoPaterno(""),setApellidoMaterno(""),
-        setEmail(""),setEmpresa(""),setPerfilUsuario(""),
-        setEstado(""),setUsername(""),setPass1(""),setPass2("")};
+    const cerrarDialog = () => {
+        setOpen(false),
+            setRun(""), setEmailLocal(""),
+            setEmailDominio(""), setNombres(""),
+            setApellidoPaterno(""), setApellidoMaterno(""),
+            setEmail(""), setEmpresa(""), setPerfilUsuario(""),
+            setEstado(""), setUsername(""), setPass1(""), setPass2("")
+    };
 
     const [openEditar, setOpenEditar] = useState(false);
     const [datosEditados, setDatosEditados] = useState({});
@@ -283,10 +287,12 @@ function AdminUsuario() {
 
     const [checked, setCrecked] = React.useState([true, false])
     const [abrirAsignar, setAbrirAsignar] = useState("")
+    const [disableAsignacion, setDisableAsignacion] = useState(false)
 
     const cerrarAsignar = () => {
         setAbrirAsignar(false)
         setSeleccionados([])
+        setDisableAsignacion(false)
     }
 
     // --- LOGICA ASIGNAR ---
@@ -599,6 +605,7 @@ function AdminUsuario() {
                                                         onClick={() => {
                                                             setEditId(usuario.usuario_id);
                                                             setAbrirAsignar(true);
+                                                            setDisableAsignacion(usuario.empleado !== null);
                                                             if (usuario.cencos && usuario.cencos.length > 0) {
                                                                 const misCencosIds = usuario.cencos.map(c => `cen-${c.cenco_id}`);
                                                                 setSeleccionados(misCencosIds);
@@ -1021,7 +1028,7 @@ function AdminUsuario() {
                                 <Typography variant="subtitle2" color="text.secondary">
                                     Seleccione un Cento de Costo
                                 </Typography>
-                                <Button size="small" color="primary" onClick={seleccionarTodosLosCencos} sx={{ fontSize: '0.7rem' }}>
+                                <Button size="small" color="primary" onClick={seleccionarTodosLosCencos} sx={{ fontSize: '0.7rem' }} disabled={disableAsignacion}>
                                     Seleccionar Todo
                                 </Button>
                             </Box>
@@ -1034,6 +1041,7 @@ function AdminUsuario() {
                                             isChecked={isChecked}
                                             toggleCheck={handleCheck}
                                             nivel={0}
+                                            disabled={disableAsignacion}
                                         />
                                     ))
                                 ) : (
@@ -1051,7 +1059,7 @@ function AdminUsuario() {
                                     Centros Seleccionados ({cencosSeleccionadosDetalle.length})
                                 </Typography>
                                 {cencosSeleccionadosDetalle.length > 0 && (
-                                    <Button size="small" color="error" onClick={() => setSeleccionados([])} sx={{ fontSize: '0.7rem' }}>
+                                    <Button size="small" color="error" onClick={() => setSeleccionados([])} sx={{ fontSize: '0.7rem' }} disabled={disableAsignacion}>
                                         Limpiar Todo
                                     </Button>
                                 )}
@@ -1069,7 +1077,7 @@ function AdminUsuario() {
                                         <React.Fragment key={cenco.cenco_id}>
                                             <ListItem
                                                 secondaryAction={
-                                                    <IconButton edge="end" aria-label="delete" size="small" onClick={() => eliminarCencoDesdeLista(cenco.cenco_id)}>
+                                                    <IconButton edge="end" aria-label="delete" size="small" onClick={() => eliminarCencoDesdeLista(cenco.cenco_id)} disabled={disableAsignacion}>
                                                         <Typography variant="caption" color="error" sx={{ fontWeight: 'bold' }}>✕</Typography>
                                                     </IconButton>
                                                 }
@@ -1095,7 +1103,7 @@ function AdminUsuario() {
                 </DialogContent>
                 <DialogActions sx={{ p: 2, borderTop: "1px solid #e0e0e0" }}>
                     <Button onClick={cerrarAsignar} color="error">Cancelar</Button>
-                    <Button onClick={guardarAsignar} variant="contained" color="primary" disableElevation>Guardar Asignación</Button>
+                    <Button onClick={guardarAsignar} variant="contained" color="primary" disableElevation disabled={disableAsignacion}>Guardar Asignación</Button>
                 </DialogActions>
             </Dialog>
         </>

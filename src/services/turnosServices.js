@@ -108,3 +108,20 @@ export const asignarEmpleados = async (id, empleadosIds)=>{
   }
   return data;
 }
+
+export const asignarTurnoACenco = async (turnoId, cencoId) => {
+  const peticion = await fetch(`${API_URL}/turno/asignar-turnos/${turnoId}/${cencoId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+   
+  });
+
+  const data = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(data.message || "Error al asignar turno al cenco");
+  }
+  return data;
+}
