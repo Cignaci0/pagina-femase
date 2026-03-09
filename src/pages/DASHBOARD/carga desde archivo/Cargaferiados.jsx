@@ -1,6 +1,7 @@
 import { Paper, Typography, Button, Box, Stack } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { useState } from "react";
+import { crearFeriado } from "../../../services/feriadosServices";
 
 
 function CargaFeriados() {
@@ -17,7 +18,57 @@ function CargaFeriados() {
             alert("Seleccione un archivo CSV");
             return;
         }
-        console.log("Archivo seleccionado:", file);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+
+                const feriados = lines.slice(1).map((line) => {
+                    const columns = line.split(";");
+                    return {
+                        fecha: columns[0]?.trim(),
+                        tipo_feriado: columns[1]?.trim(),
+                        nombre: columns[2]?.trim(),
+                        observacion: columns[3]?.trim(),
+                        irrenunciable: columns[4]?.trim(),
+                        tipo: columns[5]?.trim(),
+                        respaldo_legal: columns[6]?.trim(),
+                        region: columns[7]?.trim(),
+                        comuna: columns[8]?.trim(),
+                    };
+                }).filter(feriado => feriado.fecha);
+
+                if (feriados.length === 0) {
+                    alert("El archivo CSV está vacío o no tiene el formato correcto.");
+                    return;
+                }
+                let guardadosExito = 0;
+                let guardadosError = 0;
+                for (let i = 0; i < feriados.length; i++) {
+                    const feriadoActual = feriados[i];
+
+                    try {
+                        await crearFeriado(feriadoActual);
+                        guardadosExito++;
+                    } catch (error) {
+                        console.error(`Error al guardar el feriado de la fecha ${feriadoActual.fecha}:`, error);
+                        guardadosError++;
+                    }
+                }
+                if (guardadosError === 0) {
+                    alert(`Proceso finalizado. Se cargaron ${guardadosExito} feriados exitosamente.`);
+                    setFile(null);
+                } else {
+                    alert(`Proceso finalizado. Se guardaron ${guardadosExito} feriados, pero hubo ${guardadosError} errores (ver consola para detalles).`);
+                }
+            } catch (errorGeneral) {
+                console.error("Error catastrofico al procesar el archivo:", errorGeneral);
+                alert("Ocurrió un error inesperado al leer o procesar el archivo CSV.");
+            }
+        };
+        reader.readAsText(file, "UTF-8");
+
     };
 
 

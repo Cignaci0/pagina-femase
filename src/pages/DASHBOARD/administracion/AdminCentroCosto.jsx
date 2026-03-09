@@ -690,7 +690,14 @@ function AdminCentroCosto() {
                                                         setEditEmailNotiLocal(cenco.email_notificacion || "");
                                                         setEditEmailNotiDominio("");
                                                     }
-                                                    setEditEmpresa("");
+
+                                                    // Set Empresa (desde el departamento)
+                                                    if (cenco.departamento && cenco.departamento.empresa) {
+                                                        setEditEmpresa(cenco.departamento.empresa.empresa_id);
+                                                    } else {
+                                                        setEditEmpresa("");
+                                                    }
+
                                                     setEditZonaExtrema(cenco.zona_extrema ? true : false);
 
                                                     const normalize = (str) => (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -1022,22 +1029,28 @@ function AdminCentroCosto() {
                                         {/* Filtros */}
                                         <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 1, mb: 2, alignItems: 'center' }}>
                                             <TextField
-                                                label="Hora Desde"
+                                                label="Hora Inicio"
                                                 type="time"
                                                 value={filtroHoraDesdeTurnos}
                                                 onChange={(e) => setFiltroHoraDesdeTurnos(e.target.value)}
                                                 InputLabelProps={{ shrink: true }}
                                                 size="small"
-                                                sx={{ minWidth: "120px" }}
+                                                sx={{
+                                                    minWidth: "120px",
+                                                    '& input::-webkit-calendar-picker-indicator': { display: 'none' }
+                                                }}
                                             />
                                             <TextField
-                                                label="Hora Hasta"
+                                                label="Hora Fin"
                                                 type="time"
                                                 value={filtroHoraHastaTurnos}
                                                 onChange={(e) => setFiltroHoraHastaTurnos(e.target.value)}
                                                 InputLabelProps={{ shrink: true }}
                                                 size="small"
-                                                sx={{ minWidth: "120px" }}
+                                                sx={{
+                                                    minWidth: "120px",
+                                                    '& input::-webkit-calendar-picker-indicator': { display: 'none' }
+                                                }}
                                             />
                                             <FormControl size="small" sx={{ minWidth: "160px", flex: 1 }}>
                                                 <InputLabel>Días</InputLabel>

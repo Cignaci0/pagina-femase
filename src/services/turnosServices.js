@@ -23,7 +23,7 @@ export const obtenerTurnos = async () => {
 };
 
 //Crear turno
-export const crearTurno = async (nombre, es_rotativo, empresa, estado, horario) => {
+export const crearTurno = async (nombre, empresa, estado, horario) => {
   const peticion = await fetch(`${API_URL}/turno`, {
     method: "POST",
     headers: {
@@ -32,7 +32,6 @@ export const crearTurno = async (nombre, es_rotativo, empresa, estado, horario) 
     },
     body: JSON.stringify({
       nombre: nombre,
-      es_rotativo: es_rotativo,
       empresa: empresa,
       estado: estado,
       horario: horario,
@@ -47,7 +46,7 @@ export const crearTurno = async (nombre, es_rotativo, empresa, estado, horario) 
 };
 
 //Actualizar turno
-export const actualizarTurno = async (editId, nombre, es_rotativo, empresa, estado, horario) => {
+export const actualizarTurno = async (editId, nombre, empresa, estado, horario) => {
   const peticion = await fetch(`${API_URL}/turno/actualizar/${editId}`, {
     method: "PATCH",
     headers: {
@@ -56,7 +55,6 @@ export const actualizarTurno = async (editId, nombre, es_rotativo, empresa, esta
     },
     body: JSON.stringify({
       nombre: nombre,
-      es_rotativo: es_rotativo,
       empresa: empresa,
       estado: estado,
       horario: horario

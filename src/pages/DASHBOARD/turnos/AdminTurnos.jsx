@@ -51,7 +51,6 @@ function AdminTurnos() {
     const [crear, setCrear] = useState(false)
     const [empresaCrear, setEmpresaCrear] = useState("")
     const [nombreCrear, setNombreCrear] = useState("")
-    const [rotativoCrear, setRotativoCrear] = useState("")
     const [estadoCrear, setEstadoCrear] = useState("")
     const [horarioCrear, setHorarioCrear] = useState("")
     const [filtroEmpresaCrear, setFiltroEmpresaCrear] = useState([])
@@ -62,7 +61,6 @@ function AdminTurnos() {
     const [idEdit, setIdEdit] = useState("")
     const [empresaEdit, setEmpresaEdit] = useState("")
     const [nombreEdit, setNombreEdit] = useState("")
-    const [rotativoEdit, setRotativoEdit] = useState("")
     const [estadoEdit, setEstadoEdit] = useState("")
     const [horarioEdit, setHorarioEdit] = useState("")
     const [filtroEmpresaEdit, setFiltroEmpresaEdit] = useState([])
@@ -168,6 +166,11 @@ function AdminTurnos() {
     const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
     const [checkedEmpleados, setCheckedEmpleados] = useState([]);
 
+    // Estados de confirmación de asignación
+    const [confirmacionVisible, setConfirmacionVisible] = useState(false);
+    const [empleadosAConfirmar, setEmpleadosAConfirmar] = useState([]);
+    const [cencoAConfirmar, setCencoAConfirmar] = useState("");
+
     // Filtros de asignacion
     const [departamentos, setDepartamentos] = useState([]);
     const [cencos, setCencos] = useState([]);
@@ -217,7 +220,6 @@ function AdminTurnos() {
         setCrear(false)
         setEmpresaCrear("")
         setNombreCrear("")
-        setRotativoCrear("")
         setEstadoCrear("")
         setHorarioCrear("")
     }
@@ -226,12 +228,11 @@ function AdminTurnos() {
     const clickCrear = async () => {
         setCargando(true)
         try {
-            const respuesta = await crearTurno(nombreCrear, rotativoCrear, empresaCrear, estadoCrear, horarioCrear)
+            const respuesta = await crearTurno(nombreCrear, empresaCrear, estadoCrear, horarioCrear)
             setCrear(false)
             setEmpresaCrear("")
             setMensajeExito("Turno creado con exito")
             setNombreCrear("")
-            setRotativoCrear("")
             setEstadoCrear("")
             setHorarioCrear("")
             cargarTurnos()
@@ -245,7 +246,7 @@ function AdminTurnos() {
     const clickEdit = async () => {
         setCargando(true)
         try {
-            const respuesta = await actualizarTurno(idEdit, nombreEdit, rotativoEdit, empresaEdit, estadoEdit, horarioEdit)
+            const respuesta = await actualizarTurno(idEdit, nombreEdit, empresaEdit, estadoEdit, horarioEdit)
             setEditar(false)
             setMensajeExito("Turno Actualizado con exito")
             cargarTurnos()
@@ -275,6 +276,25 @@ function AdminTurnos() {
             setCargando(false)
         }
     }
+
+    const iniciarGuardadoAsignacion = () => {
+        const nombresEmpleados = empleadosAsignados.map(emp => `${emp.nombres} ${emp.apellido_paterno}`);
+        setEmpleadosAConfirmar(nombresEmpleados);
+
+        if (filtroCencoAsignar) {
+            const cencoSeleccionado = cencos.find(c => c.cenco_id === filtroCencoAsignar);
+            setCencoAConfirmar(cencoSeleccionado ? cencoSeleccionado.nombre_cenco : "Ninguno");
+        } else {
+            setCencoAConfirmar("Ninguno");
+        }
+
+        setConfirmacionVisible(true);
+    };
+
+    const confirmarYGuardar = () => {
+        setConfirmacionVisible(false); // Cierra este modal de confirmacion
+        clickGuardarAsignacion();      // Ejecuta el guardado y el cierre del modal padre
+    };
 
     const clickGuardarAsignacion = async () => {
         setCargando(true);
@@ -529,7 +549,6 @@ function AdminTurnos() {
                                 <TableRow>
                                     <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Nombre</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Rotativo</strong></TableCell>
                                     <TableCell width="10%" align="center"><strong>Estado</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Asiganar Dias</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Asignar Empleados</strong></TableCell>
@@ -549,9 +568,7 @@ function AdminTurnos() {
                                                 <TableCell align="center">
                                                     {tur.nombre}
                                                 </TableCell>
-                                                <TableCell align="center">
-                                                    {tur.es_rotativo ? "SI" : "NO"}
-                                                </TableCell>
+                                                
                                                 <TableCell align="center">
                                                     <CircleIcon
                                                         sx={{
@@ -617,7 +634,6 @@ function AdminTurnos() {
                                                         setIdEdit(tur.turno_id)
                                                         setEmpresaEdit(tur.empresa?.empresa_id)
                                                         setNombreEdit(tur.nombre)
-                                                        setRotativoEdit(tur.es_rotativo)
                                                         setEstadoEdit(tur.estado?.estado_id)
                                                         setHorarioEdit(tur.horario?.horario_id)
                                                     }} >
@@ -690,19 +706,6 @@ function AdminTurnos() {
                                     />
                                 </Box>
 
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
-                                    <InputLabel>Rotativo</InputLabel>
-                                    <Select label="Rotativo" value={rotativoCrear}
-                                        onChange={(e) => setRotativoCrear(e.target.value)}>
-                                        <MenuItem value={true}>
-                                            Si
-                                        </MenuItem>
-
-                                        <MenuItem value={false}>
-                                            No
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Estado</InputLabel>
@@ -769,20 +772,6 @@ function AdminTurnos() {
                                         fullWidth label="Nombre" size="small"
                                     />
                                 </Box>
-
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
-                                    <InputLabel>Rotativo</InputLabel>
-                                    <Select label="Rotativo" value={rotativoEdit}
-                                        onChange={(e) => setRotativoEdit(e.target.value)}>
-                                        <MenuItem value={true}>
-                                            Si
-                                        </MenuItem>
-
-                                        <MenuItem value={false}>
-                                            No
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Estado</InputLabel>
@@ -995,7 +984,7 @@ function AdminTurnos() {
 
                 <DialogActions>
                     <Button onClick={cerrarAsignar} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary" onClick={clickGuardarAsignacion}>Guardar</Button>
+                    <Button variant="contained" color="primary" onClick={iniciarGuardadoAsignacion}>Guardar</Button>
                 </DialogActions>
             </Dialog >
 
@@ -1073,6 +1062,54 @@ function AdminTurnos() {
                     </Button>
                 </DialogActions>
             </Dialog >
+
+            {/* Dialog de confirmación de asignación */}
+            <Dialog
+                open={confirmacionVisible}
+                maxWidth="sm"
+                fullWidth
+                disableEscapeKeyDown={true}
+                onClose={(event, reason) => {
+                    if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
+                        setConfirmacionVisible(false);
+                    }
+                }}
+            >
+                <DialogTitle sx={{ textAlign: "center", bgcolor: "#1976d2", color: "white", mb: 2 }}>
+                    Confirmar Asignación
+                </DialogTitle>
+                <DialogContent sx={{ textAlign: "center", pb: 2 }}>
+                    <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
+                        ¿Asignar este turno a los siguientes empleados?
+                    </Typography>
+
+                    <Box sx={{ maxHeight: 150, overflow: 'auto', bgcolor: '#f5f5f5', p: 1, borderRadius: 1, my: 2 }}>
+                        {empleadosAConfirmar.length > 0 ? (
+                            empleadosAConfirmar.map((nombre, i) => (
+                                <Typography key={i} variant="body2" sx={{ fontWeight: 'bold', color: '#333' }}>
+                                    • {nombre}
+                                </Typography>
+                            ))
+                        ) : (
+                            <Typography variant="body2" color="error">
+                                (Ningún empleado seleccionado)
+                            </Typography>
+                        )}
+                    </Box>
+
+                    <Typography variant="body1" sx={{ mt: 2 }}>
+                        Centro de costo: <Typography component="span" fontWeight="bold" color="primary">{cencoAConfirmar}</Typography>
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "center", pb: 3 }}>
+                    <Button onClick={() => setConfirmacionVisible(false)} color="error" sx={{ minWidth: 100 }}>
+                        Cancelar
+                    </Button>
+                    <Button variant="contained" color="primary" onClick={confirmarYGuardar} sx={{ minWidth: 100 }}>
+                        Confirmar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }

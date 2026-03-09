@@ -304,7 +304,7 @@ function AdminFeriados() {
                                         .map((f) => (
                                             <TableRow>
                                                 <TableCell align="center">
-                                                    {f.fecha}
+                                                    {f.fecha && f.fecha.includes("T") ? dayjs(f.fecha).format("DD-MM-YYYY") : f.fecha}
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     {f.tipo_feriado}
@@ -336,12 +336,23 @@ function AdminFeriados() {
                                                         setEditId(f.id)
                                                         setEditNombre(f.nombre)
 
-                                                        const partesFecha = (f.fecha || "").split("-");
-                                                        if (partesFecha.length === 3) {
-                                                            setEditFecha(dayjs(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`));
-                                                        } else {
-                                                            setEditFecha(dayjs(f.fecha));
+                                                        // Validar qué formato de fecha trae el servidor
+                                                        let fechaValida = null;
+                                                        if (f.fecha) {
+                                                            // Si la fecha incluye la letra 'T', es un formato ISO
+                                                            if (f.fecha.includes("T")) {
+                                                                fechaValida = dayjs(f.fecha);
+                                                            } else {
+                                                                // Asume formato "DD-MM-YYYY"
+                                                                const partesFecha = f.fecha.split("-");
+                                                                if (partesFecha.length === 3 && partesFecha[0].length <= 2) {
+                                                                    fechaValida = dayjs(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`);
+                                                                } else {
+                                                                    fechaValida = dayjs(f.fecha);
+                                                                }
+                                                            }
                                                         }
+                                                        setEditFecha(fechaValida);
 
                                                         setEditTipo(f.tipo ? f.tipo.toLowerCase() : "")
                                                         setEditTipoFeriado(f.tipo_feriado ? f.tipo_feriado.toLowerCase() : "")
