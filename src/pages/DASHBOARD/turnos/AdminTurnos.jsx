@@ -15,8 +15,7 @@ import {
 } from "@mui/material";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { obtenerTurnos, crearTurno, actualizarTurno, asignarDias, asignarEmpleados, asignarTurnoACenco } from "../../../services/turnosServices";
-import { obtenerHorarios } from "../../../services/horariosServices"
+import { obtenerTurnos, crearTurno, actualizarTurno, asignarEmpleados, asignarTurnoACenco } from "../../../services/turnosServices";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -52,7 +51,6 @@ function AdminTurnos() {
     const [empresaCrear, setEmpresaCrear] = useState("")
     const [nombreCrear, setNombreCrear] = useState("")
     const [estadoCrear, setEstadoCrear] = useState("")
-    const [horarioCrear, setHorarioCrear] = useState("")
     const [filtroEmpresaCrear, setFiltroEmpresaCrear] = useState([])
     const [filtroHorarioCrear, setFiltroHorarioCrear] = useState([])
 
@@ -116,17 +114,7 @@ function AdminTurnos() {
         }
     }
 
-    const cargarHorariosFiltrosCrear = async () => {
-        setCargando(true)
-        try {
-            const respuesta = await obtenerHorarios()
-            setHorarios(respuesta)
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setCargando(false);
-        }
-    }
+
 
     const cargarEmpresasFiltroEdit = async () => {
         try {
@@ -141,17 +129,7 @@ function AdminTurnos() {
         }
     };
 
-    const cargarHorariosFiltrosEdit = async () => {
-        setCargando(true)
-        try {
-            const respuesta = await obtenerHorarios()
-            setHorarios(respuesta)
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setCargando(false);
-        }
-    }
+
 
 
 
@@ -221,20 +199,18 @@ function AdminTurnos() {
         setEmpresaCrear("")
         setNombreCrear("")
         setEstadoCrear("")
-        setHorarioCrear("")
     }
     const cerrarEditar = () => { setEditar(false) }
 
     const clickCrear = async () => {
         setCargando(true)
         try {
-            const respuesta = await crearTurno(nombreCrear, empresaCrear, estadoCrear, horarioCrear)
+            const respuesta = await crearTurno(nombreCrear, empresaCrear, estadoCrear)
             setCrear(false)
             setEmpresaCrear("")
             setMensajeExito("Turno creado con exito")
             setNombreCrear("")
             setEstadoCrear("")
-            setHorarioCrear("")
             cargarTurnos()
         } catch (err) {
             setError(err.message);
@@ -246,7 +222,7 @@ function AdminTurnos() {
     const clickEdit = async () => {
         setCargando(true)
         try {
-            const respuesta = await actualizarTurno(idEdit, nombreEdit, empresaEdit, estadoEdit, horarioEdit)
+            const respuesta = await actualizarTurno(idEdit, nombreEdit, empresaEdit, estadoEdit)
             setEditar(false)
             setMensajeExito("Turno Actualizado con exito")
             cargarTurnos()
@@ -418,35 +394,13 @@ function AdminTurnos() {
         cargarEmpresasFiltroCrear();
     }, []);
 
-    useEffect(() => {
-        cargarHorariosFiltrosCrear();
-    }, []);
 
-    useEffect(() => {
-        if (empresaCrear) {
-            const filtrados = horarios.filter(horario => horario.empresa?.empresa_id == empresaCrear)
-            setFiltroHorarioCrear(filtrados)
-        } else {
-            setFiltroHorarioCrear([]);
-        }
-    }, [empresaCrear, horarios]);
 
     useEffect(() => {
         cargarEmpresasFiltroEdit();
     }, []);
 
-    useEffect(() => {
-        cargarHorariosFiltrosEdit();
-    }, []);
 
-    useEffect(() => {
-        if (empresaEdit) {
-            const filtrados = horarios.filter(horario => horario.empresa?.empresa_id == empresaEdit)
-            setFiltroHorarioEdit(filtrados)
-        } else {
-            setFiltroHorarioEdit([]);
-        }
-    }, [empresaEdit, horarios]);
 
     useEffect(() => {
         if (mensajeExito) {
@@ -550,7 +504,7 @@ function AdminTurnos() {
                                     <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width="10%" align="center"><strong>Estado</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Asiganar Dias</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Asiganar Horarios</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Asignar Empleados</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
@@ -568,7 +522,7 @@ function AdminTurnos() {
                                                 <TableCell align="center">
                                                     {tur.nombre}
                                                 </TableCell>
-                                                
+
                                                 <TableCell align="center">
                                                     <CircleIcon
                                                         sx={{
@@ -601,7 +555,7 @@ function AdminTurnos() {
                                                             }
                                                         }}
                                                     >
-                                                        Asignar Días
+                                                        Asignar Horarios
                                                     </Button>
                                                 </TableCell>
                                                 <TableCell align="center">
@@ -635,7 +589,6 @@ function AdminTurnos() {
                                                         setEmpresaEdit(tur.empresa?.empresa_id)
                                                         setNombreEdit(tur.nombre)
                                                         setEstadoEdit(tur.estado?.estado_id)
-                                                        setHorarioEdit(tur.horario?.horario_id)
                                                     }} >
                                                         <EditIcon />
                                                     </IconButton>
@@ -720,17 +673,7 @@ function AdminTurnos() {
                                     </Select>
                                 </FormControl>
 
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
-                                    <InputLabel>Horario</InputLabel>
-                                    <Select label="Estado" value={horarioCrear}
-                                        onChange={(e) => setHorarioCrear(e.target.value)}>
-                                        {filtroHorarioCrear.map((hor) => (
-                                            <MenuItem key={hor.horario_id} value={hor.horario_id}>
-                                                {`${hor.hora_entrada} - ${hor.hora_salida}`}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+
                             </Paper>
                         </Box>
                     </Box>
@@ -786,18 +729,6 @@ function AdminTurnos() {
                                     </Select>
                                 </FormControl>
 
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
-                                    <InputLabel>Horario</InputLabel>
-                                    <Select label="Estado" value={horarioEdit}
-                                        onChange={(e) => setHorarioEdit(e.target.value)}>
-                                        {filtroHorarioEdit.map((hor) => (
-                                            <MenuItem key={hor.horario_id} value={hor.horario_id}>
-                                                {`${hor.hora_entrada} - ${hor.hora_salida}`}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-
                             </Paper>
                         </Box>
                     </Box>
@@ -808,7 +739,7 @@ function AdminTurnos() {
                 </DialogActions>
             </Dialog >
 
-            {/* Dialog asignar */}
+            {/* Dialog asignar empleados */}
             < Dialog
                 open={asignar}
                 fullWidth
