@@ -8,6 +8,7 @@ import {
     ListItemIcon,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -15,22 +16,13 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 function AdminAsignacionCiclica() {
 
 
-    const [mensajeExito, setMensajeExito] = useState("")
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+
 
     const [perfiles, setperfiles] = useState([])
 
-    const [error, setError] = useState(null);
 
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
+
 
     return (
         <>
@@ -40,13 +32,7 @@ function AdminAsignacionCiclica() {
                 </Typography>
             </Box>
 
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             <Paper elevation={2} sx={{
                 p: 3, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
@@ -59,13 +45,13 @@ function AdminAsignacionCiclica() {
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Empresa</InputLabel>
                             <Select label="Empresa" defaultValue="" >
-                               
+
                             </Select>
                         </FormControl>
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Departamento</InputLabel>
                             <Select label="Departamento" defaultValue="" >
-                               
+
                             </Select>
                         </FormControl>
                         <FormControl size="small" sx={{ minWidth: 250 }}>
@@ -84,7 +70,7 @@ function AdminAsignacionCiclica() {
                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
 
                             <List dense>
-                               izquierda
+                                izquierda
 
                             </List>
 
@@ -97,7 +83,7 @@ function AdminAsignacionCiclica() {
                             variant="outlined"
                             size="small"
                             sx={{ minWidth: 40 }}
-                            
+
                         >
                             &gt;&gt;
                         </Button>
@@ -106,7 +92,7 @@ function AdminAsignacionCiclica() {
                             variant="outlined"
                             size="small"
                             sx={{ minWidth: 40 }}
-                           
+
                         >
                             &gt;
                         </Button>
@@ -115,7 +101,7 @@ function AdminAsignacionCiclica() {
                             variant="outlined"
                             size="small"
                             sx={{ minWidth: 40 }}
-                         
+
                         >
                             &lt;
                         </Button>
@@ -124,7 +110,7 @@ function AdminAsignacionCiclica() {
                             variant="outlined"
                             size="small"
                             sx={{ minWidth: 40 }}
-                            
+
                         >
                             &lt;&lt;
                         </Button>
@@ -148,8 +134,8 @@ function AdminAsignacionCiclica() {
                         color="primary"
                         startIcon={<ContentPasteIcon />}
                         sx={{ px: 4 }}
-                        
-                        
+
+
                     >
                         Guardar
                     </Button>

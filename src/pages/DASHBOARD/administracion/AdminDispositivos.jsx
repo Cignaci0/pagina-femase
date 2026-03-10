@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { regiones, comunas } from "../../../utils/dataGeografica"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -23,9 +24,7 @@ function AdminDispositivos() {
     const [dispositivos, setDispositivos] = useState([])
     const [TipoDipositivos, setTiposDispositivos] = useState([])
     const [cargando, setCargando] = useState(false)
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(6);
@@ -75,7 +74,7 @@ function AdminDispositivos() {
             setDispositivos(datosD)
             setTiposDispositivos(datosTD)
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
             setTiposDispositivos([])
             setDispositivos([])
         }
@@ -152,7 +151,7 @@ function AdminDispositivos() {
                 nombre
             );
             setOpen(false);
-            setMensajeExito("Dispositivo creado con exito");
+            toast.success("Dispositivo creado con exito");
             setNombre("");
             setTipo("")
             setRegion("")
@@ -169,9 +168,9 @@ function AdminDispositivos() {
         }
         catch (error) {
             if (error.message === "Failed fetch") {
-                setError("Error de conexion");
+                toast.error("Error de conexion");
             } else {
-                setError(error.message || "Error al crear el dispositivo");
+                toast.error(error.message || "Error al crear el dispositivo");
             }
         }
     }
@@ -180,10 +179,10 @@ function AdminDispositivos() {
         try {
             const respuesta = await actualizarDispositivo(editId, editUbicacion, editComuna, editmodelo, editFabricante, editFirmware, editDireccionIp, editGateway, editDNS, editEstado, editTipo, editNombre)
             setMostrarEdit(false)
-            setMensajeExito("Se edito con exito")
+            toast.success("Se edito con exito")
             cargarDatos()
         } catch (e) {
-            setError(e.message)
+            toast.error(e.message)
         }
     }
 
@@ -241,19 +240,10 @@ function AdminDispositivos() {
         setPagina(0);
     }, [busqueda, filtroEstado]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -265,13 +255,7 @@ function AdminDispositivos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

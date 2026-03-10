@@ -19,14 +19,13 @@ import dayjs from "dayjs";
 import "dayjs/locale/es";
 dayjs.locale("es");
 import { crearFeriado, editarFeriado, obtenerFeriados } from "../../../services/feriadosServices";
+import toast from "react-hot-toast";
 
 function AdminFeriados() {
 
     // Estados de datos
     const [feriados, setFeriados] = useState([])
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("");
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -69,7 +68,7 @@ function AdminFeriados() {
             const respuesta = await obtenerFeriados()
             setFeriados(respuesta)
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -91,11 +90,11 @@ function AdminFeriados() {
             }
             console.log(datos)
             const respuesta = await crearFeriado(datos)
-            setMensajeExito("Feriado creado exitosamente")
+            toast.success("Feriado creado exitosamente")
             closeDialog()
             cargarDatosIniciales()
         } catch (err) {
-            setError(err.message)
+            toast.error(err.message)
         }
     }
 
@@ -115,11 +114,11 @@ function AdminFeriados() {
             }
             console.log(datos)
             const respuesta = await editarFeriado(editId, datos)
-            setMensajeExito("Feriado editado exitosamente")
+            toast.success("Feriado editado exitosamente")
             closeDialogEdit()
             cargarDatosIniciales()
         } catch (err) {
-            setError(err.message)
+            toast.error(err.message)
         }
     }
 
@@ -187,16 +186,8 @@ function AdminFeriados() {
         setPagina(0);
     }, [busqueda, filtroAño, filtroMes, filtroTipoFeriado]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => setMensajeExito(""), 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
-
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
 
     return (
         <>
@@ -204,15 +195,6 @@ function AdminFeriados() {
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">Admin Feriados</Typography>
             </Box>
-
-            {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{ p: 2, width: "100%", bgcolor: "#FFFFFD", borderRadius: 2, maxWidth: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden", boxSizing: "border-box" }}>

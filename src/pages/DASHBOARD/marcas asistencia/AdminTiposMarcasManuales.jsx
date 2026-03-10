@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 
 import SearchIcon from '@mui/icons-material/Search';
@@ -20,9 +21,7 @@ function AdminTipoMarcasManuales() {
     // Estados de datos
     const [departamentos, setDepartamentos] = useState([]);
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(7);
@@ -85,19 +84,10 @@ function AdminTipoMarcasManuales() {
         setPagina(0);
     }, [busqueda]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -109,13 +99,7 @@ function AdminTipoMarcasManuales() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

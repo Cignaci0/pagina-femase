@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerUsuariosConectados } from "../../../services/usuariosConectados";
 
@@ -24,9 +25,9 @@ dayjs.locale("es");
 function AdminUsuariosConectados() {
 
     // Estados de datos
-    const [error, setError] = useState(null);
+    
     const [usuariosConectados, setUsuariosConectados] = useState([]);
-    const [mensajeExito, setMensajeExito] = useState("");
+    
 
     // Estados de paginacion y filtrado
     const [busqueda, setBusqueda] = useState("");
@@ -41,7 +42,7 @@ function AdminUsuariosConectados() {
             const respuesta = await obtenerUsuariosConectados()
             setUsuariosConectados(respuesta)
         } catch (error) {
-            setError("Error al traer los usuarios conectados")
+            toast.error("Error al traer los usuarios conectados")
             console.log(error)
         }
     }
@@ -88,7 +89,7 @@ function AdminUsuariosConectados() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -173,17 +174,10 @@ function AdminUsuariosConectados() {
         setPagina(0);
     }, [busqueda]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
+    
 
     return (
         <>
@@ -195,13 +189,7 @@ function AdminUsuariosConectados() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

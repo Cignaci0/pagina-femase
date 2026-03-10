@@ -3,6 +3,7 @@ import {
   AppBar, Box, CssBaseline, Drawer, List, ListItemButton,
   ListItemText, Toolbar, Collapse, Typography, IconButton
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { useNavigate } from "react-router-dom";
 

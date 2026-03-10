@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -27,11 +28,9 @@ import { actualizarCargo } from "../../../services/cargosServices"
 function AdminCargos() {
 
     // Estados de datos
-    const [error, setError] = useState(null);
+
     const [cargos, setCargos] = useState([])
     const [empresas, setEmpresas] = useState([""])
-    const [mensajeExito, setMensajeExito] = useState("")
-
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(7);
@@ -57,7 +56,7 @@ function AdminCargos() {
             const respuesta = await obtenerCargos()
             setCargos(respuesta)
         } catch (error) {
-            setError("Error al traer los cargos")
+            toast.error("Error al traer los cargos")
         }
     }
 
@@ -66,7 +65,7 @@ function AdminCargos() {
             const respuesta = await obtenerEmpresas()
             setEmpresas(respuesta)
         } catch (error) {
-            setError(error.message || " error al traer empresas")
+            toast.error(error.message || " error al traer empresas")
         }
     }
 
@@ -112,7 +111,7 @@ function AdminCargos() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -163,14 +162,14 @@ function AdminCargos() {
     const clickCrear = async () => {
         try {
             const respuesta = await crearCargo(nuevoNombre, nuevoEstado, idEmpresaCrear)
-            setMensajeExito("Se creo con exito")
+            toast.success("Se creo con exito")
             setOpen(false)
             cargarCargos()
             setNuevoNombre("")
             setNuevoEstado("")
             setIdEmpresaCrear("")
         } catch (error) {
-            setError(error.message || "Error al crear el cargo")
+            toast.error(error.message || "Error al crear el cargo")
         }
     }
 
@@ -178,10 +177,10 @@ function AdminCargos() {
         try {
             const respuesta = await actualizarCargo(editId, editNombre, editEstado, idEmpresaEdit)
             setMostrarEdit(false)
-            setMensajeExito("Se edito con exito")
+            toast.success("Se edito con exito")
             cargarCargos()
         } catch (error) {
-            setError(error.message || "error al editar")
+            toast.error(error.message || "error al editar")
         }
     }
 
@@ -216,18 +215,10 @@ function AdminCargos() {
         setPagina(0);
     }, [busqueda, filtroestado,]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
 
     return (
         <>
@@ -239,13 +230,7 @@ function AdminCargos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -421,7 +406,7 @@ function AdminCargos() {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                
+
                             </TableBody>
                         </Table>
                     </TableContainer>

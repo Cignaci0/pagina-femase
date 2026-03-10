@@ -8,9 +8,11 @@ import {
     ListItemIcon,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerPerfiles } from "../../../services/perfilUsuariosServices";
-import { obtenerSubMenus, obtenerSubMenusPerfil, agregarSubMenu 
+import {
+    obtenerSubMenus, obtenerSubMenusPerfil, agregarSubMenu
 } from "../../../services/menus/menuServices";
 
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -25,8 +27,6 @@ function AdminAccesosPerfil() {
     const [listaDerecha, setlistaDerecha] = useState([])
     const [listaSeleccionados, setListaSeleccionados] = useState([])
     const [cargando, setCargando] = useState(false); // Agregado para consistencia con lógica de carga
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
 
     // Estados de paginacion y filtrado
     const [filtroPerfil, setFiltroPerfil] = useState("")
@@ -39,7 +39,7 @@ function AdminAccesosPerfil() {
             const respuesta = await obtenerPerfiles()
             setperfiles(respuesta)
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -54,7 +54,7 @@ function AdminAccesosPerfil() {
             setlistaIzquierda(disponibles);
             setlistaDerecha(asignadosPlanos);
         } catch (error) {
-            setError(error.message);
+            toast.error(error.message);
         }
     }
 
@@ -66,9 +66,9 @@ function AdminAccesosPerfil() {
             const listaFinalSinDuplicados = [...new Set(todosLosIds)];
             console.log("Enviando estos IDs:", listaFinalSinDuplicados);
             await agregarSubMenu(filtroPerfil, listaFinalSinDuplicados);
-            setMensajeExito("Turnos asignados correctamente");
+            toast.success("Turnos asignados correctamente");
         } catch (error) {
-            setError(error.message || "Error al asignar submenus");
+            toast.error(error.message || "Error al asignar submenus");
         }
     }
 
@@ -153,18 +153,10 @@ function AdminAccesosPerfil() {
         }
     }, [filtroPerfil]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
 
     return (
         <>
@@ -176,13 +168,7 @@ function AdminAccesosPerfil() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

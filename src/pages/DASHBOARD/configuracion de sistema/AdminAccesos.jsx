@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDepartamentos, crearDepto, actualizarDepto } from "../../../services/departamentosServices";
@@ -25,9 +26,7 @@ function AdminAccesos() {
     // Estados de datos
     const [departamentos, setDepartamentos] = useState([]);
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [busqueda, setBusqueda] = useState("");
     const [pagina, setPagina] = useState(0);
@@ -93,7 +92,7 @@ function AdminAccesos() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -162,19 +161,10 @@ function AdminAccesos() {
         setPagina(0);
     }, [busqueda]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -186,13 +176,7 @@ function AdminAccesos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { obtenerCargos } from "../../../services/cargosServices";
 import SearchIcon from '@mui/icons-material/Search';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -23,7 +24,7 @@ function AdminEventosSistema() {
 
     // Estados de datos
     const [cargos, setCargos] = useState([])
-    const [error, setError] = useState(null);
+    
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -39,7 +40,7 @@ function AdminEventosSistema() {
             const respuesta = await obtenerCargos()
             setCargos(respuesta)
         } catch (error) {
-            setError("Error al traer los cargos")
+            toast.error("Error al traer los cargos")
         }
     }
 
@@ -85,7 +86,7 @@ function AdminEventosSistema() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 

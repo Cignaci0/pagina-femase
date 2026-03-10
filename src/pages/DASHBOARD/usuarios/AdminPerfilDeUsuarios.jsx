@@ -8,6 +8,7 @@ import {
     Alert,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import CircleIcon from '@mui/icons-material/Circle';
 import SearchIcon from '@mui/icons-material/Search';
@@ -16,18 +17,18 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-import { 
-    obtenerPerfiles, 
-    crearPerfilUsuario, 
-    actualizarPerfil 
+import {
+    obtenerPerfiles,
+    crearPerfilUsuario,
+    actualizarPerfil
 } from "../../../services/perfilUsuariosServices";
 
 function AdminPerfilUsuarios() {
 
     // Estados de datos
     const [perfiles, setPerfiles] = useState([]);
-    const [mensajeExito, setMensajeExito] = useState("");
-    const [error, setError] = useState("");
+
+
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -72,15 +73,15 @@ function AdminPerfilUsuarios() {
     const clickCrear = async () => {
         try {
             if (!nuevoNombre || !nuevoEstado) {
-                setError("Por favor completa todos los campos");
+                toast.error("Por favor completa todos los campos");
                 return;
             }
             await crearPerfilUsuario(nuevoNombre, nuevoEstado)
             setMostrar(false)
-            setMensajeExito("Perfil creado con exito")
+            toast.success("Perfil creado con exito")
             cargarPerfiles()
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -89,9 +90,9 @@ function AdminPerfilUsuarios() {
             await actualizarPerfil(editFilaId, editNombre, editEstado)
             setMostrarEdit(false)
             cargarPerfiles()
-            setMensajeExito("Perfil actualizado con exito")
+            toast.success("Perfil actualizado con exito")
         } catch (error) {
-            setError("Error al actualizar perfil")
+            toast.error("Error al actualizar perfil")
         }
     }
 
@@ -112,18 +113,10 @@ function AdminPerfilUsuarios() {
         cargarPerfiles();
     }, []);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
 
     return (
         <>
@@ -135,17 +128,11 @@ function AdminPerfilUsuarios() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh" }}>
-                
+
                 {/* Barra de busqueda */}
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 2 }}>
                     <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", sm: "400px" }, height: "50px" }}>
@@ -213,7 +200,7 @@ function AdminPerfilUsuarios() {
                                 )
                             })}
 
-                            
+
                             {perfiles.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={10} align="center">

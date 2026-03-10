@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
 
@@ -22,8 +23,6 @@ function AdminTurnosRotativos() {
     // Estados de datos
     const [empresas, setEmpresas] = useState([])
     const [cargos, setcargos] = useState([])
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -47,7 +46,7 @@ function AdminTurnosRotativos() {
             ]);
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -95,18 +94,10 @@ function AdminTurnosRotativos() {
         setPagina(0);
     }, [busqueda, filtroestado]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
 
     return (
         <>
@@ -118,13 +109,7 @@ function AdminTurnosRotativos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

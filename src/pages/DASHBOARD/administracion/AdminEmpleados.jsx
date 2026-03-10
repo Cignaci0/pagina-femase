@@ -8,6 +8,7 @@ import {
     FormHelperText,
     InputAdornment
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/es";
 import dayjs from "dayjs";
@@ -117,8 +118,8 @@ function AdminEmpleados() {
     const [turnos, setTurnos] = useState([])
     const [cargos, setCargos] = useState([])
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("");
+
+
 
     // Estados de paginacion y filtrado
     const [filtroEmpresa, setFiltroEmpresa] = useState("");
@@ -249,7 +250,7 @@ function AdminEmpleados() {
             setProveedorCorreo(repuestaProveedorcorreo)
 
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -258,7 +259,7 @@ function AdminEmpleados() {
             const respuesta = await obtenerEmpleados()
             setEmpleados(respuesta)
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -295,7 +296,7 @@ function AdminEmpleados() {
                 cenco_id: nuevoCenco
             };
             const resultado = await crearEmpleado(datosParaEnviar);
-            setMensajeExito("Empleado creado exitosamente");
+            toast.success("Empleado creado exitosamente");
             cerrarDialog();
             llamarEmpleados();
             setNuevoNumFicha("");
@@ -325,7 +326,7 @@ function AdminEmpleados() {
             setNuevoDepartamento("");
             setNuevoCenco("");
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -363,11 +364,11 @@ function AdminEmpleados() {
             };
 
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
-            setMensajeExito("Empleado actualizado exitosamente");
+            toast.success("Empleado actualizado exitosamente");
             llamarEmpleados();
             closeDialogEdit(true)
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -564,17 +565,10 @@ function AdminEmpleados() {
 
     useEffect(() => { setPagina(0); }, [busqueda, filtroEmpresa, filtroEstado]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => setMensajeExito(""), 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
-
 
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
+
 
     return (
         <>
@@ -584,9 +578,7 @@ function AdminEmpleados() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}><Alert severity="success" onClose={() => setMensajeExito("")}>{mensajeExito}</Alert></Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{ p: 2, width: "100%", bgcolor: "#FFFFFD", borderRadius: 2, maxWidth: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden", boxSizing: "border-box" }}>

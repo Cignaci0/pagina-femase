@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -24,9 +25,7 @@ function AdminCodErrorRechazos() {
     // Estados de datos
     const [errorRachazo, setErrorRachazo] = useState([])
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -47,7 +46,7 @@ function AdminCodErrorRechazos() {
             const respuesta = await obtenerErrorRechazo()
             setErrorRachazo(respuesta)
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -57,11 +56,11 @@ function AdminCodErrorRechazos() {
     const ClickcrearErrorRechazo = async () => {
         try {
             const respuesta = await crearErrorRechazo(nuevoDescripcion)
-            setMensajeExito("¡Error de rechazo creado exitosamente!");
+            toast.success("¡Error de rechazo creado exitosamente!");
             closeDialog();
             cargarDatos();
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -70,11 +69,11 @@ function AdminCodErrorRechazos() {
     const ClickEditarErrorRechazo = async () => {
         try {
             const respuesta = await actualizarErrorRechazo(editId, editDescripcion)
-            setMensajeExito("¡Error de rechazo editado exitosamente!");
+            toast.success("¡Error de rechazo editado exitosamente!");
             closeDialogEdit();
             cargarDatos();
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -117,7 +116,7 @@ function AdminCodErrorRechazos() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -186,19 +185,10 @@ function AdminCodErrorRechazos() {
         setPagina(0);
     }, [busqueda]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -210,13 +200,7 @@ function AdminCodErrorRechazos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

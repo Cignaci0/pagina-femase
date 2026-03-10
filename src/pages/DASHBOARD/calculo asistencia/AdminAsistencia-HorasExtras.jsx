@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
 import { regiones, comunas } from "../../../utils/dataGeografica";
@@ -32,9 +33,7 @@ function AdminAsisHorasExtras() {
     // Estados de datos
     const [empresas, setEmpresas] = useState([])
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -145,23 +144,14 @@ function AdminAsisHorasExtras() {
     };
 
     // Effects
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     useEffect(() => {
         setPagina(0);
     }, [busqueda]);
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -173,13 +163,7 @@ function AdminAsisHorasExtras() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

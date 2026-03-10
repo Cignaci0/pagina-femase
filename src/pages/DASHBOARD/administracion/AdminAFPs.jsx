@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices"
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -26,9 +27,7 @@ function AdminAFPs() {
     // Estados de datos
     const [afp, setAfp] = useState([])
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -62,7 +61,7 @@ function AdminAFPs() {
         try {
             await crearAfp(nuevoNombre, nuevoEstado)
             setOpen(false)
-            setMensajeExito("AFP creada exitosamente")
+            toast.success("AFP creada exitosamente")
             cargarAfp()
         } catch (error) {
             console.error("Error al crear la AFP:", error)
@@ -74,7 +73,7 @@ function AdminAFPs() {
         try {
             await editarAfp(editId, editNombre, editEstado)
             setOpenEdit(false)
-            setMensajeExito("AFP editada exitosamente")
+            toast.success("AFP editada exitosamente")
             cargarAfp()
         } catch (error) {
             console.error("Error al editar la AFP:", error)
@@ -119,7 +118,7 @@ function AdminAFPs() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -190,21 +189,12 @@ function AdminAFPs() {
         setPagina(0);
     }, [busqueda]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
 
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -216,13 +206,7 @@ function AdminAFPs() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

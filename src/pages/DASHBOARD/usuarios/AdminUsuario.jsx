@@ -4,9 +4,10 @@ import {
     TableRow, TableCell, TableBody, Dialog, DialogTitle,
     DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
     IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
-    Container, Alert, TablePagination,
+    Container, TablePagination,
     FormHelperText
 } from "@mui/material";
+import toast from "react-hot-toast";
 
 import { obtenerUsuarios, crearUsuario, actualizarUsuario } from "../../../services/usuariosServices"
 import { obtenerPerfiles } from "../../../services/perfilUsuariosServices"
@@ -132,7 +133,6 @@ function AdminUsuario() {
     const [departamentos, setDepartamentos] = useState([])
 
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
 
     // --- ESTADOS DE FILTRADO ---
     const [busqueda, setBusqueda] = useState("");
@@ -152,8 +152,6 @@ function AdminUsuario() {
     const [pass1, setPass1] = useState("");
     const [pass2, setPass2] = useState("");
 
-
-    const [mensajeExito, setmensajeExito] = useState("")
     const [proveedorCorreo, setProveedorCorreo] = useState([])
     const [emailLocal, setEmailLocal] = useState("")
     const [emailDominio, setEmailDominio] = useState("")
@@ -178,24 +176,14 @@ function AdminUsuario() {
             setUsername("")
             setPass1("")
             setPass2("")
-            setmensajeExito("Usuario creado con exito")
+            toast.success("Usuario creado con exito")
             cargarDatos()
 
 
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
-
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setmensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
-
 
     // --- ESTADOS EDITAR ---
     const [editId, setEditId] = useState("")
@@ -215,8 +203,10 @@ function AdminUsuario() {
             const respuesta = await actualizarUsuario(editId, editUsername, editEstado, editNombres, editApellidoPaterno, editApellidoMaterno, emailFinal, editPerfilUsuario, editRut, editEmpresa)
             cargarDatos()
             setOpenEditar(false)
-            setmensajeExito("Usuario editado con exito")
-        } catch (error) { error.message }
+            toast.success("Usuario editado con exito")
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
 
@@ -235,7 +225,7 @@ function AdminUsuario() {
             setProveedorCorreo(Array.isArray(dataProveedores) ? dataProveedores : []);
 
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -454,16 +444,14 @@ function AdminUsuario() {
             await cargarDatos();
             setAbrirAsignar(false);
             setSeleccionados([]);
-            setmensajeExito("Asignado con éxito");
+            toast.success("Asignado con éxito");
 
         } catch (error) {
-            setError(error.message);
+            toast.error(error.message);
         }
     };
 
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
 
     return (
         <>
@@ -472,13 +460,6 @@ function AdminUsuario() {
                     Admin Usuarios
                 </Typography>
             </Box>
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
 
             <Paper elevation={2} sx={{
                 p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",

@@ -9,6 +9,7 @@ import {
     ListItemIcon,
     Checkbox
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices"
 import { regiones, comunas } from "../../../utils/dataGeografica"
 import SearchIcon from '@mui/icons-material/Search';
@@ -37,8 +38,8 @@ function AdminCentroCosto() {
     const [turnos, setTurnos] = useState([])
     const [proveedorCorreo, setProveedorCorreo] = useState([])
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("");
+
+
 
     // Estados de paginacion y filtrado
     const [filtroEmpresa, setFiltroEmpresa] = useState("");
@@ -108,7 +109,7 @@ function AdminCentroCosto() {
             const dataCencos = await obtenerCentroCostos();
             setCencos(dataCencos);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         }
     };
 
@@ -117,7 +118,7 @@ function AdminCentroCosto() {
             const respuesta = await obtenerTurnos()
             setTurnos(respuesta)
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -177,7 +178,7 @@ function AdminCentroCosto() {
         try {
             await crearCentroCosto(nuevoNombre, nuevoDireccion, nuevoRegion, nuevoComuna, emailGnral, emailNoti, nuevoZonaExtrema, nuevoEstado, nuevoDepartamento,)
             setOpen(false)
-            setMensajeExito("Centro de costo creado con exito")
+            toast.success("Centro de costo creado con exito")
             const data = await obtenerCentroCostos();
             setCencos(data);
             setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa("");
@@ -186,7 +187,7 @@ function AdminCentroCosto() {
             setNuevoDireccion(""); setNuevoZonaExtrema(""); setNuevoRegion("");
             setNuevoComuna("");
         } catch (error) {
-            setError(error.message || "Error al crear")
+            toast.error(error.message || "Error al crear")
         }
     }
 
@@ -196,11 +197,11 @@ function AdminCentroCosto() {
         try {
             await actualizarCentroCosto(editId, editNombre, editDireccion, editRegion, editComuna, emailGnral, emailNoti, editZonaExtrema, editEstado, editDepartamento,)
             setMostrarEdit(false)
-            setMensajeExito("Se edito con exito")
+            toast.success("Se edito con exito")
             const data = await obtenerCentroCostos();
             setCencos(data);
         } catch (error) {
-            setError(error.message || "Error al editar")
+            toast.error(error.message || "Error al editar")
         }
     }
 
@@ -242,13 +243,13 @@ function AdminCentroCosto() {
                 listaParaEnviar
             );
 
-            setMensajeExito("Dispositivos asignados correctamente");
+            toast.success("Dispositivos asignados correctamente");
             setDialogDispositivo(false);
             cargarCencos();
 
         } catch (error) {
             console.error(error);
-            setError(error.message || "Error al asignar dispositivos");
+            toast.error(error.message || "Error al asignar dispositivos");
         }
     };
 
@@ -323,7 +324,7 @@ function AdminCentroCosto() {
     const guardarTurnos = async () => {
         try {
             if (!cencoEnEdicion || !cencoEnEdicion.cenco_id) {
-                setError("No se ha seleccionado ningún centro de costo.");
+                toast.error("No se ha seleccionado ningún centro de costo.");
                 return;
             }
 
@@ -331,11 +332,11 @@ function AdminCentroCosto() {
 
             await asignarTurnos(cencoEnEdicion.cenco_id, listaIds);
 
-            setMensajeExito("Turnos asignados correctamente");
+            toast.success("Turnos asignados correctamente");
             setAbrirTurnos(false);
             cargarCencos();
         } catch (error) {
-            setError(error.message || "Error al asignar turnos");
+            toast.error(error.message || "Error al asignar turnos");
         }
     };
 
@@ -503,7 +504,7 @@ function AdminCentroCosto() {
                 }
 
             } catch (err) {
-                setError(err.message);
+                toast.error(err.message);
             } finally {
                 setCargando(false);
             }
@@ -524,13 +525,6 @@ function AdminCentroCosto() {
     useEffect(() => { setPagina(0); }, [busqueda, filtroEmpresa, filtroEstado]);
 
     useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => setMensajeExito(""), 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
-
-    useEffect(() => {
         const cargarDatosIniciales = async () => {
             try {
                 setCargando(true);
@@ -547,7 +541,7 @@ function AdminCentroCosto() {
                 }
 
             } catch (err) {
-                setError(err.message);
+                toast.error(err.message);
             } finally {
                 setCargando(false);
             }
@@ -565,7 +559,7 @@ function AdminCentroCosto() {
 
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
+
 
     return (
         <>
@@ -575,9 +569,7 @@ function AdminCentroCosto() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}><Alert severity="success" onClose={() => setMensajeExito("")}>{mensajeExito}</Alert></Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{ p: 2, width: "100%", bgcolor: "#FFFFFD", borderRadius: 2, maxWidth: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden", boxSizing: "border-box" }}>

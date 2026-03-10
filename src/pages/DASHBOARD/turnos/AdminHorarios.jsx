@@ -8,6 +8,7 @@ import {
     FormHelperText,
     DialogContentText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerHorarios, crearHorario, actualizarHorario } from "../../../services/horariosServices";
@@ -22,8 +23,6 @@ function AdminHorarios() {
     const [horarios, setHorarios] = useState([])
     const [empresas, setEmpresas] = useState([""])
     const [empresasFiltro, setEmpresasFiltro] = useState([])
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -73,7 +72,7 @@ function AdminHorarios() {
             const respuesta = await obtenerEmpresas()
             setEmpresas(respuesta)
         } catch (error) {
-            setError(error.message || " error al traer empresas")
+            toast.error(error.message || " error al traer empresas")
         }
     }
 
@@ -82,7 +81,7 @@ function AdminHorarios() {
             const respuesta = await obtenerHorarios()
             setHorarios(respuesta)
         } catch (error) {
-            setError("Error al traer los horarios")
+            toast.error("Error al traer los horarios")
         }
     }
 
@@ -91,7 +90,7 @@ function AdminHorarios() {
             const respuesta = await obtenerEmpresas()
             setEmpresasFiltro(respuesta)
         } catch (error) {
-            setError(error.message || " error al traer empresas")
+            toast.error(error.message || " error al traer empresas")
         }
     }
 
@@ -121,7 +120,7 @@ function AdminHorarios() {
     const clickCrear = async () => {
         try {
             const respuesta = await crearHorario(enviarHoraEntradaCrear, enviarHoraSalidaCrear, idEmpresaCrear, enviarHolguraCrear, enviarColacionCrear)
-            setMensajeExito("Se creo con exito")
+            toast.success("Se creo con exito")
             setOpen(false)
             setNuevoHorarioEntrada("")
             setIdEmpresaCrear("")
@@ -136,7 +135,7 @@ function AdminHorarios() {
             setMinutoHolguraCrear("")
             setMinutoColacionCrear("")
         } catch (error) {
-            setError(error.message || "Error al crear el horarios")
+            toast.error(error.message || "Error al crear el horarios")
         }
     }
 
@@ -144,19 +143,19 @@ function AdminHorarios() {
         try {
             const respuesta = await actualizarHorario(editId, enviarHoraEntradaEdit, enviarHoraSalidaEdit, idEmpresaEdit, enviarHolguraEdit, enviarColacionEdit)
             setMostrarEdit(false)
-            setMensajeExito("Se edito con exito")
+            toast.success("Se edito con exito")
             cargarHorarios()
         } catch (error) {
-            setError(error.message || "error al editar")
+            toast.error(error.message || "error al editar")
         }
     }
 
     const clickEliminarHorario = async () => {
         try {
             const respuesta = eliminarHorario(editId)
-            setMensajeExito("Eliminado con exito")
+            toast.success("Eliminado con exito")
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -214,18 +213,10 @@ function AdminHorarios() {
         setPagina(0);
     }, [filtroEmpresa]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+
 
     return (
         <>
@@ -237,13 +228,7 @@ function AdminHorarios() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

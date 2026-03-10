@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
 import { regiones, comunas } from "../../../utils/dataGeografica";
@@ -29,9 +30,7 @@ function AdminTipoAusencia() {
     // Estados de datos
     const [tipoAusencia, setTipoAusencia] = useState([])
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -64,7 +63,7 @@ function AdminTipoAusencia() {
             const datos = await getTipoAusencia();
             setTipoAusencia(datos);
         } catch (error) {
-            setError(error.message);
+            toast.error(error.message);
         }
     }
 
@@ -78,11 +77,11 @@ function AdminTipoAusencia() {
                 pagada_empleador: editPagadas
             }
             const respuesta = await updateTipoAusencia(editId, datos)
-            setMensajeExito("Tipo de ausencia actualizado correctamente");
+            toast.success("Tipo de ausencia actualizado correctamente");
             setOpenEdit(false);
             cargarDatos();
         } catch (error) {
-            setError(error.message);
+            toast.error(error.message);
         }
     }
 
@@ -96,7 +95,7 @@ function AdminTipoAusencia() {
                 pagada_empleador: nuevoPagadas
             }
             const respuesta = await createTipoAusencia(datos)
-            setMensajeExito("Tipo de ausencia creado correctamente");
+            toast.success("Tipo de ausencia creado correctamente");
             setOpen(false);
             setNuevoNombre("")
             setNuevoTipo("")
@@ -105,7 +104,7 @@ function AdminTipoAusencia() {
             setNuevoPagadas("")
             cargarDatos();
         } catch (error) {
-            setError(error.message);
+            toast.error(error.message);
         }
     }
 
@@ -149,7 +148,7 @@ function AdminTipoAusencia() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -227,14 +226,7 @@ function AdminTipoAusencia() {
     };
 
     // Effects
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     useEffect(() => {
         setPagina(0);
@@ -245,9 +237,7 @@ function AdminTipoAusencia() {
     }, []);
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -259,13 +249,7 @@ function AdminTipoAusencia() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

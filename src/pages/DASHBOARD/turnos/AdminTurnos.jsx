@@ -13,6 +13,7 @@ import {
     Tab,
     Menu
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerTurnos, crearTurno, actualizarTurno, asignarEmpleados, asignarTurnoACenco, asignarHorario, obtenerHorariosTurno } from "../../../services/turnosServices";
@@ -37,8 +38,6 @@ function AdminTurnos() {
     const [horarios, setHorarios] = useState([])
     const [empleados, setEmpleados] = useState([])
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -72,7 +71,7 @@ function AdminTurnos() {
             const respuesta = await obtenerTurnos()
             setTurnos(respuesta)
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -85,7 +84,7 @@ function AdminTurnos() {
             ]);
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -98,7 +97,7 @@ function AdminTurnos() {
             ]);
             setFiltroEmpresaCrear(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -109,7 +108,7 @@ function AdminTurnos() {
             const respuesta = await obtenerEmpleados()
             setEmpleados(respuesta)
         } catch (err) {
-            setError(err.message)
+            toast.error(err.message)
         } finally {
             setCargando(false)
         }
@@ -124,7 +123,7 @@ function AdminTurnos() {
             ]);
             setFiltroEmpresaEdit(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -176,7 +175,7 @@ function AdminTurnos() {
             setCargos(Array.isArray(dataCargos) ? dataCargos : [dataCargos]);
             setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         }
     };
 
@@ -217,12 +216,12 @@ function AdminTurnos() {
             const respuesta = await crearTurno(nombreCrear, empresaCrear, estadoCrear)
             setCrear(false)
             setEmpresaCrear("")
-            setMensajeExito("Turno creado con exito")
+            toast.success("Turno creado con exito")
             setNombreCrear("")
             setEstadoCrear("")
             cargarTurnos()
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -233,10 +232,10 @@ function AdminTurnos() {
         try {
             const respuesta = await actualizarTurno(idEdit, nombreEdit, empresaEdit, estadoEdit)
             setEditar(false)
-            setMensajeExito("Turno Actualizado con exito")
+            toast.success("Turno Actualizado con exito")
             cargarTurnos()
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -260,11 +259,11 @@ function AdminTurnos() {
             }
 
             await asignarHorario(idTurnoDias, idsDiasPayload, idsHorariosPayload)
-            setMensajeExito("Días y horarios asignados correctamente")
+            toast.success("Días y horarios asignados correctamente")
             cerrarDetalle()
             cargarTurnos()
         } catch (err) {
-            setError(err.message)
+            toast.error(err.message)
         } finally {
             setCargando(false)
         }
@@ -299,7 +298,7 @@ function AdminTurnos() {
                 setHorariosSeleccionados({});
             }
         } catch (err) {
-            setError(err.message)
+            toast.error(err.message)
             setDiasSeleccionados([]);
             setHorariosSeleccionados({});
         } finally {
@@ -336,12 +335,12 @@ function AdminTurnos() {
                 await asignarTurnoACenco(idTurnoAsignar, filtroCencoAsignar);
             }
 
-            setMensajeExito("Asignación guardada correctamente");
+            toast.success("Asignación guardada correctamente");
             cerrarAsignar();
             cargarEmpleados();
             cargarTurnos();
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -456,22 +455,13 @@ function AdminTurnos() {
 
 
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito]);
+    ;
 
     useEffect(() => {
         setPagina(0);
     }, [busqueda, filtroestado]);
 
     // Renderizado condicional
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
 
     return (
         <>
@@ -483,13 +473,7 @@ function AdminTurnos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -912,10 +896,10 @@ function AdminTurnos() {
                                     </Box>
 
                                     <Stack spacing={1} justifyContent="center">
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllRight}>&gt;&gt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedRight} disabled={empleadosDisponiblesFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&gt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedLeft} disabled={empleadosAsignadosFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&lt;</Button>
-                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllLeft}>&lt;&lt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllRight} disabled={!filtroCencoAsignar}>&gt;&gt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedRight} disabled={!filtroCencoAsignar || empleadosDisponiblesFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&gt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleCheckedLeft} disabled={!filtroCencoAsignar || empleadosAsignadosFiltrados.filter(emp => checkedEmpleados.includes(emp.empleado_id)).length === 0}>&lt;</Button>
+                                        <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={handleAllLeft} disabled={!filtroCencoAsignar}>&lt;&lt;</Button>
                                     </Stack>
 
                                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -954,7 +938,7 @@ function AdminTurnos() {
 
                 <DialogActions>
                     <Button onClick={cerrarAsignar} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary" onClick={iniciarGuardadoAsignacion}>Guardar</Button>
+                    <Button variant="contained" color="primary" onClick={clickGuardarAsignacion}>Guardar</Button>
                 </DialogActions>
             </Dialog >
 

@@ -7,6 +7,7 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import {
     obtenerTiposDispositivo,
     crearTipoDispo,
@@ -25,9 +26,7 @@ function AdminTiposDispositivos() {
     // Estados de datos
     const [tipoDispositivos, setTiposDispositivos] = useState([]);
     const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
-
+    
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -52,7 +51,7 @@ function AdminTiposDispositivos() {
             const data = await obtenerTiposDispositivo()
             setTiposDispositivos(data)
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
             setTiposDispositivos([])
         } finally {
             setCargando(false);
@@ -107,7 +106,7 @@ function AdminTiposDispositivos() {
         const texto = `${headers}\n${rows}`;
 
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos de tipos de dispositivos copiados!");
+            toast.success("¡Datos de tipos de dispositivos copiados!");
         });
     };
 
@@ -161,12 +160,12 @@ function AdminTiposDispositivos() {
         try {
             const respuesta = await crearTipoDispo(nuevoNombre, nuevoDescripcion)
             setOpen(false)
-            setMensajeExito("Tipo dispositivo creado con exito")
+            toast.success("Tipo dispositivo creado con exito")
             cargarTiposDis()
             setNuevoNombre("")
             setNuevoDescripcion("")
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -174,12 +173,12 @@ function AdminTiposDispositivos() {
         try {
             const respuesta = await actualizarTipoDis(editId, editNombre, editDescripcion)
             setMostrarEdit(false)
-            setMensajeExito("Se edito con exito")
+            toast.success("Se edito con exito")
             cargarTiposDis()
             setNuevoNombre("")
             setNuevoDescripcion("")
         } catch (error) {
-            setError(error.message)
+            toast.error(error.message)
         }
     }
 
@@ -208,19 +207,10 @@ function AdminTiposDispositivos() {
         setPagina(0);
     }, [busqueda, filtroEmpresa,]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
+    
 
     // Renderizado condicional
-    if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
+    if (cargando) return ;
 
     return (
         <>
@@ -232,13 +222,7 @@ function AdminTiposDispositivos() {
             </Box>
 
             {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
+            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
