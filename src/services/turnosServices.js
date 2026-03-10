@@ -106,3 +106,39 @@ export const asignarTurnoACenco = async (turnoId, cencoId) => {
   }
   return data;
 }
+
+export const asignarHorario = async(turnoId, diasIds, horariosId) => {
+  const peticion = await fetch(`${API_URL}/turno/asignar-horario/${turnoId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      id_dia: diasIds,
+      id_horario: horariosId
+    }),
+  });
+
+  const data = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(data.message || "Error al asignar horario al turno");
+  }
+  return data;
+}
+
+export const obtenerHorariosTurno= async(idturno) =>{
+  const peticion = await fetch(`${API_URL}/turno/obtener-horario/${idturno}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+  });
+
+  const data = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(data.message || "Error al obtener horarios");
+  }
+  return data;
+}

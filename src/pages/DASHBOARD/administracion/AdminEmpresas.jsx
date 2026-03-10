@@ -4,9 +4,10 @@ import {
     TableRow, TableCell, TableBody, Dialog, DialogTitle,
     DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
     IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
-    Container, Alert, TablePagination, Stack,
+    Container, TablePagination, Stack,
     FormHelperText
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
 import { obtenerProveedorCorreo } from "../../../services/proveedorCorreoServices";
 import { regiones, comunas } from "../../../utils/dataGeografica";
@@ -25,8 +26,6 @@ function AdminEmpresas() {
     // Estados de datos
     const [empresas, setEmpresas] = useState([])
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
-    const [mensajeExito, setMensajeExito] = useState("")
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -84,7 +83,7 @@ function AdminEmpresas() {
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
             setProveedorCorreo(Array.isArray(dataProveedores) ? dataProveedores : []);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setCargando(false);
         }
@@ -134,7 +133,7 @@ function AdminEmpresas() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            setMensajeExito("¡Datos copiados al portapapeles!");
+            toast.success("¡Datos copiados al portapapeles!");
         });
     };
 
@@ -277,12 +276,12 @@ function AdminEmpresas() {
                 emailContacto || EmpresaSeleccionada.email_empresa,
                 contactoNombre,
                 contactoTelefono
-            )
-            setMensajeExito("Contacto guardado con exito")
-            cerrarEmail()
-            cargarDatos()
+            );
+            toast.success("Contacto guardado con exito");
+            cerrarEmail();
+            cargarDatos();
         } catch (error) {
-            setError(error.message || "Error al guardar contacto")
+            toast.error(error.message || "Error al guardar contacto")
         }
     }
 
@@ -297,14 +296,14 @@ function AdminEmpresas() {
                 emailFinal,
                 nuevoEstado)
             setOpen(false)
-            setMensajeExito("Empresa creada con exito")
+            toast.success("Empresa creada con exito")
             cargarDatos()
 
         } catch (error) {
             if (error.message === "Failed fetch") {
-                setError("Error de conexion")
+                toast.error("Error de conexion")
             } else {
-                setError(error.message || "Error al crear la empresa")
+                toast.error(error.message || "Error al crear la empresa")
             }
         }
     }
@@ -320,11 +319,11 @@ function AdminEmpresas() {
                 editEstado,
                 emailFinal)
             setMostrarEdit(false)
-            setMensajeExito("Se edito con exito")
+            toast.success("Se edito con exito")
             cargarDatos()
 
         } catch (error) {
-            setError(err.message);
+            toast.error(error.message);
         }
     }
 
@@ -355,19 +354,8 @@ function AdminEmpresas() {
         setPagina(0);
     }, [busqueda, filtroEmpresa,]);
 
-    useEffect(() => {
-        if (mensajeExito) {
-            const timer = setTimeout(() => {
-                setMensajeExito("")
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [mensajeExito])
-
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
-    if (error) return <Container sx={{ mt: 5 }}><Alert severity="error">{error}</Alert></Container>;
-    if (mensajeExito) <Container sx={{ mt: 5 }}><Alert severity="success">{mensajeExito}</Alert></Container>;
 
     return (
         <>
@@ -377,15 +365,6 @@ function AdminEmpresas() {
                     Admin Empresas
                 </Typography>
             </Box>
-
-            {/* Alerta de exito */}
-            {mensajeExito && (
-                <Container sx={{ mb: 2 }}>
-                    <Alert severity="success" onClose={() => setMensajeExito("")}>
-                        {mensajeExito}
-                    </Alert>
-                </Container>
-            )}
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

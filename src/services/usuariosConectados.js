@@ -19,3 +19,21 @@ export const obtenerUsuariosConectados = async () => {
     return [];
   }
 };
+
+
+export const cerrarSesion = async () => {
+  const response = await fetch(`${API_URL}/auth/logout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + window.localStorage.getItem("token"),
+
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al cerrar la sesión");
+  }
+
+  return response.json();
+}

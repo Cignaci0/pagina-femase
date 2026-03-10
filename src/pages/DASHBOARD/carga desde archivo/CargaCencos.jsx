@@ -1,7 +1,7 @@
 import { Paper, Typography, Button, Box, Stack } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { useState } from "react";
-
+import { crearCentroCosto } from "../../../services/centroCostosServices";
 
 function cargaCencos() {
 
@@ -27,7 +27,69 @@ function cargaCencos() {
             alert("Seleccione un archivo CSV");
             return;
         }
-        console.log("Archivo seleccionado:", file);
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+
+                // Esperamos un formato (por lo general separado por punto y coma desde Excel en español):
+                // nombre_cenco ; direccion ; region ; comuna ; email_general ; email_notificacion ; zona_extrema ; estado_id ; departamento_id
+                const cencos = lines.slice(1).map((line) => {
+                    const columns = line.split(";");
+                    return {
+                        nombre_cenco: columns[0]?.trim(),
+                        direccion: columns[1]?.trim(),
+                        region: columns[2]?.trim(),
+                        comuna: columns[3]?.trim(),
+                        email_general: columns[4]?.trim(),
+                        email_notificacion: columns[5]?.trim(),
+                        zona_extrema: columns[6]?.trim().toLowerCase() === "true" || columns[6]?.trim() === "1" ? true : false,
+                        estado_id: columns[7]?.trim() ? parseInt(columns[7].trim()) : 1,
+                        departamento_id: columns[8]?.trim() ? parseInt(columns[8].trim()) : null,
+                    };
+                }).filter(cenco => cenco.nombre_cenco);
+
+                if (cencos.length === 0) {
+                    alert("El archivo CSV está vacío o no tiene el formato correcto.");
+                    return;
+                }
+                let guardadosExito = 0;
+                let guardadosError = 0;
+                for (let i = 0; i < cencos.length; i++) {
+                    const cencoActual = cencos[i];
+
+                    try {
+                        await crearCentroCosto(
+                            cencoActual.nombre_cenco,
+                            cencoActual.direccion,
+                            cencoActual.region,
+                            cencoActual.comuna,
+                            cencoActual.email_general,
+                            cencoActual.email_notificacion,
+                            cencoActual.zona_extrema,
+                            cencoActual.estado_id,
+                            cencoActual.departamento_id
+                        );
+                        guardadosExito++;
+                    } catch (error) {
+                        console.error(`Error al guardar el centro de costo ${cencoActual.nombre_cenco}:`, error);
+                        guardadosError++;
+                    }
+                }
+                if (guardadosError === 0) {
+                    alert(`Proceso finalizado. Se cargaron ${guardadosExito} centros de costo exitosamente.`);
+                    setFile(null);
+                } else {
+                    alert(`Proceso finalizado. Se guardaron ${guardadosExito} centros de costo, pero hubo ${guardadosError} errores (ver consola para detalles).`);
+                }
+            } catch (errorGeneral) {
+                console.error("Error catastrofico al procesar el archivo:", errorGeneral);
+                alert("Ocurrió un error inesperado al leer o procesar el archivo CSV.");
+            }
+        };
+        reader.readAsText(file, "UTF-8");
     };
 
     // Exportacion

@@ -1,7 +1,7 @@
 import { Paper, Typography, Button, Box, Stack } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { useState } from "react";
-
+import { crearUsuario } from "../../../services/usuariosServices";
 
 function cargaUsuarios() {
 
@@ -27,7 +27,75 @@ function cargaUsuarios() {
             alert("Seleccione un archivo CSV");
             return;
         }
-        console.log("Archivo seleccionado:", file);
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+
+                // Orden esperado (basado en el Excel): 
+                // username, password, estado, nombre, apellido P, apellido M, email, perfil, run, empresa
+                const usuarios = lines.slice(1).map((line) => {
+                    const columns = line.split(";");
+                    return {
+                        username: columns[0]?.trim(),
+                        password: columns[1]?.trim() || null,
+                        estado: columns[2]?.trim() ? parseInt(columns[2].trim()) : 1,
+                        nombres: columns[3]?.trim(),
+                        apellido_paterno: columns[4]?.trim(),
+                        apellido_materno: columns[5]?.trim(),
+                        email: columns[6]?.trim(),
+                        perfil: columns[7]?.trim() ? parseInt(columns[7].trim()) : null,
+                        run_usuario: columns[8]?.trim(),
+                        empresa: columns[9]?.trim() ? parseInt(columns[9].trim()) : null,
+                    };
+                }).filter(user => user.username); // Filtrar filas vacías omitiendo las que no tienen username
+
+                if (usuarios.length === 0) {
+                    alert("El archivo CSV está vacío o no tiene el formato correcto.");
+                    return;
+                }
+
+                let guardadosExito = 0;
+                let guardadosError = 0;
+
+                for (let i = 0; i < usuarios.length; i++) {
+                    const usr = usuarios[i];
+
+                    try {
+                        await crearUsuario(
+                            usr.username,
+                            usr.password,
+                            usr.estado,
+                            usr.nombres,
+                            usr.apellido_paterno,
+                            usr.apellido_materno,
+                            usr.email,
+                            usr.perfil,
+                            usr.run_usuario,
+                            usr.empresa
+                        );
+                        guardadosExito++;
+                    } catch (error) {
+                        console.error(`Error al guardar usuario ${usr.username}:`, error);
+                        guardadosError++;
+                    }
+                }
+
+                if (guardadosError === 0) {
+                    alert(`Proceso finalizado. Se cargaron ${guardadosExito} usuarios exitosamente.`);
+                    setFile(null);
+                } else {
+                    alert(`Proceso finalizado. Se guardaron ${guardadosExito} usuarios, pero hubo ${guardadosError} errores (ver consola para detalles).`);
+                }
+
+            } catch (errorGeneral) {
+                console.error("Error catastrofico al procesar el archivo:", errorGeneral);
+                alert("Ocurrió un error inesperado al leer o procesar el archivo CSV.");
+            }
+        };
+        reader.readAsText(file, "UTF-8");
     };
 
     // Exportacion

@@ -11,6 +11,7 @@ import logoFemase from '../../assets/logo_femase.png';
 import MenuIcon from '@mui/icons-material/Menu';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 // ADMINISTRACION
 import AdminEmpresas from "../DASHBOARD/administracion/AdminEmpresas"
@@ -69,7 +70,9 @@ import AdminTiposMarcasManuales from "../DASHBOARD/marcas asistencia/AdminTiposM
 // REPORTES/INFORMES
 import ReporteUsuarios from "../DASHBOARD/reportes informes/ReporteUsuarios";
 
-import { obtenerSubMenusPerfil} from "../../services/menus/menuServices";
+
+import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
+import { cerrarSesion } from "../../services/usuariosConectados";
 
 const drawerWidth = 240;
 
@@ -192,7 +195,32 @@ function Dashboard(props) {
     if (mobileOpen) setMobileOpen(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      // Intentamos llamar al endpoint del backend para cerrar sesión activamente
+      await cerrarSesion();
+    } catch (error) {
+      console.error("Error al cerrar sesión en el servidor:", error);
+    } finally {
+      // Limpiamos los tokens y variables importantes siempre, incluso si falla el endpoint
+      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("perfilId");
 
+      // Eliminamos el historial de navegación para evitar "Atrás" y redirigimos a login
+      navigate("/", { replace: true });
+    }
+  };
+
+
+
+  useEffect(() => {
+    // Protección de ruta: Si no hay token, redirigir al login
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -216,16 +244,34 @@ function Dashboard(props) {
   }, []);
 
   const drawerContent = (
-    <div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar />
-      <Box sx={{ overflow: "auto" }}>
+      <Box sx={{ overflow: "auto", flexGrow: 1 }}>
         <List sx={{ mt: 2 }}>
           {menuItems.map((item, index) => (
             <MenuConHijos key={index} item={item} onNavegar={handleNavegacion} />
           ))}
         </List>
       </Box>
-    </div>
+
+      {/* Logout button at bottom */}
+      <Box sx={{ p: 2, borderTop: "1px solid #e0e0e0", mt: 'auto' }}>
+        <ListItemButton
+          onClick={handleLogout}
+          sx={{
+            backgroundColor: "#ffebee",
+            color: "#d32f2f",
+            borderRadius: 1,
+            '&:hover': {
+              backgroundColor: "#ffcdd2",
+            }
+          }}
+        >
+          <ExitToAppIcon sx={{ mr: 2, transform: 'rotate(180deg)' }} />
+          <ListItemText primary="Cerrar sesión" primaryTypographyProps={{ fontWeight: 'bold' }} />
+        </ListItemButton>
+      </Box>
+    </Box>
   );
 
   const container = window !== undefined ? () => window().document.body : undefined;

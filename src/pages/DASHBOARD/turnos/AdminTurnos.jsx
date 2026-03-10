@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { obtenerTurnos, crearTurno, actualizarTurno, asignarEmpleados, asignarTurnoACenco } from "../../../services/turnosServices";
+import { obtenerTurnos, crearTurno, actualizarTurno, asignarEmpleados, asignarTurnoACenco, asignarHorario, obtenerHorariosTurno } from "../../../services/turnosServices";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -26,6 +26,7 @@ import { obtenerEmpleados } from "../../../services/empleadosServices"
 import { obtenerDepartamentos } from "../../../services/departamentosServices"
 import { obtenerCentroCostos } from "../../../services/centroCostosServices"
 import { obtenerCargos } from "../../../services/cargosServices"
+import { obtenerHorarios } from "../../../services/horariosServices"
 
 
 function AdminTurnos() {
@@ -138,6 +139,9 @@ function AdminTurnos() {
     const [detalle, setDetalle] = useState(false)
     const [idTurnoDias, setIdTurnoDias] = useState(null)
     const [diasSeleccionados, setDiasSeleccionados] = useState([])
+    const [horariosSeleccionados, setHorariosSeleccionados] = useState({})
+    const [empresaIdHorarios, setEmpresaIdHorarios] = useState(null)
+    const [horarioGlobal, setHorarioGlobal] = useState("")
 
     const [idTurnoAsignar, setIdTurnoAsignar] = useState(null);
     const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
@@ -161,14 +165,16 @@ function AdminTurnos() {
 
     const cargarDatosFiltrosAsignacion = async () => {
         try {
-            const [dataDeptos, dataCencos, dataCargos] = await Promise.all([
+            const [dataDeptos, dataCencos, dataCargos, dataHorarios] = await Promise.all([
                 obtenerDepartamentos(),
                 obtenerCentroCostos(),
-                obtenerCargos()
+                obtenerCargos(),
+                obtenerHorarios()
             ]);
             setDepartamentos(Array.isArray(dataDeptos) ? dataDeptos : [dataDeptos]);
             setCencos(Array.isArray(dataCencos) ? dataCencos : [dataCencos]);
             setCargos(Array.isArray(dataCargos) ? dataCargos : [dataCargos]);
+            setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
         } catch (err) {
             setError(err.message);
         }
@@ -193,6 +199,9 @@ function AdminTurnos() {
         setDetalle(false)
         setIdTurnoDias(null)
         setDiasSeleccionados([])
+        setHorariosSeleccionados({})
+        setEmpresaIdHorarios(null)
+        setHorarioGlobal("")
     }
     const cerrarCrear = () => {
         setCrear(false)
@@ -236,18 +245,63 @@ function AdminTurnos() {
     const clickGuardarDias = async () => {
         setCargando(true)
         try {
-            // Aseguramos que solo viajen números del 1 al 7, por si quedó basura en el estado de React
-            const diasValidos = diasSeleccionados.filter(d => typeof d === 'number' && d >= 1 && d <= 7);
-            const diasOrdenados = [...diasValidos].sort((a, b) => a - b);
+            const diasValidos = diasSeleccionados.filter(d => typeof d === 'number' && d >= 1 && d <= 7).sort((a, b) => a - b);
 
-            console.log("Lo que se envía a la API finalmente será: ", JSON.stringify({ dias: diasOrdenados }));
+            const idsDiasPayload = [];
+            const idsHorariosPayload = [];
 
-            await asignarDias(idTurnoDias, diasOrdenados)
-            setMensajeExito("Días asignados correctamente")
+            for (const d of diasValidos) {
+                if (horariosSeleccionados[d]) {
+                    idsDiasPayload.push(d);
+                    idsHorariosPayload.push(horariosSeleccionados[d]);
+                } else {
+                    throw new Error(`Debe seleccionar un horario para el día ${["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][d - 1]}`);
+                }
+            }
+
+            await asignarHorario(idTurnoDias, idsDiasPayload, idsHorariosPayload)
+            setMensajeExito("Días y horarios asignados correctamente")
             cerrarDetalle()
             cargarTurnos()
         } catch (err) {
             setError(err.message)
+        } finally {
+            setCargando(false)
+        }
+    }
+
+    const abrirAsignarHorarios = async (tur) => {
+        setCargando(true)
+        setHorarioGlobal("")
+        try {
+            setDetalle(true)
+            setIdTurnoDias(tur.turno_id)
+            setEmpresaIdHorarios(tur.empresa?.empresa_id)
+
+            const data = await obtenerHorariosTurno(tur.turno_id)
+
+            if (data && Array.isArray(data)) {
+                const diasExtraidos = [];
+                const horariosPrevios = {};
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].dia && data[i].dia.cod_dia) {
+                        const codDia = data[i].dia.cod_dia;
+                        diasExtraidos.push(codDia);
+                        if (data[i].horario && data[i].horario.horario_id) {
+                            horariosPrevios[codDia] = data[i].horario.horario_id;
+                        }
+                    }
+                }
+                setDiasSeleccionados(diasExtraidos);
+                setHorariosSeleccionados(horariosPrevios);
+            } else {
+                setDiasSeleccionados([]);
+                setHorariosSeleccionados({});
+            }
+        } catch (err) {
+            setError(err.message)
+            setDiasSeleccionados([]);
+            setHorariosSeleccionados({});
         } finally {
             setCargando(false)
         }
@@ -538,22 +592,7 @@ function AdminTurnos() {
                                                         sx={{
                                                             fontSize: "0.7rem", lineHeight: 1, color: "black", p: 0.9, bgcolor: "rgb(241, 241, 241)"
                                                         }}
-                                                        onClick={() => {
-                                                            setDetalle(true)
-                                                            setIdTurnoDias(tur.turno_id)
-                                                            if (tur.dias && Array.isArray(tur.dias)) {
-                                                                // Extraer el "cod_dia" de la semana en lugar del "id" relacional
-                                                                const diasExtraidos = [];
-                                                                for (let i = 0; i < tur.dias.length; i++) {
-                                                                    if (tur.dias[i].semana && tur.dias[i].semana.cod_dia) {
-                                                                        diasExtraidos.push(tur.dias[i].semana.cod_dia);
-                                                                    }
-                                                                }
-                                                                setDiasSeleccionados(diasExtraidos);
-                                                            } else {
-                                                                setDiasSeleccionados([]);
-                                                            }
-                                                        }}
+                                                        onClick={() => abrirAsignarHorarios(tur)}
                                                     >
                                                         Asignar Horarios
                                                     </Button>
@@ -926,31 +965,64 @@ function AdminTurnos() {
                 maxWidth="sm"
                 fullWidth
             >
-                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", pb: 0 }}>
-                    Asignar Días
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0, pt: 3, px: 3 }}>
+                    <Typography variant="h6" fontWeight="bold">Asignar Horarios</Typography>
+
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel>Asignación semana</InputLabel>
+                        <Select
+                            label="Asignación semana"
+                            value={horarioGlobal}
+                            onChange={(e) => {
+                                const nuevoHorario = e.target.value;
+                                setHorarioGlobal(nuevoHorario);
+
+                                setHorariosSeleccionados(prev => {
+                                    const nuevos = { ...prev };
+                                    diasSeleccionados.forEach(d => {
+                                        nuevos[d] = nuevoHorario;
+                                    });
+                                    return nuevos;
+                                });
+                            }}
+                        >
+                            <MenuItem value=""><em>Ninguno</em></MenuItem>
+                            {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => (
+                                <MenuItem key={h.horario_id} value={h.horario_id}>
+                                    {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </DialogTitle>
 
                 <DialogContent sx={{ pb: 4 }}>
-                    <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-
-                        <FormGroup
-                            row
-                            sx={{
-                                justifyContent: "center",
-                                gap: 1.5
-                            }}
-                        >
-                            {["L", "M", "M", "J", "V", "S", "D"].map((dia, index) => {
-                                const valorDia = index + 1;
-                                return (
+                    <Box sx={{ mt: 3, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                        {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"].map((dia, index) => {
+                            const valorDia = index + 1;
+                            const isChecked = diasSeleccionados.includes(valorDia);
+                            return (
+                                <Box key={index} sx={{ display: "flex", alignItems: "center", width: "100%", justifyContent: "center", gap: 2 }}>
                                     <FormControlLabel
-                                        key={index}
-                                        labelPlacement="top"
                                         control={
                                             <Checkbox
                                                 size="small"
-                                                checked={diasSeleccionados.includes(valorDia)}
-                                                onChange={() => handleToggleDia(valorDia)}
+                                                checked={isChecked}
+                                                onChange={() => {
+                                                    handleToggleDia(valorDia);
+                                                    if (isChecked) {
+                                                        const nuevosHorarios = { ...horariosSeleccionados };
+                                                        delete nuevosHorarios[valorDia];
+                                                        setHorariosSeleccionados(nuevosHorarios);
+                                                    } else {
+                                                        if (horarioGlobal) {
+                                                            setHorariosSeleccionados(prev => ({
+                                                                ...prev,
+                                                                [valorDia]: horarioGlobal
+                                                            }));
+                                                        }
+                                                    }
+                                                }}
                                                 sx={{
                                                     padding: 0.5,
                                                     '&.Mui-checked': { color: '#1976d2' }
@@ -958,28 +1030,37 @@ function AdminTurnos() {
                                             />
                                         }
                                         label={
-                                            <Typography
-                                                variant="caption"
-                                                sx={{
-                                                    fontWeight: 'bold',
-                                                    color: 'text.secondary',
-                                                    width: '20px',
-                                                    textAlign: 'center'
-                                                }}
-                                            >
+                                            <Typography sx={{ width: "80px", fontWeight: 'bold' }}>
                                                 {dia}
                                             </Typography>
                                         }
                                         sx={{ margin: 0 }}
                                     />
-                                )
-                            })}
-                        </FormGroup>
 
+                                    <FormControl size="small" sx={{ minWidth: 200, visibility: isChecked ? 'visible' : 'hidden' }}>
+                                        <InputLabel>Horario</InputLabel>
+                                        <Select
+                                            label="Horario"
+                                            value={horariosSeleccionados[valorDia] || ""}
+                                            onChange={(e) => setHorariosSeleccionados({
+                                                ...horariosSeleccionados,
+                                                [valorDia]: e.target.value
+                                            })}
+                                        >
+                                            {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => (
+                                                <MenuItem key={h.horario_id} value={h.horario_id}>
+                                                    {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Box>
+                            )
+                        })}
                     </Box>
 
                     <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 2 }}>
-                        Seleccione los días laborales para este turno.
+                        Seleccione los días laborales y asigne un horario a cada uno.
                     </Typography>
 
                 </DialogContent>
