@@ -219,8 +219,6 @@ function AdminEmpleados() {
         setSeleccionados([]);
     }
 
-
-
     const obtenerIdsDescendientes = (nodo) => {
         let ids = [nodo.id];
         if (nodo.hijos && nodo.hijos.length > 0) {

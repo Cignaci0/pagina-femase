@@ -13,15 +13,14 @@ import { toast } from "react-hot-toast";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-
-
+import CircleIcon from '@mui/icons-material/Circle';
+import { obtenerTiposMarcas, crearTipoMarca, actualizarTipoMarca } from "../../../services/tipoMarcaService";
 
 function AdminTipoMarcasManuales() {
 
     // Estados de datos
-    const [departamentos, setDepartamentos] = useState([]);
-    const [cargando, setCargando] = useState(false);
-    
+    const [tipoMarcas, setTipoMarcas] = useState([]);
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(7);
@@ -33,28 +32,69 @@ function AdminTipoMarcasManuales() {
     const [nuevoNombre, setNuevoNombre] = useState("")
     const [nuevoOrdenDespliegue, setNuevoOrdenDespliegue] = useState("")
     const [nuevoVigente, setNuevoVigente] = useState("")
-    const [nuevaEmpresa, setNuevaEmpresa] = useState("") // Para limpieza de estados
-    const [nuevoDespliegue, setNuevoDespliegue] = useState("") // Para limpieza de estados
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
+    const [editId, setEditId] = useState("")
     const [editNombre, setEditNombre] = useState("")
     const [editOrdenDespliegue, setEditOrdenDespliegue] = useState("")
     const [editVigente, setEditVigente] = useState("")
 
     // Carga de datos
-    // (Funciones de carga no definidas explícitamente en el original)
+    const cargarDatos = async () => {
+        try {
+            const data = await obtenerTiposMarcas();
+            setTipoMarcas(data);
+        } catch (error) {
+            toast.error("Error al cargar los tipos de marcas");
+        }
+    };
 
-    // Exportacion
-    // (Lógica de exportación no definida en este archivo)
+    // Crear 
+    const handleCrearTipoMarca = async () => {
+        if (!nuevoNombre || !nuevoVigente || !nuevoOrdenDespliegue) {
+            toast.error("Por favor complete todos los campos");
+            return;
+        }
+
+        try {
+            await crearTipoMarca(nuevoNombre, nuevoVigente, nuevoOrdenDespliegue);
+            setOpen(false)
+            setNuevoNombre("")
+            setNuevoVigente("")
+            setNuevoOrdenDespliegue("")
+            cargarDatos()
+            toast.success("Tipo de marca creada exitosamente")
+        } catch (error) {
+            console.error("Error al crear la marca:", error)
+            toast.error("Error al crear el tipo de marca")
+        }
+    }
+
+    // Editar
+    const handleEditarTipoMarca = async () => {
+        if (!editNombre || !editVigente || !editOrdenDespliegue) {
+            toast.error("Por favor complete todos los campos");
+            return;
+        }
+
+        try {
+            await actualizarTipoMarca(editId, editNombre, editVigente, editOrdenDespliegue);
+            setOpenEdit(false)
+            cargarDatos()
+            toast.success("Tipo de marca editada exitosamente")
+        } catch (error) {
+            toast.error("Error al editar el tipo de marca")
+        }
+    }
 
     // Manejo de dialogs
     const openDialog = () => setOpen(true);
     const closeDialog = () => {
         setOpen(false);
-        setNuevaEmpresa("")
-        setNuevoDespliegue("")
         setNuevoNombre("")
+        setNuevoOrdenDespliegue("")
+        setNuevoVigente("")
     }
 
     const closeDialogEdit = () => {
@@ -62,12 +102,17 @@ function AdminTipoMarcasManuales() {
     }
 
     // Filtrado y paginacion
-    const departamentosFiltrados = departamentos.filter((dep) => {
-        const nombreDepto = `${dep.nombre_departamento || ''}`.toLowerCase();
+    const departamentosFiltrados = tipoMarcas.filter((dep) => {
+        const nombreDepto = `${dep.nombre || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
         const coincideTexto = nombreDepto.includes(term);
 
-        return coincideTexto;
+        let coincideVigente = true;
+        if (filtroVigente !== "") {
+            coincideVigente = dep.estado_id?.estado_id === filtroVigente;
+        }
+
+        return coincideTexto && coincideVigente;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -79,15 +124,22 @@ function AdminTipoMarcasManuales() {
         setPagina(0);
     };
 
+    // Validacion para numero
+    const handleOrdenChange = (e, setter) => {
+        const regex = /^[0-9\b]+$/;
+        if (e.target.value === '' || regex.test(e.target.value)) {
+            setter(e.target.value);
+        }
+    }
+
     // Effects
     useEffect(() => {
+        cargarDatos();
+    }, []);
+
+    useEffect(() => {
         setPagina(0);
-    }, [busqueda]);
-
-    
-
-    // Renderizado condicional
-    if (cargando) return ;
+    }, [busqueda, filtroVigente]);
 
     return (
         <>
@@ -99,7 +151,7 @@ function AdminTipoMarcasManuales() {
             </Box>
 
             {/* Alerta de exito */}
-            
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -163,32 +215,55 @@ function AdminTipoMarcasManuales() {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">
-                                        Olvido marca
-                                    </TableCell>
-
-                                    <TableCell align="center">
-                                        1
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Si
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        2019-05-30 00:11:35
-                                    </TableCell>
-
-                                    <TableCell align="center">
-                                        2019-05-30 00:11:35
-                                    </TableCell>
-
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => setOpenEdit(true)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                    </TableCell>
-
-                                </TableRow>
+                                {departamentosFiltrados.length > 0 ? (
+                                    departamentosFiltrados
+                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((row) => (
+                                            <TableRow key={row.id}>
+                                                <TableCell align="center">
+                                                    {row.nombre}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {row.orden_despliegue}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <CircleIcon
+                                                        sx={{
+                                                            fontSize: '1rem',
+                                                            color: row.estado_id?.estado_id === 1 ? '#4caf50' : '#f44336'
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {row.fecha_creacion || ""}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {row.fecha_actualizacion || ""}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton
+                                                        onClick={() => {
+                                                            setEditId(row.id);
+                                                            setEditNombre(row.nombre);
+                                                            setEditOrdenDespliegue(row.orden_despliegue);
+                                                            setEditVigente(row.estado_id?.estado_id);
+                                                            setOpenEdit(true);
+                                                        }}
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                No se encontraron tipos de marcas.
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -227,17 +302,16 @@ function AdminTipoMarcasManuales() {
                             </Box>
 
                             {/* Campo orden */}
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Orden Despliegue</InputLabel>
-                                <Select label="Orden Despleigue" value={nuevoOrdenDespliegue} onChange={(e) => setNuevoOrdenDespliegue(e.target.value)}>
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((e) => (
-                                        <MenuItem value={e} key={e}>
-                                            {e}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {nuevoOrdenDespliegue === "" && <FormHelperText>La orden es obligatoria</FormHelperText>}
-                            </FormControl>
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Orden Despliegue"
+                                    value={nuevoOrdenDespliegue}
+                                    onChange={(e) => handleOrdenChange(e, setNuevoOrdenDespliegue)}
+                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                                    helperText={nuevoOrdenDespliegue === "" ? "La orden es obligatoria" : ""}
+                                />
+                            </Box>
 
                             {/* Campo vigente */}
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
@@ -257,6 +331,7 @@ function AdminTipoMarcasManuales() {
                     <Button
                         variant="contained"
                         color="primary"
+                        onClick={handleCrearTipoMarca}
                     >
                         Guardar
                     </Button>
@@ -282,17 +357,16 @@ function AdminTipoMarcasManuales() {
                             </Box>
 
                             {/* Campo orden */}
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Orden Despliegue</InputLabel>
-                                <Select label="Orden Despleigue" value={editOrdenDespliegue} onChange={(e) => setEditOrdenDespliegue(e.target.value)}>
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((e) => (
-                                        <MenuItem value={e} key={e}>
-                                            {e}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {editOrdenDespliegue === "" && <FormHelperText>La orden es obligatoria</FormHelperText>}
-                            </FormControl>
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Orden Despliegue"
+                                    value={editOrdenDespliegue}
+                                    onChange={(e) => handleOrdenChange(e, setEditOrdenDespliegue)}
+                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                                    helperText={editOrdenDespliegue === "" ? "La orden es obligatoria y solo permite números" : ""}
+                                />
+                            </Box>
 
                             {/* Campo vigente */}
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
@@ -312,6 +386,7 @@ function AdminTipoMarcasManuales() {
                     <Button
                         variant="contained"
                         color="primary"
+                        onClick={handleEditarTipoMarca}
                     >
                         Guardar Cambios
                     </Button>

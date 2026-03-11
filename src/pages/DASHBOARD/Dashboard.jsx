@@ -71,6 +71,9 @@ import AdminTiposMarcasManuales from "../DASHBOARD/marcas asistencia/AdminTiposM
 // REPORTES/INFORMES
 import ReporteUsuarios from "../DASHBOARD/reportes informes/ReporteUsuarios";
 
+// VACACIONES
+import AdminVacaciones from "../DASHBOARD/vacaciones/AdminVacaciones";
+import CalculoVacaciones from "../DASHBOARD/vacaciones/AdminCalculoVacaciones";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -132,7 +135,11 @@ const COMPONENTES_VISTA = {
   "Tipos Marcas Manuales": <AdminTiposMarcasManuales />,
 
   // REPORTES/INFORMES
-  "Reporte Usuarios": <ReporteUsuarios />
+  "Reporte Usuarios": <ReporteUsuarios />,
+
+  // VACACIONES
+  "Admin Vacaciones": <AdminVacaciones />,
+  "Calculo Vacaciones": <CalculoVacaciones />,
 }
 
 
