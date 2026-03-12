@@ -73,7 +73,7 @@ import ReporteUsuarios from "../DASHBOARD/reportes informes/ReporteUsuarios";
 
 // VACACIONES
 import AdminVacaciones from "../DASHBOARD/vacaciones/AdminVacaciones";
-import CalculoVacaciones from "../DASHBOARD/vacaciones/AdminCalculoVacaciones";
+import AdminSolicitudVacaciones from "../DASHBOARD/vacaciones/SolicitudVacaciones";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -139,7 +139,7 @@ const COMPONENTES_VISTA = {
 
   // VACACIONES
   "Admin Vacaciones": <AdminVacaciones />,
-  "Calculo Vacaciones": <CalculoVacaciones />,
+  "Solicitud Vacaciones": <AdminSolicitudVacaciones />,
 }
 
 

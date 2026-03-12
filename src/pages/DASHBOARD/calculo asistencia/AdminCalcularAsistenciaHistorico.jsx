@@ -44,21 +44,6 @@ function AdminCalculoAsishistorico() {
     const [desdeFecha, setDesdeFecha] = useState(null)
     const [hastaFecha, setHastaFecha] = useState(null)
 
-    // Estados crear
-    // (No definidos en este archivo)
-
-    // Estados editar
-    // (No definidos en este archivo)
-
-    // Carga de datos
-    // (Lógica de servicios no invocada explícitamente en el original)
-
-    // Exportacion
-    // (Lógica de exportación no definida explícitamente en el original)
-
-    // Manejo de dialogs
-    // (No definidos en este archivo)
-
     // Filtrado y paginacion
     const empresasFiltradas = empresas.filter((empresa) => {
         const textoBusqueda = `${empresa.nombre_empresa || ''} ${empresa.rut_empresa || ''} ${empresa.direccion_empresa || ''} ${empresa.rut_empresa || ''}`.toLowerCase();

@@ -3,9 +3,9 @@ import {
     Box, Paper, TextField, Button, Table, TableContainer, TableHead,
     TableRow, TableCell, TableBody, Dialog, DialogTitle,
     DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
-    IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
+    IconButton, Typography, List, ListItem, ListItemText, ListItemIcon, CircularProgress,
     Container, Alert, TablePagination, Stack,
-    FormHelperText
+    FormHelperText, Tooltip, Checkbox
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
@@ -21,11 +21,16 @@ import DraftsIcon from '@mui/icons-material/Drafts';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import TodayIcon from '@mui/icons-material/Today';
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import { FaFileExcel, FaFileCsv } from "react-icons/fa";
 import * as XLSX from 'xlsx';
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 dayjs.locale("es");
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import HistoryIcon from '@mui/icons-material/History';
 
 function AdminVacaciones() {
 
@@ -43,6 +48,39 @@ function AdminVacaciones() {
     const [filtroPagada, setFiltroPagada] = useState("")
     const [desdeFecha, setDesdeFecha] = useState(null)
     const [hastaFecha, setHastaFecha] = useState(null)
+
+    // Estados dialogs de detalle (Fechas, Dias, Saldos)
+    const [openFechas, setOpenFechas] = useState(false);
+    const [openDias, setOpenDias] = useState(false);
+    const [openSaldos, setOpenSaldos] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    // Estados dialog Generar Reporte
+    const [openReporte, setOpenReporte] = useState(false);
+    const [selectedEmpleados, setSelectedEmpleados] = useState([]);
+
+    // Estado dialog Info Historica
+    const [openHistorica, setOpenHistorica] = useState(false);
+
+    // Lista de empleados (demo)
+    const listaEmpleados = [
+        { id: 1, nombre: "NICOLE ABRIL QUIÑONES" },
+        { id: 2, nombre: "ADRIANA MARJORIE MORENO" },
+        { id: 3, nombre: "CRISTOPHER IGNACIO ESCOBAR" },
+        { id: 4, nombre: "JUAN CARLOS PÉREZ" },
+        { id: 5, nombre: "MARÍA JOSÉ GONZÁLEZ" },
+    ];
+
+    const handleToggleEmpleado = (id) => {
+        setSelectedEmpleados((prev) =>
+            prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
+        );
+    };
+
+    const cerrarDialogReporte = () => {
+        setOpenReporte(false);
+        setSelectedEmpleados([]);
+    };
 
     // Estados crear
     const [open, setOpen] = useState(false);
@@ -136,7 +174,6 @@ function AdminVacaciones() {
                 p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
-                {/* Barra de busqueda y filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
 
                     {/* Filtros de seleccion */}
@@ -205,10 +242,14 @@ function AdminVacaciones() {
                         </LocalizationProvider>
                     </Box>
 
-                    <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", ml: 'auto', }} onClick={(e) => setOpen(true)}>
-                        Nuevo Registro
-                    </Button>
-
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 'auto' }}>
+                        <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", maxWidth: "30vh" }} onClick={(e) => setOpen(true)}>
+                            Nuevo Registro
+                        </Button>
+                        <Button variant="contained" startIcon={<AssessmentIcon />} sx={{ height: "40px", maxWidth: "30vh" }} onClick={() => setOpenReporte(true)}>
+                            Reportes
+                        </Button>
+                    </Box>
 
                 </Box>
 
@@ -220,51 +261,57 @@ function AdminVacaciones() {
                     position: "relative"
                 }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto", textAlign: "center" }}>
+
+                        <Typography>
+                            <strong> Cristopher Ignacio Escobar</strong> ||
+                            <strong> RUT:</strong> <span> 21.287.800-6</span> ||
+                            <strong> Centro de costo: </strong> <span>Dpto. Sistemas</span>
+                        </Typography >
+
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%", mt: 2 }} aria-label="tabla de usuarios">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell width="14.28%" align="center"><strong>Empleado</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>fec Ingreso</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Ultima Actualización</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>fec Inicio</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>fec Fin</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Dias Acum.Vac Asignadas</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Dias Efectivos</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Saldo Vac Asignadas</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Dias Especiales</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Zona Extrema</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Autorizador</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Dias Efectivos VBA</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Dias Efectivos VP</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Saldo VBA Pre Vacaciones</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Saldo VP Pre Vacaciones</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Saldo VBA Post Vacaciones</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Saldo VP Post Vacaciones</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Editar</strong></TableCell>
+                                    <TableCell align="center"><strong>Fechas</strong></TableCell>
+                                    <TableCell align="center"><strong>Ultima Actualización</strong></TableCell>
+                                    <TableCell align="center"><strong>Dias</strong></TableCell>
+                                    <TableCell align="center"><strong>Saldos</strong></TableCell>
+                                    <TableCell align="center"><strong>Zona Extrema</strong></TableCell>
+                                    <TableCell align="center"><strong>Autorizador</strong></TableCell>
+                                    <TableCell align="center"><strong>Generar Reporte</strong></TableCell>
+                                    <TableCell align="center"><strong>Info Historica</strong></TableCell>
+                                    <TableCell align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
                                 <TableRow>
+                                    <TableCell align="center">
+                                        <Tooltip title="Ver Fechas">
+                                            <IconButton onClick={() => { setSelectedRow({}); setOpenFechas(true); }}>
+                                                <CalendarMonthIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
+                                    <TableCell align="center"></TableCell>
+                                    <TableCell align="center">
+                                        <Tooltip title="Ver Dias">
+                                            <IconButton onClick={() => { setSelectedRow({}); setOpenDias(true); }}>
+                                                <TodayIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Tooltip title="Ver Saldos">
+                                            <IconButton onClick={() => { setSelectedRow({}); setOpenSaldos(true); }}>
+                                                <AccessAlarmIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
                                     <TableCell align="center"></TableCell>
                                     <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
+                                    <TableCell align="center"><IconButton><AssessmentIcon /></IconButton></TableCell>
+                                    <TableCell align="center"><IconButton onClick={() => setOpenHistorica(true)}><HistoryIcon /></IconButton></TableCell>
                                     <TableCell align="center"><IconButton onClick={() => handleAbrirEditar()}><EditIcon /></IconButton></TableCell>
-
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -508,6 +555,179 @@ function AdminVacaciones() {
                     </Button>
                 </DialogActions>
             </Dialog >
+
+            {/* Dialog Fechas */}
+            <Dialog open={openFechas} onClose={() => setOpenFechas(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>Fechas</DialogTitle>
+                <DialogContent>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center"><strong>fec Ingreso</strong></TableCell>
+                                <TableCell align="center"><strong>fec Inicio</strong></TableCell>
+                                <TableCell align="center"><strong>fec Fin</strong></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell align="center">{selectedRow?.fecIngreso || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.fecInicio || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.fecFin || "-"}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenFechas(false)} color="error">Cerrar</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Dias */}
+            <Dialog open={openDias} onClose={() => setOpenDias(false)} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>Dias</DialogTitle>
+                <DialogContent>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center"><strong>Dias Acum.Vac Asignadas</strong></TableCell>
+                                <TableCell align="center"><strong>Dias Efectivos</strong></TableCell>
+                                <TableCell align="center"><strong>Dias Especiales</strong></TableCell>
+                                <TableCell align="center"><strong>Dias Efectivos VBA</strong></TableCell>
+                                <TableCell align="center"><strong>Dias Efectivos VP</strong></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell align="center">{selectedRow?.diasAcumVacAsignadas || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.diasEfectivos || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.diasEspeciales || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.diasEfectivosVBA || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.diasEfectivosVP || "-"}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDias(false)} color="error">Cerrar</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Saldos */}
+            <Dialog open={openSaldos} onClose={() => setOpenSaldos(false)} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>Saldos</DialogTitle>
+                <DialogContent>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center"><strong>Saldo Vac Asignadas</strong></TableCell>
+                                <TableCell align="center"><strong>Saldo VBA Pre Vacaciones</strong></TableCell>
+                                <TableCell align="center"><strong>Saldo VP Pre Vacaciones</strong></TableCell>
+                                <TableCell align="center"><strong>Saldo VBA Post Vacaciones</strong></TableCell>
+                                <TableCell align="center"><strong>Saldo VP Post Vacaciones</strong></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell align="center">{selectedRow?.saldoVacAsignadas || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.saldoVBAPreVacaciones || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.saldoVPPreVacaciones || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.saldoVBAPostVacaciones || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.saldoVPPostVacaciones || "-"}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenSaldos(false)} color="error">Cerrar</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Generar Reporte */}
+            <Dialog open={openReporte} onClose={cerrarDialogReporte} sx={{ textAlign: "center" }}>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "65vh", minWidth: "55vh" }}>
+                        <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+                            <DialogTitle sx={{ p: 0, mb: 3 }}>Generar Reporte</DialogTitle>
+
+                            <List sx={{ width: "100%", maxHeight: "40vh", overflow: "auto" }}>
+                                {listaEmpleados.map((emp) => (
+                                    <ListItem
+                                        key={emp.id}
+                                        dense
+                                        button
+                                        onClick={() => handleToggleEmpleado(emp.id)}
+                                        sx={{ borderBottom: "1px solid #eee" }}
+                                    >
+                                        <ListItemIcon sx={{ minWidth: 36 }}>
+                                            <Checkbox
+                                                edge="start"
+                                                checked={selectedEmpleados.includes(emp.id)}
+                                                tabIndex={-1}
+                                                disableRipple
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary={emp.nombre} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Paper>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 0 }}>
+                    <Button onClick={cerrarDialogReporte} color="error">Cancelar</Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        disabled={selectedEmpleados.length === 0}
+                    >
+                        Generar Reporte
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Info Historica */}
+            <Dialog open={openHistorica} onClose={() => setOpenHistorica(false)} maxWidth="xl" fullWidth>
+                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>Información Histórica</DialogTitle>
+                <DialogContent>
+                    <TableContainer sx={{ maxHeight: 400 }}>
+                        <Table stickyHeader sx={{ minWidth: 1400 }} size="small">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
+                                <TableRow>
+                                    <TableCell align="center"><strong>Empleado</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha de calculo</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha evento</strong></TableCell>
+                                    <TableCell align="center"><strong>Usuario</strong></TableCell>
+                                    <TableCell align="center"><strong>F.Ini.Contrato</strong></TableCell>
+                                    <TableCell align="center"><strong>AFP Certif</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha certificado AFP</strong></TableCell>
+                                    <TableCell align="center"><strong>Num cotiz. certif</strong></TableCell>
+                                    <TableCell align="center"><strong>FVP</strong></TableCell>
+                                    <TableCell align="center"><strong>Dias Progresivos</strong></TableCell>
+                                    <TableCell align="center"><strong>Dias especiales</strong></TableCell>
+                                    <TableCell align="center"><strong>Dias adicionales</strong></TableCell>
+                                    <TableCell align="center"><strong>Acumulados(+)</strong></TableCell>
+                                    <TableCell align="center"><strong>Asignados(-)</strong></TableCell>
+                                    <TableCell align="center"><strong>Saldo</strong></TableCell>
+                                    <TableCell align="center"><strong>Ini. ult. vac</strong></TableCell>
+                                    <TableCell align="center"><strong>Fin ult. vac</strong></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell align="center" colSpan={17} sx={{ py: 3 }}>
+                                        <Typography variant="body1" color="text.secondary">
+                                            No se encontraron registros históricos
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 0 }}>
+                    <Button onClick={() => setOpenHistorica(false)} color="error">Cerrar</Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }
