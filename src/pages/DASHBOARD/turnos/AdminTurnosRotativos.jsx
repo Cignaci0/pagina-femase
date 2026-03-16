@@ -3,26 +3,26 @@ import {
     Box, Paper, TextField, Button, Table, TableContainer, TableHead,
     TableRow, TableCell, TableBody, Dialog, DialogTitle,
     DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
-    IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
-    Container, Alert, TablePagination, Stack,
-    FormHelperText
+    IconButton, Typography, CircularProgress,
+    Container, TablePagination,
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-
+import { getTurnosRotativos, CrearTurnosRotativos, ActualizarTurnosRotativos } from "../../../services/turnosRotativoService";
 
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-
+import CircleIcon from '@mui/icons-material/Circle';
 
 
 function AdminTurnosRotativos() {
 
     // Estados de datos
+    const [turnosRotativos, setTurnosRotativos] = useState([])
     const [empresas, setEmpresas] = useState([])
-    const [cargos, setcargos] = useState([])
+    const [cargando, setCargando] = useState(false);
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
@@ -33,91 +33,96 @@ function AdminTurnosRotativos() {
 
     // Estados crear
     const [crear, setCrear] = useState(false)
-    const [horaEntradaCrear, setHoraEntradaCrear] = useState("")
-    const [minutoEntradaCrear, setMinutoEntradaCrear] = useState("")
-    const [horaSalidaCrear, setHoraSalidaCrear] = useState("")
-    const [minutoSalidaCrear, setMinutoSalidaCrear] = useState("")
-    const [minutoHolguraCrear, setMinutoHolguraCrear] = useState("")
-    const [minutoColacionCrear, setMinutoColacionCrear] = useState("")
+    const [empresaCrear, setEmpresaCrear] = useState("")
+    const [nombreCrear, setNombreCrear] = useState("")
+    const [nocturnoCrear, setNocturnoCrear] = useState("")
+    const [estadoCrear, setEstadoCrear] = useState("")
 
     // Estados editar
     const [editar, setEditar] = useState(false)
-    const [detalleEditar, setDetalleEditar] = useState(false)
-    const [horaEntradaEdit, setHoraEntradaEdit] = useState("")
-    const [minutoEntradaEdit, setMinutoEntradaEdit] = useState("")
-    const [horaSalidaEdit, setHoraSalidaEdit] = useState("")
-    const [minutoSalidaEdit, setMinutoSalidaEdit] = useState("")
-    const [minutoHolguraEdit, setMinutoHolguraEdit] = useState("")
-    const [minutoColacionEdit, setMinutoColacionEdit] = useState("")
+    const [idEdit, setIdEdit] = useState("")
+    const [empresaEdit, setEmpresaEdit] = useState("")
+    const [nombreEdit, setNombreEdit] = useState("")
+    const [nocturnoEdit, setNocturnoEdit] = useState("")
+    const [estadoEdit, setEstadoEdit] = useState("")
 
     // Carga de datos
-    const cargarEmpresasFiltro = async () => {
+    const cargarTurnosRotativos = async () => {
+        setCargando(true)
         try {
-            const [dataEmpresas] = await Promise.all([
-                obtenerEmpresas(),
-            ]);
-            setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
+            const respuesta = await getTurnosRotativos()
+            setTurnosRotativos(Array.isArray(respuesta) ? respuesta : [])
         } catch (err) {
             toast.error(err.message);
         } finally {
             setCargando(false);
         }
+    }
+
+    const cargarEmpresas = async () => {
+        try {
+            const dataEmpresas = await obtenerEmpresas();
+            setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
+        } catch (err) {
+            toast.error(err.message);
+        }
     };
 
-    // Exportacion
-    // (No definida en este archivo)
-
     // Manejo de dialogs
-    const [asignar, setAsignar] = useState("")
-    const [detalle, setDetalle] = useState(false)
-    const [detalleCrear, setDetalleCrear] = useState(false)
-
-    const cerrarAsignar = () => { setAsignar(false) }
-    const cerrarDetalle = () => { setDetalle(false) }
     const cerrarCrear = () => {
         setCrear(false)
-        setHoraEntradaCrear("")
-        setMinutoEntradaCrear("")
-        setHoraSalidaCrear("")
-        setMinutoSalidaCrear("")
-        setMinutoHolguraCrear("")
-        setMinutoColacionCrear("")
+        setEmpresaCrear("")
+        setNombreCrear("")
+        setNocturnoCrear("")
+        setEstadoCrear("")
     }
     const cerrarEditar = () => {
         setEditar(false)
-        setHoraEntradaEdit("")
-        setMinutoEntradaEdit("")
-        setHoraSalidaEdit("")
-        setMinutoSalidaEdit("")
-        setMinutoHolguraEdit("")
-        setMinutoColacionEdit("")
+        setIdEdit("")
+        setEmpresaEdit("")
+        setNombreEdit("")
+        setNocturnoEdit("")
+        setEstadoEdit("")
     }
-    const cerrarDetallesCrear = () => { setDetalleCrear(false) }
-    const cerrarDetalleEditar = () => { setDetalleEditar(false) }
 
-    const handleChangeTime = (val, setter, max) => {
-        if (/^\d{0,2}$/.test(val)) {
-            if (val === "" || parseInt(val) <= max) {
-                setter(val);
-            }
+    // Click crear
+    const clickCrear = async () => {
+        setCargando(true)
+        try {
+            await CrearTurnosRotativos(empresaCrear, nombreCrear, nocturnoCrear, estadoCrear)
+            cerrarCrear()
+            toast.success("Turno rotativo creado con éxito")
+            cargarTurnosRotativos()
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setCargando(false);
         }
-    };
+    }
 
-    const handleBlurTime = (val, setter) => {
-        if (val.length === 1) {
-            setter("0" + val);
-        } else if (val === "") {
-            setter("00");
+    // Click editar
+    const clickEditar = async () => {
+        setCargando(true)
+        try {
+            await ActualizarTurnosRotativos(idEdit, empresaEdit, nombreEdit, nocturnoEdit, estadoEdit)
+            cerrarEditar()
+            toast.success("Turno rotativo actualizado con éxito")
+            cargarTurnosRotativos()
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setCargando(false);
         }
-    };
+    }
 
     // Filtrado y paginacion
-    const cargosFiltrados = cargos.filter((car) => {
-        const nombreCargo = `${car.nombre || ''}`.toLowerCase();
+    const turnosFiltrados = turnosRotativos.filter((tr) => {
+        const nombreTurno = `${tr.nombre || ''}`.toLowerCase();
         const term = busqueda.toLowerCase();
-        const coincideTexto = nombreCargo.includes(term);
-        const coincideEstado = filtroestado ? car.estado?.estado_id === filtroestado : true;
-        return coincideTexto && coincideEstado;
+        const coincideTexto = nombreTurno.includes(term);
+        const coincideEstado = filtroestado ? tr.estado?.estado_id === filtroestado : true;
+        const coincideEmpresa = empresasFiltro ? tr.empresa?.empresa_id === empresasFiltro : true;
+        return coincideTexto && coincideEstado && coincideEmpresa;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -131,16 +136,13 @@ function AdminTurnosRotativos() {
 
     // Effects
     useEffect(() => {
-        cargarEmpresasFiltro();
+        cargarTurnosRotativos();
+        cargarEmpresas();
     }, []);
 
     useEffect(() => {
         setPagina(0);
-    }, [busqueda, filtroestado]);
-
-
-
-    // Renderizado condicional
+    }, [busqueda, filtroestado, empresasFiltro]);
 
 
     return (
@@ -151,9 +153,6 @@ function AdminTurnosRotativos() {
                     Admin Turnos Rotativos
                 </Typography>
             </Box>
-
-            {/* Alerta de exito */}
-
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -182,6 +181,7 @@ function AdminTurnosRotativos() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "26vh" }} label="Empresa" value={empresasFiltro} onChange={(e) => setEmpresasFiltro(e.target.value)}>
+                            <MenuItem value=""><em>Todos</em></MenuItem>
                             {empresas.map((emp) => (
                                 <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
                                     {emp.nombre_empresa}
@@ -214,42 +214,72 @@ function AdminTurnosRotativos() {
                     width: "100%",
                     position: "relative"
                 }}>
-                    <TableContainer sx={{ flex: 1, minHeight: '366px' }}>
-                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
+                    <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de turnos rotativos">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Nombre</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Hora Entrada</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Hora Salida</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Holgura(mins)</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Mins Colación</strong></TableCell>
                                     <TableCell width="10%" align="center"><strong>Nocturno</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Permite feriado</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Fecha creación</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Fecha Actualización</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
+                                    <TableCell width="10%" align="center"><strong>Estado</strong></TableCell>
+                                    <TableCell width="15%" align="center"><strong>Fecha creación</strong></TableCell>
+                                    <TableCell width="15%" align="center"><strong>Fecha Actualización</strong></TableCell>
+                                    <TableCell width="10%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">02</TableCell>
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => { setEditar(true) }} >
-                                            <EditIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
+                                {turnosFiltrados.length > 0 ? (
+                                    turnosFiltrados
+                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((tr) => (
+                                            <TableRow key={tr.id}>
+                                                <TableCell align="center">
+                                                    {tr.empresa?.nombre_empresa}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tr.nombre}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tr.nocturno === true ? "Sí" : "No"}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <CircleIcon
+                                                        sx={{
+                                                            fontSize: '1rem',
+                                                            color: tr.estado?.estado_id === 1 ? '#4caf50' : '#f44336'
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tr.fecha_creacion}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {tr.fecha_actualizacion}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton onClick={() => {
+                                                        setEditar(true)
+                                                        setIdEdit(tr.id)
+                                                        setEmpresaEdit(tr.empresa?.empresa_id || "")
+                                                        setNombreEdit(tr.nombre || "")
+                                                        setNocturnoEdit(tr.nocturno != null ? tr.nocturno : "")
+                                                        setEstadoEdit(tr.estado?.estado_id || "")
+                                                    }}>
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell align="center" colSpan={7}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                No se encontraron turnos rotativos
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -259,7 +289,7 @@ function AdminTurnosRotativos() {
                 <TablePagination
                     rowsPerPageOptions={[]}
                     component="div"
-                    count={cargosFiltrados.length}
+                    count={turnosFiltrados.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -279,123 +309,44 @@ function AdminTurnosRotativos() {
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Empresa</InputLabel>
-                                    <Select label="Empresa"></Select>
-                                </FormControl>
-
-                                <TextField fullWidth label="Nombre" size="small" sx={{ mb: 2 }} />
-
-
-
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Nocturno</InputLabel>
-                                    <Select label="Nocturno">
-                                        <MenuItem value={1}> Si </MenuItem>
-                                        <MenuItem value={2}> No  </MenuItem>
+                                    <Select label="Empresa" value={empresaCrear} onChange={(e) => setEmpresaCrear(e.target.value)}>
+                                        {empresas.map((emp) => (
+                                            <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
+                                                {emp.nombre_empresa}
+                                            </MenuItem>
+                                        ))}
                                     </Select>
                                 </FormControl>
 
+                                <TextField
+                                    fullWidth label="Nombre" size="small" sx={{ mb: 2 }}
+                                    value={nombreCrear}
+                                    onChange={(e) => setNombreCrear(e.target.value)}
+                                />
+
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Permite feriado</InputLabel>
-                                    <Select label="Permite feriado">
-                                        <MenuItem value={1}> Si </MenuItem>
-                                        <MenuItem value={2}> No  </MenuItem>
+                                    <InputLabel>Nocturno</InputLabel>
+                                    <Select label="Nocturno" value={nocturnoCrear} onChange={(e) => setNocturnoCrear(e.target.value)}>
+                                        <MenuItem value={true}>Sí</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
                                     </Select>
                                 </FormControl>
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Estado</InputLabel>
-                                    <Select label="Estado">
-                                        <MenuItem value={1}> Vigente </MenuItem>
-                                        <MenuItem value={2}> No Vigente  </MenuItem>
+                                    <Select label="Estado" value={estadoCrear} onChange={(e) => setEstadoCrear(e.target.value)}>
+                                        <MenuItem value={1}>Vigente</MenuItem>
+                                        <MenuItem value={2}>No Vigente</MenuItem>
                                     </Select>
                                 </FormControl>
 
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    HORA ENTRADA
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
-                                    <TextField
-                                        value={horaEntradaCrear}
-                                        onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaCrear, 23)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraEntradaCrear)}
-                                        placeholder="HH"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                    <Typography variant="h6">:</Typography>
-                                    <TextField
-                                        value={minutoEntradaCrear}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaCrear, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoEntradaCrear)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
-
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    HORA SALIDA
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
-                                    <TextField
-                                        value={horaSalidaCrear}
-                                        onChange={(e) => handleChangeTime(e.target.value, setHoraSalidaCrear, 23)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraSalidaCrear)}
-                                        placeholder="HH"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                    <Typography variant="h6">:</Typography>
-                                    <TextField
-                                        value={minutoSalidaCrear}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoSalidaCrear, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoSalidaCrear)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
-
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    HOLGURA (MINS)
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
-                                    <TextField
-                                        value={minutoHolguraCrear}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoHolguraCrear, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoHolguraCrear)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
-
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    COLACIÓN (MINS)
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
-                                    <TextField
-                                        value={minutoColacionCrear}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoColacionCrear, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoColacionCrear)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
                             </Paper>
                         </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarCrear} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickCrear} variant="contained" color="primary">Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -409,131 +360,44 @@ function AdminTurnosRotativos() {
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Empresa</InputLabel>
-                                    <Select label="Empresa"></Select>
-                                </FormControl>
-
-                                <TextField fullWidth label="Nombre" size="small" sx={{ mb: 2 }} />
-
-
-
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Aplicar a todos los turnos</InputLabel>
-                                    <Select label="Aplicar a todos los turnos">
-                                        <MenuItem value={1}> Si </MenuItem>
-                                        <MenuItem value={2}> No  </MenuItem>
+                                    <Select label="Empresa" value={empresaEdit} onChange={(e) => setEmpresaEdit(e.target.value)}>
+                                        {empresas.map((emp) => (
+                                            <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
+                                                {emp.nombre_empresa}
+                                            </MenuItem>
+                                        ))}
                                     </Select>
                                 </FormControl>
+
+                                <TextField
+                                    fullWidth label="Nombre" size="small" sx={{ mb: 2 }}
+                                    value={nombreEdit}
+                                    onChange={(e) => setNombreEdit(e.target.value)}
+                                />
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Nocturno</InputLabel>
-                                    <Select label="Nocturno">
-                                        <MenuItem value={1}> Si </MenuItem>
-                                        <MenuItem value={2}> No  </MenuItem>
-                                    </Select>
-                                </FormControl>
-
-                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Permite feriado</InputLabel>
-                                    <Select label="Permite feriado">
-                                        <MenuItem value={1}> Si </MenuItem>
-                                        <MenuItem value={2}> No  </MenuItem>
+                                    <Select label="Nocturno" value={nocturnoEdit} onChange={(e) => setNocturnoEdit(e.target.value)}>
+                                        <MenuItem value={true}>Sí</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
                                     </Select>
                                 </FormControl>
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Estado</InputLabel>
-                                    <Select label="Estado">
-                                        <MenuItem value={1}> Vigente </MenuItem>
-                                        <MenuItem value={2}> No Vigente  </MenuItem>
+                                    <Select label="Estado" value={estadoEdit} onChange={(e) => setEstadoEdit(e.target.value)}>
+                                        <MenuItem value={1}>Vigente</MenuItem>
+                                        <MenuItem value={2}>No Vigente</MenuItem>
                                     </Select>
                                 </FormControl>
 
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    HORA ENTRADA
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
-                                    <TextField
-                                        value={horaEntradaEdit}
-                                        onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaEdit, 23)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraEntradaEdit)}
-                                        placeholder="HH"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                    <Typography variant="h6">:</Typography>
-                                    <TextField
-                                        value={minutoEntradaEdit}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaEdit, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoEntradaEdit)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
-
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    HORA SALIDA
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
-                                    <TextField
-                                        value={horaSalidaEdit}
-                                        onChange={(e) => handleChangeTime(e.target.value, setHoraSalidaEdit, 23)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraSalidaEdit)}
-                                        placeholder="HH"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                    <Typography variant="h6">:</Typography>
-                                    <TextField
-                                        value={minutoSalidaEdit}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoSalidaEdit, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoSalidaEdit)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
-
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    HOLGURA (MINS)
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
-                                    <TextField
-                                        value={minutoHolguraEdit}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoHolguraEdit, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoHolguraEdit)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
-
-                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                    COLACIÓN (MINS)
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
-                                    <TextField
-                                        value={minutoColacionEdit}
-                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoColacionEdit, 59)}
-                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoColacionEdit)}
-                                        placeholder="MM"
-                                        size="small"
-                                        sx={{ width: '70px' }}
-                                        inputProps={{ style: { textAlign: 'center' } }}
-                                    />
-                                </Stack>
                             </Paper>
                         </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarEditar} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickEditar} variant="contained" color="primary">Guardar</Button>
                 </DialogActions>
             </Dialog>
         </>

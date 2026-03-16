@@ -33,6 +33,7 @@ export const crearCentroCosto = async (
   zona_extrema,
   estado,
   depto,
+  permite_turno_rpermite_turno_r
 ) => {
   const peticion = await fetch(`${API_URL}/cencos`, {
     method: "POST",
@@ -50,6 +51,7 @@ export const crearCentroCosto = async (
       zona_extrema: zona_extrema,
       estado_id: estado,
       departamento_id: depto,
+      permite_turno_r: permite_turno_r
     }),
   });
 
@@ -71,7 +73,8 @@ export const actualizarCentroCosto = async (
   email_notificacion,
   zona_extrema,
   estado,
-  depto
+  depto,
+  permite_turno_r
 ) => {
   const peticion = await fetch(`${API_URL}/cencos/actualizar/${editId}`, {
     method: "PATCH",
@@ -89,9 +92,10 @@ export const actualizarCentroCosto = async (
       zona_extrema: zona_extrema,
       estado_id: estado,
       departamento_id: depto,
+      permite_turno_r: permite_turno_r
     }),
   });
-  
+
   const datos = await peticion.json();
   if (!peticion.ok) {
     throw new Error(datos.message || "Error al actualizar el centro de costo");

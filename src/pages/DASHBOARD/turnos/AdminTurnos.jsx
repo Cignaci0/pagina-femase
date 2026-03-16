@@ -949,10 +949,10 @@ function AdminTurnos() {
                 maxWidth="sm"
                 fullWidth
             >
-                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0, pt: 3, px: 3 }}>
+                <DialogTitle sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pb: 0, pt: 3, px: 3 }}>
                     <Typography variant="h6" fontWeight="bold">Asignar Horarios</Typography>
 
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <FormControl size="small" sx={{ minWidth: 280, mt: 2 }}>
                         <InputLabel>Asignación semana</InputLabel>
                         <Select
                             label="Asignación semana"
@@ -971,11 +971,14 @@ function AdminTurnos() {
                             }}
                         >
                             <MenuItem value=""><em>Ninguno</em></MenuItem>
-                            {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => (
-                                <MenuItem key={h.horario_id} value={h.horario_id}>
-                                    {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)}
-                                </MenuItem>
-                            ))}
+                            {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => {
+                                const colMins = h.colacion ? parseInt(h.colacion.split(':')[1], 10) : 0;
+                                return (
+                                    <MenuItem key={h.horario_id} value={h.horario_id}>
+                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins}
+                                    </MenuItem>
+                                );
+                            })}
                         </Select>
                     </FormControl>
                 </DialogTitle>
@@ -1031,11 +1034,14 @@ function AdminTurnos() {
                                                 [valorDia]: e.target.value
                                             })}
                                         >
-                                            {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => (
-                                                <MenuItem key={h.horario_id} value={h.horario_id}>
-                                                    {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)}
-                                                </MenuItem>
-                                            ))}
+                                            {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => {
+                                                const colMins = h.colacion ? parseInt(h.colacion.split(':')[1], 10) : 0;
+                                                return (
+                                                    <MenuItem key={h.horario_id} value={h.horario_id}>
+                                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins}
+                                                    </MenuItem>
+                                                );
+                                            })}
                                         </Select>
                                     </FormControl>
                                 </Box>
@@ -1059,53 +1065,7 @@ function AdminTurnos() {
                 </DialogActions>
             </Dialog >
 
-            {/* Dialog de confirmación de asignación */}
-            <Dialog
-                open={confirmacionVisible}
-                maxWidth="sm"
-                fullWidth
-                disableEscapeKeyDown={true}
-                onClose={(event, reason) => {
-                    if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
-                        setConfirmacionVisible(false);
-                    }
-                }}
-            >
-                <DialogTitle sx={{ textAlign: "center", bgcolor: "#1976d2", color: "white", mb: 2 }}>
-                    Confirmar Asignación
-                </DialogTitle>
-                <DialogContent sx={{ textAlign: "center", pb: 2 }}>
-                    <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
-                        ¿Asignar este turno a los siguientes empleados?
-                    </Typography>
-
-                    <Box sx={{ maxHeight: 150, overflow: 'auto', bgcolor: '#f5f5f5', p: 1, borderRadius: 1, my: 2 }}>
-                        {empleadosAConfirmar.length > 0 ? (
-                            empleadosAConfirmar.map((nombre, i) => (
-                                <Typography key={i} variant="body2" sx={{ fontWeight: 'bold', color: '#333' }}>
-                                    • {nombre}
-                                </Typography>
-                            ))
-                        ) : (
-                            <Typography variant="body2" color="error">
-                                (Ningún empleado seleccionado)
-                            </Typography>
-                        )}
-                    </Box>
-
-                    <Typography variant="body1" sx={{ mt: 2 }}>
-                        Centro de costo: <Typography component="span" fontWeight="bold" color="primary">{cencoAConfirmar}</Typography>
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: "center", pb: 3 }}>
-                    <Button onClick={() => setConfirmacionVisible(false)} color="error" sx={{ minWidth: 100 }}>
-                        Cancelar
-                    </Button>
-                    <Button variant="contained" color="primary" onClick={confirmarYGuardar} sx={{ minWidth: 100 }}>
-                        Confirmar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            
         </>
     );
 }

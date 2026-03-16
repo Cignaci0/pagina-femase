@@ -64,6 +64,7 @@ function AdminCentroCosto() {
     const [nuevoEmailNotiDominio, setNuevoEmailNotiDominio] = useState("")
     const [nuevoZonaExtrema, setNuevoZonaExtrema] = useState("")
     const [comunasFiltradasCrear, setComunasFiltradasCrear] = useState([]);
+    const [nuevoPermiteTurnos, setNuevoPermiteTurnos] = useState("")
 
     // Estados editar
     const [mostrarEdit, setMostrarEdit] = useState(false)
@@ -81,6 +82,7 @@ function AdminCentroCosto() {
     const [editEmailNotiDominio, setEditEmailNotiDominio] = useState("")
     const [editZonaExtrema, setEditZonaExtrema] = useState("")
     const [comunasFiltradasEdit, setComunasFiltradasEdit] = useState([]);
+    const [editPermiteTurnos, setEditPermiteTurnos] = useState("")
 
     // Estados dispositivos
     const [dialogDispositivo, setDialogDispositivo] = useState(false)
@@ -176,7 +178,7 @@ function AdminCentroCosto() {
         const emailGnral = nuevoEmailGnralLocal && nuevoEmailGnralDominio ? `${nuevoEmailGnralLocal}${nuevoEmailGnralDominio}` : "";
         const emailNoti = nuevoEmailNotiLocal && nuevoEmailNotiDominio ? `${nuevoEmailNotiLocal}${nuevoEmailNotiDominio}` : "";
         try {
-            await crearCentroCosto(nuevoNombre, nuevoDireccion, nuevoRegion, nuevoComuna, emailGnral, emailNoti, nuevoZonaExtrema, nuevoEstado, nuevoDepartamento,)
+            await crearCentroCosto(nuevoNombre, nuevoDireccion, nuevoRegion, nuevoComuna, emailGnral, emailNoti, nuevoZonaExtrema, nuevoEstado, nuevoDepartamento, nuevoPermiteTurnos)
             setOpen(false)
             toast.success("Centro de costo creado con exito")
             const data = await obtenerCentroCostos();
@@ -195,7 +197,7 @@ function AdminCentroCosto() {
         const emailGnral = editEmailGnralLocal && editEmailGnralDominio ? `${editEmailGnralLocal}${editEmailGnralDominio}` : "";
         const emailNoti = editEmailNotiLocal && editEmailNotiDominio ? `${editEmailNotiLocal}${editEmailNotiDominio}` : "";
         try {
-            await actualizarCentroCosto(editId, editNombre, editDireccion, editRegion, editComuna, emailGnral, emailNoti, editZonaExtrema, editEstado, editDepartamento,)
+            await actualizarCentroCosto(editId, editNombre, editDireccion, editRegion, editComuna, emailGnral, emailNoti, editZonaExtrema, editEstado, editDepartamento, editPermiteTurnos)
             setMostrarEdit(false)
             toast.success("Se edito con exito")
             const data = await obtenerCentroCostos();
@@ -568,9 +570,6 @@ function AdminCentroCosto() {
                 <Typography variant="h4" color="text.secondary">Admin Centro Costo</Typography>
             </Box>
 
-            {/* Alerta de exito */}
-
-
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{ p: 2, width: "100%", bgcolor: "#FFFFFD", borderRadius: 2, maxWidth: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden", boxSizing: "border-box" }}>
 
@@ -625,6 +624,7 @@ function AdminCentroCosto() {
                                     <TableCell width={100} align="center"><strong>Emails Noti</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Dispositivos</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Zona Extrema?</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Permite Turnos R</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha creación</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Creador</strong></TableCell>
@@ -652,6 +652,7 @@ function AdminCentroCosto() {
                                                 <IconButton onClick={() => abrirDialogDispositivo(cenco)}><FaxIcon /></IconButton>
                                             </TableCell>
                                             <TableCell align="center">{cenco.zona_extrema === true ? "Si" : "No"}</TableCell>
+                                            <TableCell align="center">{cenco.permite_turno_r === true ? "Si" : "No"}</TableCell>
                                             <TableCell align="center">{cenco.fecha_creacion}</TableCell>
                                             <TableCell align="center">{cenco.fecha_actualizacion}</TableCell>
                                             <TableCell align="center">{cenco.usuario_creador}</TableCell>
@@ -721,9 +722,11 @@ function AdminCentroCosto() {
                                                     }
 
                                                     setMostrarEdit(true);
+                                                    setEditPermiteTurnos(cenco.permite_turno_r != null ? cenco.permite_turno_r : "");
                                                 }}>
                                                     <EditIcon />
                                                 </IconButton>
+
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -850,6 +853,15 @@ function AdminCentroCosto() {
                                 </Select>
                                 {nuevoZonaExtrema === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                             </FormControl>
+
+                            <FormControl size="small" fullWidth >
+                                <InputLabel>Permite Turnos Rotativos?</InputLabel>
+                                <Select label="Permite Turnos Rotativos?" value={nuevoPermiteTurnos} onChange={(e) => setNuevoPermiteTurnos(e.target.value)}>
+                                    <MenuItem value={true}>SI</MenuItem>
+                                    <MenuItem value={false}>NO</MenuItem>
+                                </Select>
+                                {nuevoPermiteTurnos === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
+                            </FormControl>
                         </Paper>
                     </Box>
                 </DialogContent>
@@ -940,13 +952,23 @@ function AdminCentroCosto() {
                                     </Select>
                                 </FormControl>
                             </Box>
-                            <FormControl size="small" fullWidth >
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Zona Extrema?</InputLabel>
                                 <Select label="Zona Extrema?" value={editZonaExtrema} onChange={(e) => setEditZonaExtrema(e.target.value)}>
                                     <MenuItem value={true}>SI</MenuItem>
                                     <MenuItem value={false}>NO</MenuItem>
                                 </Select>
                                 {editZonaExtrema === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth >
+                                <InputLabel>Permite Turnos Rotativos?</InputLabel>
+                                <Select label="Permite Turnos Rotativos?" value={editPermiteTurnos} onChange={(e) => setEditPermiteTurnos(e.target.value)}>
+                                    <MenuItem value={true}>SI</MenuItem>
+                                    <MenuItem value={false}>NO</MenuItem>
+                                </Select>
+                                {editPermiteTurnos === "" && <FormHelperText>Campo obligatorio</FormHelperText>}
                             </FormControl>
                         </Paper>
                     </Box>
