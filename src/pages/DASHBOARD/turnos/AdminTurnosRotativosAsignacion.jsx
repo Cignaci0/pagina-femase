@@ -448,7 +448,7 @@ function AdminTurnosRotativosAsignacion() {
             </Dialog>
 
             {/* Dialog Modificar/reemplazar asignacion turno */}
-            <Dialog open={dialogAsignar} onClose={() => !cargandoEnvio && setDialogAsignar(false)} maxWidth={false} // Desactiva los límites predefinidos de MUI
+            <Dialog open={dialogAsignar} onClose={() => !cargandoEnvio && setDialogAsignar(false)} maxWidth={false} 
                 PaperProps={{
                     sx: {
                         width: '100%',    
@@ -457,7 +457,7 @@ function AdminTurnosRotativosAsignacion() {
                 }}>
                 <DialogTitle sx={{ bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd', py: 2 }}>
                     <Typography variant="h6"  fontWeight="bold">
-                        Modificar/reemplazar asignación turno
+                        Modificar/Reemplazar Asignación Turno
                     </Typography>
                 </DialogTitle>
                 <DialogContent sx={{ p: 4 }}>
