@@ -159,6 +159,7 @@ function AdminEmpleados() {
     const [nuevoEmailLaboral, setNuevoEmailLaboral] = useState("")
     const [dominio, setDominio] = useState("")
     const [dominioPersonal, setDominioPersonal] = useState("")
+    const [nuevoPermiteR,setNuevoPermiteR] = useState("")
 
     const [nuevoDepartamento, setNuevoDepartamento] = useState("")
     const [nuevoCenco, setNuevoCenco] = useState("")
@@ -200,6 +201,7 @@ function AdminEmpleados() {
     const [editEmailLaboral, setEditEmailLaboral] = useState("")
     const [editDominio, setEditDominio] = useState("")
     const [editDominioPersonal, setEditDominioPersonal] = useState("")
+    const [editPermiteR, setEditPermiteR] = useState("")
 
     // Estados dialogs emails
     const [openDialogEmail, setOpenDialogEmail] = useState(false)
@@ -291,7 +293,8 @@ function AdminEmpleados() {
                 estado: nuevoEstado,
                 email_laboral: nuevoEmailLaboral && dominio ? `${nuevoEmailLaboral}${dominio}` : null,
                 num_ficha: nuevoNumFicha ? `${nuevoNumFicha}${nuevoLetraFicha}` : null,
-                cenco_id: nuevoCenco
+                cenco_id: nuevoCenco,
+                permite_rotativo: nuevoPermiteR
             };
             const resultado = await crearEmpleado(datosParaEnviar);
             toast.success("Empleado creado exitosamente");
@@ -323,6 +326,7 @@ function AdminEmpleados() {
             setNuevoEmailLaboral("");
             setNuevoDepartamento("");
             setNuevoCenco("");
+            setNuevoPermiteR("");
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -358,7 +362,8 @@ function AdminEmpleados() {
                 estado: editEstado,
                 email_laboral: editEmailLaboral && editDominio ? `${editEmailLaboral}${editDominio}` : null,
                 num_ficha: editNumFicha ? `${editNumFicha}${editLetraFicha}` : null,
-                cenco_id: editCenco
+                cenco_id: editCenco,
+                permite_rotativo: editPermiteR
             };
 
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
@@ -397,6 +402,7 @@ function AdminEmpleados() {
         setNuevoEmailPersonal(""); setNuevoRegion("");
         setNuevoComuna("");
         setNuevoDepartamento(""); setNuevoCenco("");
+        setNuevoPermiteR("");
     }
 
     const closeDialogEdit = () => { setOpenEdit(false) }
@@ -575,9 +581,6 @@ function AdminEmpleados() {
                 <Typography variant="h4" color="text.secondary">Admin Empleados</Typography>
             </Box>
 
-            {/* Alerta de exito */}
-
-
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{ p: 2, width: "100%", bgcolor: "#FFFFFD", borderRadius: 2, maxWidth: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden", boxSizing: "border-box" }}>
 
@@ -632,6 +635,7 @@ function AdminEmpleados() {
                                     <TableCell width={100} align="center"><strong>Inicio Contrato</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Fin Contrato</strong></TableCell>
                                     <TableCell width={200} align="center"><strong>Turno</strong></TableCell>
+                                    <TableCell width={200} align="center"><strong>Permite Turno Rotativo</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha creación</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Creador</strong></TableCell>
@@ -699,6 +703,10 @@ function AdminEmpleados() {
                                             </TableCell>
 
                                             <TableCell align="center">
+                                                {e.permite_rotativo ? "Si" : "No"}
+                                            </TableCell>
+
+                                            <TableCell align="center">
                                                 ?
                                             </TableCell>
                                             <TableCell align="center">
@@ -726,7 +734,7 @@ function AdminEmpleados() {
                                                     }
                                                     setEditLetraFicha(letra);
                                                     setEditNumFicha(fichaBase);
-
+                                                    setEditPermiteR(e.permite_rotativo);
                                                     setEditRun(e.run || "");
                                                     setEditNombre(e.nombres || "");
                                                     setEditApPaterno(e.apellido_paterno || "");
@@ -1286,8 +1294,13 @@ function AdminEmpleados() {
                                     label="Centro de Costo"
                                     value={nuevoCenco}
                                     onChange={(e) => {
-                                        setNuevoCenco(e.target.value);
+                                        const cencoId = e.target.value;
+                                        setNuevoCenco(cencoId);
                                         setNuevoturno("");
+                                        const cencoSel = cencos.find(c => c.cenco_id === cencoId);
+                                        if (cencoSel && !cencoSel.permite_turno_r) {
+                                            setNuevoPermiteR(false);
+                                        }
                                     }}
                                     disabled={!nuevoDepartamento}
                                 >
@@ -1301,14 +1314,37 @@ function AdminEmpleados() {
                                 </Select>
                             </FormControl>
 
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}  >
+                                <InputLabel>Permite Rotativo</InputLabel>
+                                <Select 
+                                    label="Permite Rotativo" 
+                                    value={nuevoPermiteR} 
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setNuevoPermiteR(val);
+                                        if (val === true) setNuevoturno("");
+                                    }}
+                                    disabled={!nuevoCenco || !cencos.find(c => c.cenco_id === nuevoCenco)?.permite_turno_r}
+                                >
+                                    <MenuItem value={true}>
+                                        Si
+                                    </MenuItem>
+                                    <MenuItem value={false}>
+                                        No
+                                    </MenuItem>
+                                </Select>
+                                {(nuevoPermiteR === "" || nuevoPermiteR === null) && (
+                                    <FormHelperText>El Permite Rotativo es obligatorio</FormHelperText>
+                                )}
+                            </FormControl>
+
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Turno (Opcional)</InputLabel>
                                 <Select
                                     label="Turno (Opcional)"
                                     value={nuevoTurno}
                                     onChange={(e) => setNuevoturno(e.target.value)}
-                                    // Make sure disabled is false so we can choose "Ninguno" freely if we have a centro de costo 
-                                    disabled={!nuevoCenco}
+                                    disabled={!nuevoCenco || nuevoPermiteR === true}
                                 >
                                     {(() => {
                                         const cencoSeleccionado = cencos.find(c => c.cenco_id === nuevoCenco);
@@ -1376,6 +1412,7 @@ function AdminEmpleados() {
                             !nuevoFechaInicioContrato ||
                             !nuevoContratoIndefinido && nuevoContratoIndefinido !== false && nuevoContratoIndefinido !== true ||
                             !nuevoArt22 && nuevoArt22 !== false && nuevoArt22 !== true ||
+                            !nuevoPermiteR && nuevoPermiteR !== false && nuevoPermiteR !== true ||
                             nuevoEmpresa === "" ||
                             // Removemos nuevoTurno de los checks
                             nuevoCargo === "" ||
@@ -1720,6 +1757,7 @@ function AdminEmpleados() {
                                 {(editArt22 === "" || editArt22 === null) && <FormHelperText>El Art 22 es obligatorio</FormHelperText>}
                             </FormControl>
 
+
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Empresa</InputLabel>
                                 <Select
@@ -1804,8 +1842,13 @@ function AdminEmpleados() {
                                     label="Centro de Costo"
                                     value={editCenco}
                                     onChange={(e) => {
-                                        setEditCenco(e.target.value);
+                                        const cencoId = e.target.value;
+                                        setEditCenco(cencoId);
                                         setEditTurno("");
+                                        const cencoSel = cencos.find(c => c.cenco_id === cencoId);
+                                        if (cencoSel && !cencoSel.permite_turno_r) {
+                                            setEditPermiteR(false);
+                                        }
                                     }}
                                     disabled={!editDepartamento}
                                 >
@@ -1820,12 +1863,36 @@ function AdminEmpleados() {
                             </FormControl>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>Permite Rotativo</InputLabel>
+                                <Select 
+                                    label="Permite Rotativo" 
+                                    value={editPermiteR} 
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setEditPermiteR(val);
+                                        if (val === true) setEditTurno("");
+                                    }}
+                                    disabled={!editCenco || !cencos.find(c => c.cenco_id === editCenco)?.permite_turno_r}
+                                >
+                                    <MenuItem value={true}>
+                                        Si
+                                    </MenuItem>
+                                    <MenuItem value={false}>
+                                        No
+                                    </MenuItem>
+                                </Select>
+                                {(editPermiteR === "" || editPermiteR === null) && (
+                                    <FormHelperText>El Permite Rotativo es obligatorio</FormHelperText>
+                                )}
+                            </FormControl>
+
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Turno (Opcional)</InputLabel>
                                 <Select
                                     label="Turno (Opcional)"
                                     value={editTurno}
                                     onChange={(e) => setEditTurno(e.target.value)}
-                                    disabled={!editCenco}
+                                    disabled={!editCenco || editPermiteR === true}
                                 >
                                     <MenuItem value="">Sin Turno</MenuItem>
                                     {(() => {

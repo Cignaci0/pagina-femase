@@ -16,6 +16,7 @@ import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { asignarTurnosRotativos } from "../../../services/turnosRotativoService";
 
 function AdminAsignacionCiclica() {
 
@@ -47,6 +48,11 @@ function AdminAsignacionCiclica() {
     const [diasGenerados, setDiasGenerados] = useState([])
     const [horariosPorDia, setHorariosPorDia] = useState({})
     const [horarioGlobalCiclo, setHorarioGlobalCiclo] = useState("")
+
+    // Estados Vista Previa y Guardado
+    const [dialogPreview, setDialogPreview] = useState(false)
+    const [asignacionesGeneradas, setAsignacionesGeneradas] = useState([])
+    const [cargandoGuardado, setCargandoGuardado] = useState(false)
 
     // Carga de datos
     useEffect(() => {
@@ -112,6 +118,9 @@ function AdminAsignacionCiclica() {
 
         if (valor) {
             const empsFiltrados = empleados.filter(emp => {
+                // Solo mostrar si permite turnos rotativos
+                if (emp.permite_rotativo !== true || emp.turno !== null) return false;
+
                 // Revisar si el empleado pertenece al cenco seleccionado (cenco principal o cencos[])
                 if (emp.cenco?.cenco_id === valor) return true;
                 if (emp.cencos && emp.cencos.some(c => c.cenco_id === valor)) return true;
@@ -194,6 +203,90 @@ function AdminAsignacionCiclica() {
         setDiasGenerados([]);
         setHorariosPorDia({});
         setHorarioGlobalCiclo("");
+    }
+
+    // Lógica para generar la vista previa basada en la duración
+    const generarVistaPrevia = () => {
+        if (empleadosSeleccionados.length === 0) {
+            toast.error("Seleccione al menos un empleado");
+            return;
+        }
+
+        const diasCiclo = Object.keys(horariosPorDia).length;
+        if (diasCiclo < numeroCiclos) {
+        }
+
+        const fechaIni = new Date(fechaInicio + "T12:00:00");
+        let fechaFin = new Date(fechaIni);
+
+        // Calcular fecha fin según duración
+        if (duracion === "1 Mes") fechaFin.setMonth(fechaIni.getMonth() + 1);
+        else if (duracion === "3 Meses") fechaFin.setMonth(fechaIni.getMonth() + 3);
+        else if (duracion === "6 Meses") fechaFin.setMonth(fechaIni.getMonth() + 6);
+        else if (duracion === "1 Año") fechaFin.setFullYear(fechaIni.getFullYear() + 1);
+        else if (duracion === "2 Años") fechaFin.setFullYear(fechaIni.getFullYear() + 2);
+        else if (duracion === "3 Años") fechaFin.setFullYear(fechaIni.getFullYear() + 3);
+        else if (duracion === "4 Años") fechaFin.setFullYear(fechaIni.getFullYear() + 4);
+        else if (duracion === "5 Años") fechaFin.setFullYear(fechaIni.getFullYear() + 5);
+
+        const listaTemp = [];
+        let cursorFecha = new Date(fechaIni);
+        let diaContador = 0;
+
+        while (cursorFecha < fechaFin) {
+            const indexCiclo = diaContador % numeroCiclos;
+            const horarioId = horariosPorDia[indexCiclo];
+            const fechaStr = cursorFecha.toISOString().split('T')[0];
+
+            let horarioIdFinal = null;
+            let textoHorarioFinal = "Descanso";
+
+            if (horarioId) {
+                const hInfo = horarios.find(h => h.horario_id === horarioId);
+                if (hInfo) {
+                    horarioIdFinal = horarioId;
+                    textoHorarioFinal = `${hInfo.hora_entrada.slice(0, 5)} - ${hInfo.hora_salida.slice(0, 5)}`;
+                }
+            }
+
+            empleadosSeleccionados.forEach(emp => {
+                listaTemp.push({
+                    fecha: fechaStr,
+                    horario_id: horarioIdFinal,
+                    horarioTexto: textoHorarioFinal,
+                    empleado_id: emp.empleado_id,
+                    empleadoNombre: `${emp.nombres} ${emp.apellido_paterno}`
+                });
+            });
+
+            cursorFecha.setDate(cursorFecha.getDate() + 1);
+            diaContador++;
+        }
+
+        setAsignacionesGeneradas(listaTemp);
+        setDialogPreview(true);
+    }
+
+    const guardarTodo = async () => {
+        setCargandoGuardado(true);
+        try {
+            // Guardado secuencial para evitar saturar o por requerimiento de UX
+            for (const asig of asignacionesGeneradas) {
+                await asignarTurnosRotativos({
+                    empleado: asig.empleado_id,
+                    horario: asig.horario_id,
+                    fecha_inicio_turno: asig.fecha,
+                    fecha_fin_turno: asig.fecha
+                });
+            }
+            toast.success("Asignaciones insertadas correctamente");
+            setDialogPreview(false);
+            setDialogCiclos(false);
+        } catch (error) {
+            toast.error(error.message || "Error al insertar algunas asignaciones");
+        } finally {
+            setCargandoGuardado(false);
+        }
     }
 
     // Horarios filtrados por empresa seleccionada
@@ -362,6 +455,7 @@ function AdminAsignacionCiclica() {
                                 variant="contained"
                                 color="primary"
                                 onClick={abrirDefinirCiclos}
+                                disabled={empleadosSeleccionados.length === 0}
                             >
                                 Definir Ciclo(s)
                             </Button>
@@ -422,8 +516,55 @@ function AdminAsignacionCiclica() {
                     <Button onClick={cerrarDialogCiclos} color="error" sx={{ minWidth: 100 }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} onClick={cerrarDialogCiclos}>
-                        Guardar
+                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} onClick={generarVistaPrevia}>
+                        Ver Asignación
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Vista Previa */}
+            <Dialog open={dialogPreview} onClose={() => !cargandoGuardado && setDialogPreview(false)} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Vista Previa de Asignaciones</DialogTitle>
+                <DialogContent>
+                    {cargandoGuardado ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 5, gap: 2 }}>
+                            <CircularProgress />
+                            <Typography variant="h6">Insertando asignación...</Typography>
+                        </Box>
+                    ) : (
+                        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Horario</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Empleado</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {asignacionesGeneradas.map((asig, idx) => (
+                                        <TableRow key={idx}>
+                                            <TableCell>{asig.fecha}</TableCell>
+                                            <TableCell>{asig.horarioTexto}</TableCell>
+                                            <TableCell>{asig.empleadoNombre}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
+                    <Button onClick={() => setDialogPreview(false)} color="error" disabled={cargandoGuardado}>
+                        Atrás
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={guardarTodo}
+                        disabled={cargandoGuardado || asignacionesGeneradas.length === 0}
+                    >
+                        Confirmar y Guardar
                     </Button>
                 </DialogActions>
             </Dialog>

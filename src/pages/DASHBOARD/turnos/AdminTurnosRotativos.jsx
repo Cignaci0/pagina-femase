@@ -9,8 +9,6 @@ import {
 import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { getTurnosRotativos, CrearTurnosRotativos, ActualizarTurnosRotativos } from "../../../services/turnosRotativoService";
-
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -46,19 +44,6 @@ function AdminTurnosRotativos() {
     const [nocturnoEdit, setNocturnoEdit] = useState("")
     const [estadoEdit, setEstadoEdit] = useState("")
 
-    // Carga de datos
-    const cargarTurnosRotativos = async () => {
-        setCargando(true)
-        try {
-            const respuesta = await getTurnosRotativos()
-            setTurnosRotativos(Array.isArray(respuesta) ? respuesta : [])
-        } catch (err) {
-            toast.error(err.message);
-        } finally {
-            setCargando(false);
-        }
-    }
-
     const cargarEmpresas = async () => {
         try {
             const dataEmpresas = await obtenerEmpresas();
@@ -85,35 +70,6 @@ function AdminTurnosRotativos() {
         setEstadoEdit("")
     }
 
-    // Click crear
-    const clickCrear = async () => {
-        setCargando(true)
-        try {
-            await CrearTurnosRotativos(empresaCrear, nombreCrear, nocturnoCrear, estadoCrear)
-            cerrarCrear()
-            toast.success("Turno rotativo creado con éxito")
-            cargarTurnosRotativos()
-        } catch (err) {
-            toast.error(err.message);
-        } finally {
-            setCargando(false);
-        }
-    }
-
-    // Click editar
-    const clickEditar = async () => {
-        setCargando(true)
-        try {
-            await ActualizarTurnosRotativos(idEdit, empresaEdit, nombreEdit, nocturnoEdit, estadoEdit)
-            cerrarEditar()
-            toast.success("Turno rotativo actualizado con éxito")
-            cargarTurnosRotativos()
-        } catch (err) {
-            toast.error(err.message);
-        } finally {
-            setCargando(false);
-        }
-    }
 
     // Filtrado y paginacion
     const turnosFiltrados = turnosRotativos.filter((tr) => {

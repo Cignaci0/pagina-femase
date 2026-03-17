@@ -7,7 +7,8 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText,
     ListItemIcon,
-    Checkbox
+    Checkbox,
+    Tooltip
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices"
@@ -305,13 +306,24 @@ function AdminCentroCosto() {
     const abrirDialogTurnosHandler = (cenco) => {
         setCencoEnEdicion(cenco);
 
-        const asignados = (cenco.turnos || []).map(tAsignado => {
-            const tGlobal = turnos.find(t => t.turno_id === tAsignado.turno_id);
+        const empresaId = cenco.departamento?.empresa?.empresa_id;
+
+        // Filtramos todos los turnos por la empresa del cenco
+        const turnosDeEmpresa = turnos.filter(t => t.empresa?.empresa_id === empresaId);
+
+        const asignados = (cenco.turnos || []).filter(tAsignado => {
+            // Aseguramos que el turno asignado sea de la misma empresa (por seguridad)
+            // En un flujo normal, cenco.turnos ya viene de la base de datos
+            // Pero al buscar en turnosGlobales, usamos el filtro por empresa
+            const tGlobal = turnosDeEmpresa.find(t => t.turno_id === tAsignado.turno_id);
+            return tGlobal !== undefined;
+        }).map(tAsignado => {
+            const tGlobal = turnosDeEmpresa.find(t => t.turno_id === tAsignado.turno_id);
             return tGlobal || tAsignado;
         });
         setTurnosRight(asignados);
 
-        const disponibles = turnos.filter(tGlobal =>
+        const disponibles = turnosDeEmpresa.filter(tGlobal =>
             !asignados.some(tAsignado => tAsignado.turno_id === tGlobal.turno_id)
         );
         setTurnosLeft(disponibles);
@@ -362,39 +374,26 @@ function AdminCentroCosto() {
 
     const filtrarTurnos = (listaTurnos) => {
         return listaTurnos.filter((tur) => {
-            // 1. Filtro de hora
-            let coincideHora = true;
-            if (filtroHoraDesdeTurnos || filtroHoraHastaTurnos) {
-                const turnoEntrada = tur.horario?.hora_entrada; // formato "HH:MM:SS"
-                const turnoSalida = tur.horario?.hora_salida;
-                if (turnoEntrada && turnoSalida) {
-                    const timeEntrada = turnoEntrada.substring(0, 5);
-                    const timeSalida = turnoSalida.substring(0, 5);
+            const detalles = tur.detalle_turno || [];
 
-                    if (filtroHoraDesdeTurnos && timeEntrada !== filtroHoraDesdeTurnos) coincideHora = false;
-                    if (filtroHoraHastaTurnos && timeSalida !== filtroHoraHastaTurnos) coincideHora = false;
-                } else {
-                    coincideHora = false; // si no tiene hora pero estamos filtrando por hora
-                }
-            }
+            // Si no hay filtros, mostramos todo
+            if (!filtroHoraDesdeTurnos && !filtroHoraHastaTurnos && filtroDiasTurnos.length === 0) return true;
 
-            // 2. Filtro de días
-            let coincideDias = true;
-            if (filtroDiasTurnos.length > 0) {
-                if (!tur.dias || tur.dias.length === 0) {
-                    coincideDias = false; // no tiene días, por ende no matchea
-                } else {
-                    // revisamos si tiene TODOS los días que el usuario seleccionó en el filtro
-                    coincideDias = filtroDiasTurnos.every(diaBuscado =>
-                        tur.dias.some(td => td.semana && td.semana.cod_dia === diaBuscado)
-                    );
-                }
-            }
+            // El turno coincide si AL MENOS UN detalle coincide con los criterios activos simultáneamente
+            return detalles.some(d => {
+                const timeEntrada = d.horario?.hora_entrada?.substring(0, 5) || "";
+                const timeSalida = d.horario?.hora_salida?.substring(0, 5) || "";
+                const codDia = d.dia?.cod_dia;
 
-            return coincideHora && coincideDias;
+                const coincideHoraDesde = !filtroHoraDesdeTurnos || timeEntrada === filtroHoraDesdeTurnos;
+                const coincideHoraHasta = !filtroHoraHastaTurnos || timeSalida === filtroHoraHastaTurnos;
+                const coincideDia = filtroDiasTurnos.length === 0 || filtroDiasTurnos.includes(codDia);
+
+                return coincideHoraDesde && coincideHoraHasta && coincideDia;
+            });
         }).sort((a, b) => {
-            const horaA = a.horario?.hora_entrada || "";
-            const horaB = b.horario?.hora_entrada || "";
+            const horaA = a.detalle_turno?.[0]?.horario?.hora_entrada || "";
+            const horaB = b.detalle_turno?.[0]?.horario?.hora_entrada || "";
             return horaA.localeCompare(horaB);
         });
     };
@@ -432,24 +431,43 @@ function AdminCentroCosto() {
             {items.map((value, index) => {
                 const uniqueKey = `list-turno-${value.turno_id}-${index}`;
                 const labelId = `transfer-list-item-turno-${value.turno_id}-label`;
-                const textoHorario = value.horario
-                    ? `${value.horario.hora_entrada} - ${value.horario.hora_salida}`
-                    : (value.es_rotativo ? "Rotativo" : "Sin horario");
+
+                const tooltipContent = (
+                    <Box sx={{ p: 0.5 }}>
+                        {value.detalle_turno && value.detalle_turno.length > 0 ? (
+                            value.detalle_turno.map((d, i) => (
+                                <Typography key={i} variant="caption" display="block" sx={{ whiteSpace: 'nowrap' }}>
+                                    {d.dia?.nombre_dia}: {d.horario?.hora_entrada?.substring(0, 5)} - {d.horario?.hora_salida?.substring(0, 5)}
+                                </Typography>
+                            ))
+                        ) : (
+                            "Sin detalles de horario"
+                        )}
+                    </Box>
+                );
+
+                const secondaryText = value.detalle_turno && value.detalle_turno.length > 0
+                    ? `${value.detalle_turno[0].dia?.nombre_dia?.substring(0, 3)} ${value.detalle_turno[0].horario?.hora_entrada?.substring(0, 5)}...`
+                    : "Sin horario";
 
                 return (
-                    <ListItem key={uniqueKey} role="listitem" button onClick={handleToggleTurno(value)}>
-                        <ListItemIcon>
-                            <Checkbox
-                                checked={turnosSeleccionados.indexOf(value) !== -1}
-                                tabIndex={-1}
-                                disableRipple
-                                inputProps={{ 'aria-labelledby': labelId }}
+                    <Tooltip key={uniqueKey} title={tooltipContent} arrow placement="right">
+                        <ListItem role="listitem" button onClick={handleToggleTurno(value)}>
+                            <ListItemIcon>
+                                <Checkbox
+                                    checked={turnosSeleccionados.indexOf(value) !== -1}
+                                    tabIndex={-1}
+                                    disableRipple
+                                    inputProps={{ 'aria-labelledby': labelId }}
+                                />
+                            </ListItemIcon>
+                            <ListItemText
+                                id={labelId}
+                                primary={value.nombre}
+                                secondary={secondaryText}
                             />
-                        </ListItemIcon>
-                        <ListItemText
-                            id={labelId} primary={value.nombre} secondary={textoHorario}
-                        />
-                    </ListItem>
+                        </ListItem>
+                    </Tooltip>
                 );
             })}
         </List>
