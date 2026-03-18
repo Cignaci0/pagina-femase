@@ -6,7 +6,7 @@ import {
     IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
     Container, TablePagination, Stack, Checkbox,
     ListItemIcon,
-    FormHelperText, FormControlLabel
+    FormHelperText, FormControlLabel, Grid
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
@@ -53,6 +53,77 @@ function AdminAsignacionCiclica() {
     const [dialogPreview, setDialogPreview] = useState(false)
     const [asignacionesGeneradas, setAsignacionesGeneradas] = useState([])
     const [cargandoGuardado, setCargandoGuardado] = useState(false)
+
+    // Estados y helpers para Asignación Rotativa
+    const [tipoAsignacion, setTipoAsignacion] = useState("ciclica");
+    const [fechaFinRotativa, setFechaFinRotativa] = useState(new Date().toISOString().split('T')[0]);
+    const [horarioIdRotativa, setHorarioIdRotativa] = useState("");
+    const [duracionRotativa, setDuracionRotativa] = useState("1 día");
+    const [cargandoEnvio, setCargandoEnvio] = useState(false);
+
+    const handleCambioFechaInicioRotativa = (nuevaFecha) => {
+        setFechaInicio(nuevaFecha);
+        actualizarFechaFinRotativa(nuevaFecha, duracionRotativa);
+    }
+
+    const handleCambioDuracionRotativa = (nuevaDuracion) => {
+        setDuracionRotativa(nuevaDuracion);
+        if (nuevaDuracion !== "Personalizado") {
+            actualizarFechaFinRotativa(fechaInicio, nuevaDuracion);
+        }
+    }
+
+    const actualizarFechaFinRotativa = (inicio, seleccion) => {
+        const date = new Date(inicio + "T12:00:00");
+        if (seleccion === "1 día") date.setDate(date.getDate());
+        else if (seleccion === "5 días") date.setDate(date.getDate() + 5);
+        else if (seleccion === "7 días") date.setDate(date.getDate() + 7);
+        else if (seleccion === "30 días") date.setDate(date.getDate() + 30);
+        else if (seleccion === "12 meses") date.setFullYear(date.getFullYear() + 1);
+        else if (seleccion === "5 años") date.setFullYear(date.getFullYear() + 5);
+        setFechaFinRotativa(date.toISOString().split('T')[0]);
+    }
+
+    const formatHorarioInfo = (h) => {
+        if (!h) return "Descanso";
+        const entrada = h.hora_entrada?.slice(0, 5) || "??:??";
+        const salida = h.hora_salida?.slice(0, 5) || "??:??";
+        let minCol = 0;
+        if (h.colacion) {
+            const parts = h.colacion.split(':');
+            if (parts.length >= 2) {
+                minCol = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+            }
+        }
+        return `${entrada} - ${salida} / col: ${minCol}`;
+    }
+
+    const handleGuardarRotativa = async () => {
+        if (empleadosSeleccionados.length === 0) {
+            toast.error("Seleccione al menos un empleado");
+            return;
+        }
+        setCargandoEnvio(true);
+        try {
+            const horarioEnviar = horarioIdRotativa === "descanso" ? null : horarioIdRotativa;
+            
+            for (const emp of empleadosSeleccionados) {
+                await asignarTurnosRotativos({
+                    empleado: emp.empleado_id,
+                    horario: horarioEnviar,
+                    fecha_inicio_turno: fechaInicio,
+                    fecha_fin_turno: fechaFinRotativa
+                });
+            }
+            toast.success("Turnos rotativos asignados exitosamente");
+            setEmpleadosSeleccionados([]);
+            setHorarioIdRotativa("");
+        } catch (error) {
+            toast.error(error.message || "Error al asignar asignaciones rotativas");
+        } finally {
+            setCargandoEnvio(false);
+        }
+    }
 
     // Carga de datos
     useEffect(() => {
@@ -296,7 +367,7 @@ function AdminAsignacionCiclica() {
         <>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">
-                    Admin Asignación Cíclica Turnos
+                    Admin Turnos Rotativos
                 </Typography>
             </Box>
 
@@ -400,68 +471,147 @@ function AdminAsignacionCiclica() {
                         </Box>
                     </Box>
                 </Box>
+                <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+                    <Button 
+                        variant={tipoAsignacion === 'ciclica' ? "contained" : "outlined"} 
+                        size="small" 
+                        onClick={() => setTipoAsignacion('ciclica')}
+                    >
+                        Asignación Cíclica
+                    </Button>
+                    <Button 
+                        variant={tipoAsignacion === 'rotativa' ? "contained" : "outlined"} 
+                        size="small" 
+                        onClick={() => setTipoAsignacion('rotativa')}
+                    >
+                        Asignación Rotativa
+                    </Button>
+                </Box>  
 
-                {/* Inicialización de ciclo(s) */}
-                <Box sx={{ mt: 3, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                        Inicialización de ciclo(s)
-                    </Typography>
-                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                        <Box>
-                            <Typography variant="body2" sx={{ mb: 0.5 }}>Fecha inicio</Typography>
-                            <TextField
-                                type="date"
-                                size="small"
-                                value={fechaInicio}
-                                onChange={(e) => setFechaInicio(e.target.value)}
-                                sx={{ minWidth: 180 }}
-                            />
-                        </Box>
-                        <Box>
-                            <Typography variant="body2" sx={{ mb: 0.5 }}>Número de ciclos</Typography>
-                            <FormControl size="small" sx={{ minWidth: 150 }}>
-                                <Select
-                                    value={numeroCiclos}
-                                    onChange={(e) => setNumeroCiclos(e.target.value)}
+                {tipoAsignacion === 'ciclica' && (
+                    <Box sx={{ mt: 3, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                            Inicialización de ciclo(s)
+                        </Typography>
+                        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                            <Box>
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>Fecha inicio</Typography>
+                                <TextField
+                                    type="date"
+                                    size="small"
+                                    value={fechaInicio}
+                                    onChange={(e) => setFechaInicio(e.target.value)}
+                                    sx={{ minWidth: 180 }}
+                                />
+                            </Box>
+                            <Box>
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>Número de ciclos</Typography>
+                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                    <Select
+                                        value={numeroCiclos}
+                                        onChange={(e) => setNumeroCiclos(e.target.value)}
+                                    >
+                                        <MenuItem value={7}>1 Semana</MenuItem>
+                                        <MenuItem value={8}>8 dias</MenuItem>
+                                        <MenuItem value={14}>2 semanas</MenuItem>
+                                        <MenuItem value={21}>3 semanas</MenuItem>
+                                        <MenuItem value={28}>4 semanas</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                            <Box>
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>Duración</Typography>
+                                <FormControl size="small" sx={{ minWidth: 130 }}>
+                                    <Select
+                                        value={duracion}
+                                        onChange={(e) => setDuracion(e.target.value)}
+                                    >
+                                        <MenuItem value="1 Mes">1 Mes</MenuItem>
+                                        <MenuItem value="3 Meses">3 Meses</MenuItem>
+                                        <MenuItem value="6 Meses">6 Meses</MenuItem>
+                                        <MenuItem value="1 Año">1 Año</MenuItem>
+                                        <MenuItem value="2 Años">2 Años</MenuItem>
+                                        <MenuItem value="3 Años">3 Años</MenuItem>
+                                        <MenuItem value="4 Años">4 Años</MenuItem>
+                                        <MenuItem value="5 Años">5 Años</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-end', pt: 2.5 }}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={abrirDefinirCiclos}
+                                    disabled={empleadosSeleccionados.length === 0}
                                 >
-                                    <MenuItem value={7}>1 Semana</MenuItem>
-                                    <MenuItem value={8}>8 dias</MenuItem>
-                                    <MenuItem value={14}>2 semanas</MenuItem>
-                                    <MenuItem value={21}>3 semanas</MenuItem>
-                                    <MenuItem value={28}>4 semanas</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                        <Box>
-                            <Typography variant="body2" sx={{ mb: 0.5 }}>Duración</Typography>
-                            <FormControl size="small" sx={{ minWidth: 130 }}>
-                                <Select
-                                    value={duracion}
-                                    onChange={(e) => setDuracion(e.target.value)}
-                                >
-                                    <MenuItem value="1 Mes">1 Mes</MenuItem>
-                                    <MenuItem value="3 Meses">3 Meses</MenuItem>
-                                    <MenuItem value="6 Meses">6 Meses</MenuItem>
-                                    <MenuItem value="1 Año">1 Año</MenuItem>
-                                    <MenuItem value="2 Años">2 Años</MenuItem>
-                                    <MenuItem value="3 Años">3 Años</MenuItem>
-                                    <MenuItem value="4 Años">4 Años</MenuItem>
-                                    <MenuItem value="5 Años">5 Años</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-end', pt: 2.5 }}>
+                                    Definir Ciclo(s)
+                                </Button>
+                            </Box>
+                        </Stack>
+                    </Box>
+                )}
+
+                {tipoAsignacion === 'rotativa' && (
+                    <Box sx={{ mt: 3, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                            Asignación Rotativa
+                        </Typography>
+                        <Grid container spacing={3}>
+                            
+                            <Grid item xs={12} md={3}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de inicio</Typography>
+                                <TextField
+                                    fullWidth
+                                    type="date"
+                                    size="small"
+                                    value={fechaInicio}
+                                    onChange={(e) => handleCambioFechaInicioRotativa(e.target.value)}
+                                    sx={{ bgcolor: '#fff' }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de término</Typography>
+                                <TextField
+                                    fullWidth
+                                    type="date"
+                                    size="small"
+                                    value={fechaFinRotativa}
+                                    onChange={(e) => setFechaFinRotativa(e.target.value)}
+                                    sx={{ bgcolor: '#fff' }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <FormControl fullWidth size="small">
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Horario</Typography>
+                                    <Select
+                                        value={horarioIdRotativa}
+                                        onChange={(e) => setHorarioIdRotativa(e.target.value)}
+                                        sx={{ bgcolor: '#fff' }}
+                                    >
+                                        <MenuItem value=""><em>Seleccionar horario</em></MenuItem>
+                                        <MenuItem value="descanso"><em>Descanso</em></MenuItem>
+                                        {horariosFiltrados.map((h) => (
+                                            <MenuItem key={h.horario_id} value={h.horario_id}>
+                                                {formatHorarioInfo(h)}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
+                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-start', pt: 2 }}>
                             <Button
-                                variant="contained"
                                 color="primary"
-                                onClick={abrirDefinirCiclos}
-                                disabled={empleadosSeleccionados.length === 0}
+                                variant="contained"
+                                onClick={handleGuardarRotativa}
+                                disabled={cargandoEnvio || horarioIdRotativa === "" || empleadosSeleccionados.length === 0}
+                                startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}
                             >
-                                Definir Ciclo(s)
+                                {cargandoEnvio ? "Guardando..." : "Guardar Asignación Rotativa"}
                             </Button>
                         </Box>
-                    </Stack>
-                </Box>
+                    </Box>
+                )}
             </Paper>
 
             {/* Dialog definir ciclos */}

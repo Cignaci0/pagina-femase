@@ -22,8 +22,6 @@ export const getTurnosRotativos = async () => {
 }
 
 
-
-
 export const asignarTurnosRotativos = async (datosAsignar) => {
     const peticion = await fetch(`${API_URL}/asignacion-turno-rotativo`, {
         method: "POST",
@@ -41,6 +39,23 @@ export const asignarTurnosRotativos = async (datosAsignar) => {
     const datos = await peticion.json();
     if (!peticion.ok) {
         throw new Error(datos.message || "Error al asignar turnos rotativos");
+    }
+    return datos;
+}
+
+export const actualizarTurnoRotativo = async (id, horario) => {
+    const peticion = await fetch(`${API_URL}/asignacion-turno-rotativo/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            horario: horario
+        }),
+    });
+    const datos = await peticion.json();
+    if (!peticion.ok) {
+        throw new Error(datos.message || "Error al actualizar turnos rotativos");
     }
     return datos;
 }

@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import { getTurnosRotativos } from "../../../services/turnosRotativoService";
+import { getTurnosRotativos, actualizarTurnoRotativo, asignarTurnosRotativos } from "../../../services/turnosRotativoService";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { Grid } from "@mui/material";
@@ -147,7 +147,33 @@ function AdminTurnosRotativosAsignacion() {
         setFechaFin(date.toISOString().split('T')[0]);
     }
 
-   
+    const handleGuardar = async () => {
+        setCargandoEnvio(true);
+        try {
+            const horarioEnviar = horarioId === "descanso" ? null : horarioId;
+
+            if (asignacionSeleccionada) {
+                await actualizarTurnoRotativo(asignacionSeleccionada.id, horarioEnviar);
+                toast.success("Turno actualizado exitosamente");
+            } else {
+                await asignarTurnosRotativos({
+                    empleado: empleadoSeleccionado.empleado_id,
+                    horario: horarioEnviar,
+                    fecha_inicio_turno: fechaInicio,
+                    fecha_fin_turno: fechaFin
+                });
+                toast.success("Turno asignado exitosamente");
+            }
+            await cargarDatos();
+            setDialogAsignar(false);
+            setAsignacionSeleccionada(null);
+        } catch (error) {
+            toast.error(error.message || "Error al guardar el turno");
+        } finally {
+            setCargandoEnvio(false);
+        }
+    };
+
     // Filtrado y paginacion
     const deptosFiltrados = empresasFiltro
         ? departamentos.filter(d => d.empresa?.empresa_id === empresasFiltro)
@@ -198,7 +224,7 @@ function AdminTurnosRotativosAsignacion() {
             {/* Titulo */}
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">
-                    Admin Turnos Rotativos Asignación
+                    Admin Turnos Rotativos
                 </Typography>
             </Box>
 
@@ -421,7 +447,8 @@ function AdminTurnosRotativosAsignacion() {
                                         sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}
                                         onClick={() => {
                                             if (asignacionSeleccionada) {
-                                                setHorarioId(asignacionSeleccionada.horario?.horario_id || "");
+                                                const hid = asignacionSeleccionada.horario ? asignacionSeleccionada.horario.horario_id : "descanso";
+                                                setHorarioId(hid);
                                                 setDuracion("Personalizado");
                                                 setFechaInicio(asignacionSeleccionada.fecha_inicio_turno?.split('T')[0]);
                                                 setFechaFin(asignacionSeleccionada.fecha_fin_turno?.split('T')[0]);
@@ -434,7 +461,7 @@ function AdminTurnosRotativosAsignacion() {
                                             setDialogAsignar(true);
                                         }}
                                     >
-                                        Asignar / Remplazar Turno
+                                        Editar Turno Rotativo
                                     </Button>
                                     <Button variant="outlined" color="error" sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}>Eliminar Seleccionado(S)</Button>
                                 </Box>
@@ -447,35 +474,26 @@ function AdminTurnosRotativosAsignacion() {
                 </DialogActions>
             </Dialog>
 
+
+
+
             {/* Dialog Modificar/reemplazar asignacion turno */}
-            <Dialog open={dialogAsignar} onClose={() => !cargandoEnvio && setDialogAsignar(false)} maxWidth={false} 
+            <Dialog open={dialogAsignar} onClose={() => !cargandoEnvio && setDialogAsignar(false)} maxWidth={false}
                 PaperProps={{
                     sx: {
-                        width: '100%',    
-                        maxWidth: '1050px', 
+                        width: '100%',
+                        maxWidth: '600px',
                     }
                 }}>
                 <DialogTitle sx={{ bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd', py: 2 }}>
-                    <Typography variant="h6"  fontWeight="bold">
-                        Modificar/Reemplazar Asignación Turno
+                    <Typography variant="h6" fontWeight="bold">
+                        Editar Turno Rotativo
                     </Typography>
                 </DialogTitle>
                 <DialogContent sx={{ p: 4 }}>
                     {empleadoSeleccionado && (
                         <Grid container spacing={3} sx={{ mt: 1 }}>
                             {/* Fila 1: Info Empleado */}
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Rut empleado</Typography>
-                                <Paper variant="outlined" sx={{ p: 1, bgcolor: '#f9f9f9' }}>
-                                    <Typography variant="body2">{empleadoSeleccionado.run}</Typography>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Nombre</Typography>
-                                <Paper variant="outlined" sx={{ p: 1, bgcolor: '#f9f9f9' }}>
-                                    <Typography variant="body2">{`${empleadoSeleccionado.nombres} ${empleadoSeleccionado.apellido_paterno}`}</Typography>
-                                </Paper>
-                            </Grid>
                             <Grid item xs={12} md={4}>
                                 <Typography variant="caption" color="text.secondary" fontWeight="bold">Empresa</Typography>
                                 <Paper variant="outlined" sx={{ p: 1, bgcolor: '#f9f9f9' }}>
@@ -502,52 +520,20 @@ function AdminTurnosRotativosAsignacion() {
                                     <Typography variant="body2">{empleadoSeleccionado.cenco?.nombre_cenco || '-'}</Typography>
                                 </Paper>
                             </Grid>
-                            <Grid item xs={12} md={5}></Grid>
-
-                            {/* Fila 3: Duracion, Inicio, Fin, Horario */}
-                            <Grid item xs={12} md={2}>
-                                <FormControl sx={{width: '100%'}} size="small">
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Duración</Typography>
-                                    <Select
-                                        value={duracion}
-                                        onChange={(e) => handleCambioDuracion(e.target.value)}
-                                        sx={{ bgcolor: '#fff', minWidth: '150px', maxWidth: '150px' }}
-                                    >
-                                        <MenuItem value="1 día">1 día</MenuItem>
-                                        <MenuItem value="5 días">5 días</MenuItem>
-                                        <MenuItem value="7 días">7 días</MenuItem>
-                                        <MenuItem value="30 días">30 días</MenuItem>
-                                        <MenuItem value="12 meses">12 meses</MenuItem>
-                                        <MenuItem value="5 años">5 años</MenuItem>
-                                        <MenuItem value="Personalizado">Personalizado</MenuItem>
-                                    </Select>
-                                </FormControl>
+                            {/* Fila 2: Rut, Nombre y Horario */}
+                            <Grid item xs={12} md={3}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Rut empleado</Typography>
+                                <Paper variant="outlined" sx={{ p: 1, bgcolor: '#f9f9f9', minHeight: '38px' }}>
+                                    <Typography variant="body2">{empleadoSeleccionado.run}</Typography>
+                                </Paper>
                             </Grid>
-                            <Grid item xs={12} md={2}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de inicio</Typography>
-                                <TextField
-                                    fullWidth
-                                    type="date"
-                                    size="small"
-                                    value={fechaInicio}
-                                    onChange={(e) => handleCambioFechaInicio(e.target.value)}
-                                    sx={{ bgcolor: '#fff' }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={2}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de término</Typography>
-                                <TextField
-                                    fullWidth
-                                    type="date"
-                                    size="small"
-                                    value={fechaFin}
-                                    onChange={(e) => setFechaFin(e.target.value)}
-                                    disabled={duracion !== "Personalizado"}
-                                    sx={{ bgcolor: '#fff' }}
-                                />
-                            </Grid>
-
                             <Grid item xs={12} md={5}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Nombre</Typography>
+                                <Paper variant="outlined" sx={{ p: 1, bgcolor: '#f9f9f9', minHeight: '38px' }}>
+                                    <Typography variant="body2">{`${empleadoSeleccionado.nombres} ${empleadoSeleccionado.apellido_paterno}`}</Typography>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={12} md={4}>
                                 <FormControl fullWidth size="small">
                                     <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Horario</Typography>
                                     <Select
@@ -556,6 +542,7 @@ function AdminTurnosRotativosAsignacion() {
                                         sx={{ bgcolor: '#fff' }}
                                     >
                                         <MenuItem value=""><em>Seleccionar horario</em></MenuItem>
+                                        <MenuItem value="descanso"><em>Descanso</em></MenuItem>
                                         {horarios
                                             .filter(h => h.empresa?.empresa_id === empleadoSeleccionado.empresa?.empresa_id)
                                             .map((h) => (
@@ -575,10 +562,10 @@ function AdminTurnosRotativosAsignacion() {
                         Cancelar
                     </Button>
                     <Button
-                        
+                        onClick={handleGuardar}
                         color="primary"
                         variant="contained"
-                        disabled={cargandoEnvio || !horarioId}
+                        disabled={cargandoEnvio || horarioId === ""}
                         startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}
                     >
                         {cargandoEnvio ? "Guardando..." : "Guardar"}

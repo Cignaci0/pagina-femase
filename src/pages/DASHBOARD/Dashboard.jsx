@@ -100,8 +100,8 @@ const COMPONENTES_VISTA = {
   // TURNOS
   "Gestion turnos": <AdminTurnos />, //
   "Turnos Rotativos": <AdminTurnosRotativos />,//
-  "Rotativos - Asignacion": <AdminTurnosRotativosAsignacion />,//
-  "Asignacion Ciclica": <AdminAsignacionCiclica />,//
+  "Admin Turnos Rotativos": <AdminTurnosRotativosAsignacion />,//
+  "Asignacion turno Rotativo": <AdminAsignacionCiclica />,//
   "Horarios": <AdminHorarios />, //
 
   // AUDITORIA
