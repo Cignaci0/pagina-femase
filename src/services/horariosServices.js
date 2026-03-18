@@ -23,7 +23,7 @@ export const obtenerHorarios = async () => {
 };
 
 //Crear horario
-export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgura_mins, colacion) => {
+export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgura_mins, colacion, nocturno) => {
   const peticion = await fetch(`${API_URL}/horario/crear`, {
     method: "POST",
     headers: {
@@ -35,7 +35,8 @@ export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgur
       hora_salida: hora_salida,
       empresa: empresa_id,
       holgura_mins: holgura_mins,
-      colacion: colacion
+      colacion: colacion,
+      nocturno:nocturno
     }),
   });
 
@@ -47,7 +48,7 @@ export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgur
 };
 
 //Actualizar horario
-export const actualizarHorario = async (editId, hora_entrada, hora_salida, empresa, holgura_mins, colacion) => {
+export const actualizarHorario = async (editId, hora_entrada, hora_salida, empresa, holgura_mins, colacion, nocturno) => {
   const peticion = await fetch(`${API_URL}/horario/${editId}`, {
     method: "PATCH",
     headers: {
@@ -59,7 +60,8 @@ export const actualizarHorario = async (editId, hora_entrada, hora_salida, empre
       hora_salida: hora_salida,
       empresa: empresa,
       holgura_mins: holgura_mins,
-      colacion: colacion
+      colacion: colacion,
+      nocturno:nocturno
     }),
   });
 

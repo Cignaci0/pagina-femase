@@ -103,23 +103,57 @@ function AdminAsignacionCiclica() {
             toast.error("Seleccione al menos un empleado");
             return;
         }
+        if (!fechaInicio || !fechaFinRotativa) {
+            toast.error("Seleccione fecha de inicio y término");
+            return;
+        }
         setCargandoEnvio(true);
         try {
+            const horarioSeleccionado = horarioIdRotativa === "descanso" || !horarioIdRotativa
+                ? null 
+                : horarios.find(h => String(h.horario_id) === String(horarioIdRotativa));
+            
+            // Evaluamos si es nocturno de forma más estricta pero abarcando posibles tipos de datos devueltos por la BD
+            const esNocturno = horarioSeleccionado?.nocturno === true || 
+                               horarioSeleccionado?.nocturno === 1 || 
+                               horarioSeleccionado?.nocturno === "1" || 
+                               horarioSeleccionado?.nocturno === "true" ||
+                               String(horarioSeleccionado?.nocturno).toLowerCase() === "si";
+
+            console.log("Horario Seleccionado:", horarioSeleccionado, "/ Es Nocturno:", esNocturno);
+
             const horarioEnviar = horarioIdRotativa === "descanso" ? null : horarioIdRotativa;
             
+            const start = new Date(fechaInicio + "T12:00:00");
+            const end = new Date(fechaFinRotativa + "T12:00:00");
+
             for (const emp of empleadosSeleccionados) {
-                await asignarTurnosRotativos({
-                    empleado: emp.empleado_id,
-                    horario: horarioEnviar,
-                    fecha_inicio_turno: fechaInicio,
-                    fecha_fin_turno: fechaFinRotativa
-                });
+                let currentDate = new Date(start);
+                while (currentDate <= end) {
+                    const fechaInicioTurnoStr = currentDate.toISOString().split('T')[0];
+                    let fechaFinTurnoStr = fechaInicioTurnoStr;
+
+                    if (esNocturno) {
+                        const nextDate = new Date(currentDate);
+                        nextDate.setDate(nextDate.getDate() + 1);
+                        fechaFinTurnoStr = nextDate.toISOString().split('T')[0];
+                    }
+
+                    await asignarTurnosRotativos({
+                        empleado: emp.empleado_id,
+                        horario: horarioEnviar,
+                        fecha_inicio_turno: fechaInicioTurnoStr,
+                        fecha_fin_turno: fechaFinTurnoStr
+                    });
+
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
             }
-            toast.success("Turnos rotativos asignados exitosamente");
+            toast.success("Turnos personales asignados exitosamente");
             setEmpleadosSeleccionados([]);
             setHorarioIdRotativa("");
         } catch (error) {
-            toast.error(error.message || "Error al asignar asignaciones rotativas");
+            toast.error(error.message || "Error al asignar asignaciones personales");
         } finally {
             setCargandoEnvio(false);
         }
@@ -484,7 +518,7 @@ function AdminAsignacionCiclica() {
                         size="small" 
                         onClick={() => setTipoAsignacion('rotativa')}
                     >
-                        Asignación Rotativa
+                        Asignación Personalizada
                     </Button>
                 </Box>  
 
@@ -607,7 +641,7 @@ function AdminAsignacionCiclica() {
                                 disabled={cargandoEnvio || horarioIdRotativa === "" || empleadosSeleccionados.length === 0}
                                 startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}
                             >
-                                {cargandoEnvio ? "Guardando..." : "Guardar Asignación Rotativa"}
+                                {cargandoEnvio ? "Guardando..." : "Guardar Asignación Personalizada"}
                             </Button>
                         </Box>
                     </Box>
