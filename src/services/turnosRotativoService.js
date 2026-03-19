@@ -1,9 +1,9 @@
 const API_URL = "http://localhost:3000";
 
 
-export const getTurnosRotativos = async () => {
+export const getTurnosRotativos = async (idEmpleado, page = 1) => {
     try {
-        const response = await fetch(`${API_URL}/asignacion-turno-rotativo`, {
+        const response = await fetch(`${API_URL}/asignacion-turno-rotativo/${idEmpleado}?page=${page}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -20,7 +20,6 @@ export const getTurnosRotativos = async () => {
         return [];
     }
 }
-
 
 export const asignarTurnosRotativos = async (datosAsignar) => {
     const peticion = await fetch(`${API_URL}/asignacion-turno-rotativo`, {

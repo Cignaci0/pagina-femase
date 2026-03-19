@@ -7,7 +7,8 @@ import {
     Container, Alert, TablePagination, Stack,
     FormHelperText,
     Radio,
-    Checkbox
+    Checkbox,
+    Pagination
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
@@ -39,7 +40,10 @@ function AdminTurnosRotativosAsignacion() {
     const [empleados, setEmpleados] = useState([])
     const [departamentos, setDepartamentos] = useState([])
     const [cencos, setCencos] = useState([])
-    const [asignaciones, setAsignaciones] = useState([])
+    const [asignacionesEmpleado, setAsignacionesEmpleado] = useState([])
+    const [cargandoHistorial, setCargandoHistorial] = useState(false)
+    const [historialPage, setHistorialPage] = useState(1)
+    const [historialTotalPages, setHistorialTotalPages] = useState(1)
     const [horarios, setHorarios] = useState([])
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null)
 
@@ -80,9 +84,8 @@ function AdminTurnosRotativosAsignacion() {
     const cargarDatos = async () => {
         setCargando(true)
         try {
-            const [dataEmpresas, dataAsignaciones, dataDeptos, dataCencos, dataEmpleados, dataHorarios] = await Promise.all([
+            const [dataEmpresas, dataDeptos, dataCencos, dataEmpleados, dataHorarios] = await Promise.all([
                 obtenerEmpresas(),
-                getTurnosRotativos(),
                 obtenerDepartamentos(),
                 obtenerCentroCostos(),
                 obtenerEmpleados(),
@@ -90,7 +93,6 @@ function AdminTurnosRotativosAsignacion() {
             ]);
 
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
-            setAsignaciones(Array.isArray(dataAsignaciones) ? dataAsignaciones : []);
             setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
 
             // Filtrar empleados que permiten turnos rotativos
@@ -164,7 +166,11 @@ function AdminTurnosRotativosAsignacion() {
                 });
                 toast.success("Turno asignado exitosamente");
             }
-            await cargarDatos();
+            if (empleadoSeleccionado) {
+                const updatedData = await getTurnosRotativos(empleadoSeleccionado.empleado_id, historialPage);
+                setAsignacionesEmpleado(updatedData.data ? updatedData.data : []);
+                setHistorialTotalPages(updatedData.lastPage || 1);
+            }
             setDialogAsignar(false);
             setAsignacionSeleccionada(null);
         } catch (error) {
@@ -197,9 +203,37 @@ function AdminTurnosRotativosAsignacion() {
         return coincideTexto && coincideEmpresa && coincideDepto && coincideCenco;
     });
 
-    const asignacionesEmpleado = empleadoSeleccionado
-        ? asignaciones.filter(asig => asig.empleado?.empleado_id === empleadoSeleccionado.empleado_id)
-        : [];
+    const handleAbrirAsignacion = async (emp) => {
+        setEmpleadoSeleccionado(emp);
+        setEditar(true);
+        setCargandoHistorial(true);
+        setHistorialPage(1);
+        try {
+            const result = await getTurnosRotativos(emp.empleado_id, 1);
+            setAsignacionesEmpleado(result.data ? result.data : []);
+            setHistorialTotalPages(result.lastPage || 1);
+        } catch (error) {
+            toast.error("Error al cargar el historial del empleado");
+            setAsignacionesEmpleado([]);
+        } finally {
+            setCargandoHistorial(false);
+        }
+    };
+
+    const handleChangeHistorialPage = async (event, newPage) => {
+        setHistorialPage(newPage);
+        setCargandoHistorial(true);
+        try {
+            const result = await getTurnosRotativos(empleadoSeleccionado.empleado_id, newPage);
+            setAsignacionesEmpleado(result.data ? result.data : []);
+            setHistorialTotalPages(result.lastPage || 1);
+        } catch (error) {
+            toast.error("Error al cargar la página del historial");
+            setAsignacionesEmpleado([]);
+        } finally {
+            setCargandoHistorial(false);
+        }
+    };
 
     const handleChangePage = (event, newPage) => {
         setPagina(newPage);
@@ -356,10 +390,7 @@ function AdminTurnosRotativosAsignacion() {
                                                 <TableCell align="center">
                                                     <Button
                                                         variant="contained"
-                                                        onClick={() => {
-                                                            setEmpleadoSeleccionado(emp);
-                                                            setEditar(true);
-                                                        }}
+                                                        onClick={() => handleAbrirAsignacion(emp)}
                                                         sx={{
                                                             fontSize: "0.7rem", lineHeight: 1, color: "black", p: 0.9, bgcolor: "rgb(241, 241, 241)"
                                                         }}
@@ -408,7 +439,16 @@ function AdminTurnosRotativosAsignacion() {
                                         </TableHead>
 
                                         <TableBody>
-                                            {asignacionesEmpleado.length === 0 ? (
+                                            {cargandoHistorial ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} align="center">
+                                                        <Box sx={{ py: 3 }}>
+                                                            <CircularProgress size={30} />
+                                                            <Typography variant="body2" sx={{ mt: 1 }}>Cargando historial...</Typography>
+                                                        </Box>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : asignacionesEmpleado.length === 0 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={5} align="center">Este empleado no posee asignaciones</TableCell>
                                                 </TableRow>
@@ -440,6 +480,18 @@ function AdminTurnosRotativosAsignacion() {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+                                
+                                {historialTotalPages > 1 && (
+                                    <Box display="flex" justifyContent="center" mt={2}>
+                                        <Pagination
+                                            count={historialTotalPages}
+                                            page={historialPage}
+                                            onChange={handleChangeHistorialPage}
+                                            color="primary"
+                                        />
+                                    </Box>
+                                )}
+
                                 <Box display={"flex"} gap={2} mt={2}>
                                     <Button
                                         variant="contained"

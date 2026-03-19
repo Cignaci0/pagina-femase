@@ -66,6 +66,7 @@ import AdminAccesos from "../DASHBOARD/configuracion de sistema/AdminAccesos";
 
 // MARCAS ASISTENCIA
 import AdminTiposMarcasManuales from "../DASHBOARD/marcas asistencia/AdminTiposMarcasManuales";
+import AdminMarcas from "../DASHBOARD/marcas asistencia/AdminMarcas";
 
 // REPORTES/INFORMES
 import ReporteUsuarios from "../DASHBOARD/reportes informes/ReporteUsuarios";
@@ -132,6 +133,7 @@ const COMPONENTES_VISTA = {
 
   // MARCAS ASISTENCIA
   "Tipos Marcas Manuales": <AdminTiposMarcasManuales />,
+  "Admin Marcas": <AdminMarcas />,
 
   // REPORTES/INFORMES
   "Reporte Usuarios": <ReporteUsuarios />,

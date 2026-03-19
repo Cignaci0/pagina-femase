@@ -345,18 +345,26 @@ function AdminAsignacionCiclica() {
 
             let horarioIdFinal = null;
             let textoHorarioFinal = "Descanso";
+            let fechaFinStr = fechaStr;
 
             if (horarioId) {
                 const hInfo = horarios.find(h => h.horario_id === horarioId);
                 if (hInfo) {
                     horarioIdFinal = horarioId;
                     textoHorarioFinal = `${hInfo.hora_entrada.slice(0, 5)} - ${hInfo.hora_salida.slice(0, 5)}`;
+                    const esNocturno = hInfo.nocturno === true
+                    if (esNocturno) {
+                        const nextDate = new Date(cursorFecha);
+                        nextDate.setDate(nextDate.getDate() + 1);
+                        fechaFinStr = nextDate.toISOString().split('T')[0];
+                    }
                 }
             }
 
             empleadosSeleccionados.forEach(emp => {
                 listaTemp.push({
                     fecha: fechaStr,
+                    fecha_fin: fechaFinStr,
                     horario_id: horarioIdFinal,
                     horarioTexto: textoHorarioFinal,
                     empleado_id: emp.empleado_id,
@@ -381,7 +389,7 @@ function AdminAsignacionCiclica() {
                     empleado: asig.empleado_id,
                     horario: asig.horario_id,
                     fecha_inicio_turno: asig.fecha,
-                    fecha_fin_turno: asig.fecha
+                    fecha_fin_turno: asig.fecha_fin
                 });
             }
             toast.success("Asignaciones insertadas correctamente");
@@ -720,7 +728,8 @@ function AdminAsignacionCiclica() {
                             <Table stickyHeader size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Fecha Inicio</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Fecha Fin</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold' }}>Horario</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold' }}>Empleado</TableCell>
                                     </TableRow>
@@ -729,6 +738,7 @@ function AdminAsignacionCiclica() {
                                     {asignacionesGeneradas.map((asig, idx) => (
                                         <TableRow key={idx}>
                                             <TableCell>{asig.fecha}</TableCell>
+                                            <TableCell>{asig.fecha_fin}</TableCell>
                                             <TableCell>{asig.horarioTexto}</TableCell>
                                             <TableCell>{asig.empleadoNombre}</TableCell>
                                         </TableRow>

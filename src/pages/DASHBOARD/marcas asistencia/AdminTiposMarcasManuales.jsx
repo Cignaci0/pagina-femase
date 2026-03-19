@@ -56,7 +56,6 @@ function AdminTipoMarcasManuales() {
             toast.error("Por favor complete todos los campos");
             return;
         }
-
         try {
             await crearTipoMarca(nuevoNombre, nuevoVigente, nuevoOrdenDespliegue);
             setOpen(false)
@@ -77,7 +76,6 @@ function AdminTipoMarcasManuales() {
             toast.error("Por favor complete todos los campos");
             return;
         }
-
         try {
             await actualizarTipoMarca(editId, editNombre, editVigente, editOrdenDespliegue);
             setOpenEdit(false)
@@ -306,6 +304,7 @@ function AdminTipoMarcasManuales() {
                                 <TextField
                                     fullWidth
                                     label="Orden Despliegue"
+                                    size="small"
                                     value={nuevoOrdenDespliegue}
                                     onChange={(e) => handleOrdenChange(e, setNuevoOrdenDespliegue)}
                                     inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}

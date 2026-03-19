@@ -1,0 +1,533 @@
+import React, { useEffect, useState } from "react";
+import {
+    Box, Paper, TextField, Button, Table, TableContainer, TableHead,
+    TableRow, TableCell, TableBody, Dialog, DialogTitle,
+    DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
+    IconButton, Typography, CircularProgress,
+    TablePagination, Stack, FormHelperText
+} from "@mui/material";
+import { toast } from "react-hot-toast";
+
+import { obtenerCentroCostos } from "../../../services/centroCostosServices";
+import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
+
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+dayjs.locale("es");
+
+function AdminMarcas() {
+
+    // --- ESTADOS BASE (CATÁLOGOS) ---
+    const [cencosGlobal, setCencosGlobal] = useState([]);
+    const [empleadosGlobal, setEmpleadosGlobal] = useState([]);
+    const [tiposMarcas, setTiposMarcas] = useState([]);
+    const [cargando, setCargando] = useState(false);
+
+    // --- ESTADOS DE OPCIONES EN CASCADA ---
+    const [opcionesEmpresas, setOpcionesEmpresas] = useState([]);
+    const [opcionesDeptos, setOpcionesDeptos] = useState([]);
+    const [opcionesCencos, setOpcionesCencos] = useState([]);
+    const [opcionesEmpleados, setOpcionesEmpleados] = useState([]);
+    const [opcionesDispositivos, setOpcionesDispositivos] = useState([]);
+
+    // --- ESTADOS DE SELECCIÓN DE FILTROS ---
+    const [busqueda, setBusqueda] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroDepto, setFiltroDepto] = useState("");
+    const [filtroCenco, setFiltroCenco] = useState("");
+    const [filtroEmpleado, setFiltroEmpleado] = useState("");
+    const [filtroDispositivo, setFiltroDispositivo] = useState("");
+    const [desdeFecha, setDesdeFecha] = useState(null);
+    const [hastaFecha, setHastaFecha] = useState(null);
+
+    // Paginacion
+    const [pagina, setPagina] = useState(0);
+    const [filaPorPagina, setFilaPorPagina] = useState(5);
+
+    // Dummy data para la tabla visual
+    const [marcasMock] = useState([
+        {
+            id: 1, 
+            rut: "20162351-0", 
+            fecha: "2026-03-01", 
+            horaStr: "09:00", 
+            correlativo: "1",
+            evento: "Entrada",
+            turno: "Turno Diurno",
+            masInfo: "-",
+            hashcode: "a3f9e2b1",
+            tipoMarca: "Normal",
+            hora_actualizacion: "2026-03-01 10:00:00",
+            comentario: "Prueba visual"
+        }
+    ]);
+
+    // --- EFECTOS DE CARGA Y CASCADA ---
+    useEffect(() => {
+        const fetchCatalogos = async () => {
+            setCargando(true);
+            try {
+                const cencos = await obtenerCentroCostos();
+                const emps = await obtenerEmpleados();
+                const tipos = await obtenerTiposMarcas();
+
+                setCencosGlobal(cencos || []);
+                setEmpleadosGlobal(emps || []);
+                setTiposMarcas(tipos || []);
+
+                // Extraer empresas únicas
+                const empresasMap = new Map();
+                (cencos || []).forEach(c => {
+                    const e = c.departamento?.empresa;
+                    if (e && !empresasMap.has(e.empresa_id)) {
+                        empresasMap.set(e.empresa_id, e);
+                    }
+                });
+                setOpcionesEmpresas(Array.from(empresasMap.values()));
+            } catch (error) {
+                toast.error("Error al cargar datos base");
+            } finally {
+                setCargando(false);
+            }
+        };
+        fetchCatalogos();
+    }, []);
+
+    // Cascada: Empresa -> Deptos
+    useEffect(() => {
+        if (filtroEmpresa !== "") {
+            const deptosMap = new Map();
+            cencosGlobal.forEach(c => {
+                if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
+                    if (!deptosMap.has(c.departamento.departamento_id)) {
+                        deptosMap.set(c.departamento.departamento_id, c.departamento);
+                    }
+                }
+            });
+            setOpcionesDeptos(Array.from(deptosMap.values()));
+        } else {
+            setOpcionesDeptos([]);
+        }
+        setFiltroDepto("");
+    }, [filtroEmpresa, cencosGlobal]);
+
+    // Cascada: Depto -> Cencos
+    useEffect(() => {
+        if (filtroDepto !== "") {
+            const cencosValidos = cencosGlobal.filter(c => c.departamento?.departamento_id === filtroDepto);
+            setOpcionesCencos(cencosValidos);
+        } else {
+            setOpcionesCencos([]);
+        }
+        setFiltroCenco("");
+    }, [filtroDepto, cencosGlobal]);
+
+    // Cascada: Cenco -> Empleados & Dispositivos
+    useEffect(() => {
+        if (filtroCenco !== "") {
+            // Dispositivos vienen embebidos en el JSON del Cenco indicado
+            const cencoSeleccionado = cencosGlobal.find(c => c.cenco_id === filtroCenco);
+            setOpcionesDispositivos(cencoSeleccionado?.dispositivos || []);
+
+            // Empleados filtrados por Cenco
+            const empsFiltrados = empleadosGlobal.filter(e => e.cenco?.cenco_id === filtroCenco || e.cenco === filtroCenco);
+            setOpcionesEmpleados(empsFiltrados);
+        } else {
+            setOpcionesDispositivos([]);
+            setOpcionesEmpleados([]);
+        }
+        setFiltroEmpleado("");
+        setFiltroDispositivo("");
+    }, [filtroCenco, cencosGlobal, empleadosGlobal]);
+
+
+    // Funciones Hora y Mins (para inputs de hora locales)
+    const handleChangeTime = (val, setter, max) => {
+        if (/^\d{0,2}$/.test(val)) {
+            if (val === "" || parseInt(val) <= max) {
+                setter(val);
+            }
+        }
+    };
+    const handleBlurTime = (val, setter) => {
+        if (val.length === 1) setter("0" + val);
+        else if (val === "") setter("00");
+    };
+
+    const getNombreDispositivo = () => {
+        const d = opcionesDispositivos.find(x => x.dispositivo_id === filtroDispositivo);
+        return d ? d.nombre : "";
+    };
+
+    const getNombreEmpresa = () => {
+        const emp = opcionesEmpresas.find(e => e.empresa_id === filtroEmpresa);
+        return emp ? emp.nombre_empresa : "";
+    };
+
+    // --- MODAL CREAR ---
+    const [openCrear, setOpenCrear] = useState(false);
+    const [crearRut, setCrearRut] = useState("");
+    const [crearFecha, setCrearFecha] = useState(null);
+    const [crearHora, setCrearHora] = useState("");
+    const [crearMins, setCrearMins] = useState("");
+    const [crearEvento, setCrearEvento] = useState("Entrada");
+    const [crearIdTipo, setCrearIdTipo] = useState("");
+    const [crearComentario, setCrearComentario] = useState("");
+
+    const openDialogCrear = () => {
+        // Rellenar rut si un empleado fue seleccionado
+        if (filtroEmpleado) {
+            const empleadoActual = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+            if (empleadoActual) setCrearRut(empleadoActual.run);
+        } else {
+            setCrearRut("");
+        }
+
+        setCrearFecha(dayjs());
+        setCrearHora("");
+        setCrearMins("");
+        setCrearEvento("Entrada");
+        setCrearIdTipo("");
+        setCrearComentario("");
+        setOpenCrear(true);
+    };
+
+    const handleGuardarCreacion = () => {
+        toast.success("Registro creado exitosamente (Visual)");
+        setOpenCrear(false);
+    };
+
+    // --- MODAL EDITAR ---
+    const [openEdit, setOpenEdit] = useState(false);
+    const [editRut, setEditRut] = useState("");
+    const [editFecha, setEditFecha] = useState(null);
+    const [editHora, setEditHora] = useState("");
+    const [editMins, setEditMins] = useState("");
+    const [editEvento, setEditEvento] = useState("Entrada");
+    const [editComentario, setEditComentario] = useState("");
+
+    const openDialogEdit = (row) => {
+        setEditRut(row.rut || "");
+        setEditFecha(dayjs(row.fecha));
+        if (row.horaStr) {
+            const partes = row.horaStr.split(":");
+            setEditHora(partes[0] || "00");
+            setEditMins(partes[1] || "00");
+        } else {
+            setEditHora("");
+            setEditMins("");
+        }
+        setEditEvento(row.evento || "Entrada");
+        setEditComentario(row.comentario || "");
+        setOpenEdit(true);
+    };
+
+    const handleGuardarEdicion = () => {
+        toast.success("Registro editado exitosamente (Visual)");
+        setOpenEdit(false);
+    };
+
+    const handleChangePage = (event, newPage) => setPagina(newPage);
+    const handleChangeRowsPerPage = (event) => {
+        setFilaPorPagina(parseInt(event.target.value, 10));
+        setPagina(0);
+    };
+
+    return (
+        <>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" color="text.secondary">
+                    Admin Marcas
+                </Typography>
+            </Box>
+
+            <Paper elevation={2} sx={{
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                boxSizing: "border-box"
+            }}>
+                {/* Controles y Filtros Inferiores */}
+                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 3 }}>
+                    <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "160px" }, height: "40px", }}>
+                        <TextField
+                            placeholder="Buscar..."
+                            variant="standard"
+                            InputProps={{ disableUnderline: true }}
+                            sx={{ ml: 1, flex: 1, px: 1 }}
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                        />
+                        <IconButton type="button" sx={{ p: '5px' }}>
+                            <SearchIcon />
+                        </IconButton>
+                    </Paper>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Empresa</InputLabel>
+                        <Select sx={{ width: "16vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
+                            <MenuItem value="">Todos</MenuItem>
+                            {opcionesEmpresas.map(emp => (
+                                <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Depto</InputLabel>
+                        <Select sx={{ width: "16vh" }} value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
+                            <MenuItem value="">Todos</MenuItem>
+                            {opcionesDeptos.map(dep => (
+                                <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Cenco</InputLabel>
+                        <Select sx={{ width: "16vh" }} value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
+                            <MenuItem value="">Todos</MenuItem>
+                            {opcionesCencos.map(cen => (
+                                <MenuItem key={cen.cenco_id} value={cen.cenco_id}>{cen.nombre_cenco}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Empleado</InputLabel>
+                        <Select sx={{ width: "16vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco}>
+                            <MenuItem value="">Todos</MenuItem>
+                            {opcionesEmpleados.map(emp => (
+                                // Dependiendo del mapeo, usar run o empleado_id
+                                <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
+                                    {emp.nombres} {emp.apellido_paterno}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Dispositivo</InputLabel>
+                        <Select sx={{ width: "16vh" }} value={filtroDispositivo} onChange={(e) => setFiltroDispositivo(e.target.value)} disabled={!filtroCenco}>
+                            <MenuItem value="">Todos</MenuItem>
+                            {opcionesDispositivos.map(disp => (
+                                <MenuItem key={disp.dispositivo_id} value={disp.dispositivo_id}>{disp.nombre}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Box sx={{ maxWidth: "20%" }}>
+                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                            <DatePicker
+                                label="Desde"
+                                format="DD-MM-YYYY"
+                                value={desdeFecha}
+                                onChange={(val) => setDesdeFecha(val)}
+                                slotProps={{ textField: { fullWidth: true, size: "small" } }}
+                            />
+                        </LocalizationProvider>
+                    </Box>
+
+                    <Box sx={{ maxWidth: "20%" }}>
+                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                            <DatePicker
+                                label="Hasta"
+                                format="DD-MM-YYYY"
+                                value={hastaFecha}
+                                onChange={(val) => setHastaFecha(val)}
+                                slotProps={{ textField: { fullWidth: true, size: "small" } }}
+                            />
+                        </LocalizationProvider>
+                    </Box>
+
+                    <Button 
+                        variant="contained" 
+                        startIcon={<AddIcon />} 
+                        sx={{ ml: 'auto' }} 
+                        onClick={openDialogCrear}
+                        disabled={!filtroDispositivo || !filtroEmpleado} // Bloqueado hasta seleccionar dispositivo y empleado
+                    >
+                        Nuevo Registro
+                    </Button>
+                </Box>
+
+                {/* Tabla principal */}
+                <Box sx={{
+                    flex: 1,
+                    overflow: "hidden",
+                    width: "100%",
+                    position: "relative"
+                }}>
+                    <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de marcas">
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
+                                <TableRow>
+                                    <TableCell align="center"><strong>Rut</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha Hr Marca</strong></TableCell>
+                                    <TableCell align="center"><strong>Correlativo</strong></TableCell>
+                                    <TableCell align="center"><strong>Evento</strong></TableCell>
+                                    <TableCell align="center"><strong>Turno</strong></TableCell>
+                                    <TableCell align="center"><strong>Más Info</strong></TableCell>
+                                    <TableCell align="center"><strong>Id</strong></TableCell>
+                                    <TableCell align="center"><strong>Hashcode</strong></TableCell>
+                                    <TableCell align="center"><strong>Tipo Marca Manual</strong></TableCell>
+                                    <TableCell align="center"><strong>Actualización</strong></TableCell>
+                                    <TableCell align="center"><strong>Comentario</strong></TableCell>
+                                    <TableCell align="center"><strong>Editar</strong></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {marcasMock.map((row) => (
+                                    <TableRow key={row.id}>
+                                        <TableCell align="center">{row.rut}</TableCell>
+                                        <TableCell align="center">{row.fecha} {row.horaStr}</TableCell>
+                                        <TableCell align="center">{row.correlativo}</TableCell>
+                                        <TableCell align="center">{row.evento}</TableCell>
+                                        <TableCell align="center">{row.turno}</TableCell>
+                                        <TableCell align="center">{row.masInfo}</TableCell>
+                                        <TableCell align="center">{row.id}</TableCell>
+                                        <TableCell align="center">{row.hashcode}</TableCell>
+                                        <TableCell align="center">{row.tipoMarca}</TableCell>
+                                        <TableCell align="center">{row.hora_actualizacion}</TableCell>
+                                        <TableCell align="center">{row.comentario}</TableCell>
+                                        <TableCell align="center">
+                                            <IconButton size="small" onClick={() => openDialogEdit(row)}>
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Box>
+
+                <TablePagination
+                    rowsPerPageOptions={[]}
+                    component="div"
+                    count={marcasMock.length}
+                    rowsPerPage={filaPorPagina}
+                    page={pagina}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+                />
+            </Paper >
+
+
+            {/* Dialog crear */}
+            <Dialog open={openCrear} onClose={() => setOpenCrear(false)} sx={{ textAlign: "center" }}>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "40vh", minWidth: "40vh" }}>
+                        <Box width="100%">
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+
+                                <DialogTitle sx={{ p: 0, mb: 3 }}>Crear nuevo registro</DialogTitle>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField size="small" fullWidth label="Rut" value={crearRut} disabled InputLabelProps={{ shrink: true }} />
+                                </Box>
+                                
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField size="small" fullWidth label="Empresa" value={getNombreEmpresa()} disabled InputLabelProps={{ shrink: true }} />
+                                </Box>
+                                
+                                <Box sx={{ mb: 2 }}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                                        <DatePicker label="Fecha marca" format="YYYY-MM-DD" value={crearFecha} onChange={(val) => setCrearFecha(val)} slotProps={{ textField: { size: "small", fullWidth: true, InputLabelProps: { shrink: true } } }} />
+                                    </LocalizationProvider>
+                                </Box>
+
+                                <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
+                                    <TextField size="small" fullWidth label="Hora marca" placeholder="HH" InputLabelProps={{ shrink: true }} value={crearHora} onChange={(e) => handleChangeTime(e.target.value, setCrearHora, 23)} onBlur={(e) => handleBlurTime(e.target.value, setCrearHora)} />
+                                    <TextField size="small" fullWidth label="Mins marca" placeholder="MM" InputLabelProps={{ shrink: true }} value={crearMins} onChange={(e) => handleChangeTime(e.target.value, setCrearMins, 59)} onBlur={(e) => handleBlurTime(e.target.value, setCrearMins)} />
+                                </Box>
+
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel shrink>Evento</InputLabel>
+                                    <Select value={crearEvento} onChange={(e) => setCrearEvento(e.target.value)} label="Evento" notched>
+                                        <MenuItem value="Entrada">Entrada</MenuItem>
+                                        <MenuItem value="Salida">Salida</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField size="small" fullWidth label="Cod dispositivo" value={getNombreDispositivo()} disabled InputLabelProps={{ shrink: true }} />
+                                </Box>
+
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel shrink>Tipo Marca Manual</InputLabel>
+                                    <Select value={crearIdTipo} onChange={(e) => setCrearIdTipo(e.target.value)} label="Tipo Marca Manual" notched>
+                                        {tiposMarcas.map(t => (
+                                            <MenuItem key={t.id} value={t.id}>{t.nombre}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField size="small" fullWidth label="Comentario" multiline rows={2} value={crearComentario} onChange={(e) => setCrearComentario(e.target.value)} InputLabelProps={{ shrink: true }} />
+                                </Box>
+                            </Paper>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 0 }}>
+                    <Button onClick={() => setOpenCrear(false)} color="error">Cancelar</Button>
+                    <Button onClick={handleGuardarCreacion} variant="contained" color="primary">Guardar</Button>
+                </DialogActions>
+            </Dialog>
+
+
+            {/* Dialog editar */}
+            <Dialog open={openEdit} onClose={() => setOpenEdit(false)} sx={{ textAlign: "center" }}>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "40vh", minWidth: "40vh" }}>
+                        <Box width="100%">
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+
+                                <DialogTitle sx={{ p: 0, mb: 3 }}>Editar registro</DialogTitle>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField size="small" fullWidth label="Rut" value={editRut} disabled InputLabelProps={{ shrink: true }} />
+                                </Box>
+                                
+                                <Box sx={{ mb: 2 }}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                                        <DatePicker label="Fecha marca" format="YYYY-MM-DD" value={editFecha} onChange={(val) => setEditFecha(val)} slotProps={{ textField: { size: "small", fullWidth: true, InputLabelProps: { shrink: true } } }} />
+                                    </LocalizationProvider>
+                                </Box>
+
+                                <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
+                                    <TextField size="small" fullWidth label="Hora marca" placeholder="HH" InputLabelProps={{ shrink: true }} value={editHora} onChange={(e) => handleChangeTime(e.target.value, setEditHora, 23)} onBlur={(e) => handleBlurTime(e.target.value, setEditHora)} />
+                                    <TextField size="small" fullWidth label="Mins marca" placeholder="MM" InputLabelProps={{ shrink: true }} value={editMins} onChange={(e) => handleChangeTime(e.target.value, setEditMins, 59)} onBlur={(e) => handleBlurTime(e.target.value, setEditMins)} />
+                                </Box>
+
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel shrink>Evento</InputLabel>
+                                    <Select value={editEvento} onChange={(e) => setEditEvento(e.target.value)} label="Evento" notched>
+                                        <MenuItem value="Entrada">Entrada</MenuItem>
+                                        <MenuItem value="Salida">Salida</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <TextField size="small" fullWidth label="Comentario" multiline rows={2} value={editComentario} onChange={(e) => setEditComentario(e.target.value)} InputLabelProps={{ shrink: true }} />
+                                </Box>
+                            </Paper>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 0 }}>
+                    <Button onClick={() => setOpenEdit(false)} color="error">Cancelar</Button>
+                    <Button onClick={handleGuardarEdicion} variant="contained" color="primary">Guardar Cambios</Button>
+                </DialogActions>
+            </Dialog>
+
+        </>
+    );
+}
+
+export default AdminMarcas;;
