@@ -11,7 +11,7 @@ import { toast } from "react-hot-toast";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
 import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
-import { getMarcas, crearMarca } from "../../../services/marcasServices";
+import { getMarcas, crearMarca, actualizarMarcas } from "../../../services/marcasServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -92,9 +92,9 @@ function AdminMarcas() {
         if (!busqueda) return true;
         const term = busqueda.toLowerCase();
         return (
-            m.empleado?.num_ficha?.toLowerCase().includes(term) ||
             m.fecha_marca?.toLowerCase().includes(term) ||
-            m.info_adicional?.toLowerCase().includes(term)
+            m.info_adicional?.toLowerCase().includes(term) ||
+            m.hora_marca?.toLowerCase().includes(term) 
         );
     });
 
@@ -234,16 +234,18 @@ function AdminMarcas() {
             const datosMarca = {
                 fecha_marca: crearFecha.format("YYYY-MM-DD"),
                 hora_marca: `${crearHora}:${crearMins}:00`,
-                evento: crearEvento, 
+                evento: crearEvento,
                 hashcode: "a",
                 dispositivo_id: filtroDispositivo,
-                num_ficha: crearNumFicha
+                num_ficha: crearNumFicha,
+                comentario: crearComentario,
+                tipo_marca_id: crearIdTipo,
             };
 
             await crearMarca(datosMarca);
             toast.success("Marca creada exitosamente");
             setOpenCrear(false);
-            
+
             // Refrescar tabla si es posible
             if (desdeFecha && hastaFecha && filtroEmpleado) {
                 handleBuscarMarcas();
@@ -257,6 +259,7 @@ function AdminMarcas() {
 
     // --- MODAL EDITAR ---
     const [openEdit, setOpenEdit] = useState(false);
+    const [editIdMarca, setEditIdMarca] = useState(null);
     const [editRut, setEditRut] = useState("");
     const [editFecha, setEditFecha] = useState(null);
     const [editHora, setEditHora] = useState("");
@@ -265,6 +268,7 @@ function AdminMarcas() {
     const [editComentario, setEditComentario] = useState("");
 
     const openDialogEdit = (row) => {
+        setEditIdMarca(row.id_marca);
         setEditRut(row.empleado?.num_ficha || "");
         setEditFecha(dayjs(row.fecha_marca));
         if (row.hora_marca) {
@@ -276,13 +280,26 @@ function AdminMarcas() {
             setEditMins("");
         }
         setEditEvento(row.evento !== null ? Number(row.evento) : 1);
-        setEditComentario(""); 
+        setEditComentario(row.comentario);
         setOpenEdit(true);
     };
 
-    const handleGuardarEdicion = () => {
-        toast.success("Registro editado exitosamente (Visual)");
-        setOpenEdit(false);
+    const handleGuardarEdicion = async () => {
+        setCargando(true);
+        try {
+            const fechaEnviar = editFecha.format("YYYY-MM-DD");
+            const horaEnviar = `${editHora}:${editMins}:00`;
+            await actualizarMarcas(editIdMarca, fechaEnviar, horaEnviar, editEvento, editComentario);
+            toast.success("Registro editado exitosamente");
+            setOpenEdit(false);
+            if (desdeFecha && hastaFecha && filtroEmpleado) {
+                handleBuscarMarcas();
+            }
+        } catch (error) {
+            toast.error("Error al editar la marca");
+        } finally {
+            setCargando(false);
+        }
     };
 
     const handleChangePage = (event, newPage) => setPagina(newPage);
@@ -305,24 +322,11 @@ function AdminMarcas() {
             }}>
                 {/* Controles y Filtros Inferiores */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 3 }}>
-                    <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "160px" }, height: "40px", }}>
-                        <TextField
-                            placeholder="Buscar..."
-                            variant="standard"
-                            InputProps={{ disableUnderline: true }}
-                            sx={{ ml: 1, flex: 1, px: 1 }}
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                        />
-                        <IconButton type="button" sx={{ p: '5px' }}>
-                            <SearchIcon />
-                        </IconButton>
-                    </Paper>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120, ml: 2 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
-                            <MenuItem value="">Todos</MenuItem>
                             {opcionesEmpresas.map(emp => (
                                 <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
                             ))}
@@ -332,7 +336,6 @@ function AdminMarcas() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
-                            <MenuItem value="">Todos</MenuItem>
                             {opcionesDeptos.map(dep => (
                                 <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
                             ))}
@@ -342,7 +345,6 @@ function AdminMarcas() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
-                            <MenuItem value="">Todos</MenuItem>
                             {opcionesCencos.map(cen => (
                                 <MenuItem key={cen.cenco_id} value={cen.cenco_id}>{cen.nombre_cenco}</MenuItem>
                             ))}
@@ -352,7 +354,6 @@ function AdminMarcas() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco}>
-                            <MenuItem value="">Todos</MenuItem>
                             {opcionesEmpleados.map(emp => (
                                 // Dependiendo del mapeo, usar run o empleado_id
                                 <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
@@ -365,7 +366,6 @@ function AdminMarcas() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Dispositivo</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroDispositivo} onChange={(e) => setFiltroDispositivo(e.target.value)} disabled={!filtroCenco}>
-                            <MenuItem value="">Todos</MenuItem>
                             {opcionesDispositivos.map(disp => (
                                 <MenuItem key={disp.dispositivo_id} value={disp.dispositivo_id}>{disp.nombre}</MenuItem>
                             ))}
@@ -399,16 +399,43 @@ function AdminMarcas() {
                         Buscar
                     </Button>
 
-                    <Button 
-                        variant="contained" 
-                        startIcon={<AddIcon />} 
-                        sx={{ ml: 'auto' }} 
+                    <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", ml: 2, alignItems: "center", width: { xs: "100%", md: "160px" }, height: "40px", }}>
+                        <TextField
+                            placeholder="Buscar..."
+                            variant="standard"
+                            InputProps={{ disableUnderline: true }}
+                            sx={{ ml: 1, flex: 1, px: 1 }}
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                        />
+                        <IconButton type="button" sx={{ p: '5px' }}>
+                            <SearchIcon />
+                        </IconButton>
+                    </Paper>
+
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        sx={{ ml: 'auto' }}
                         onClick={openDialogCrear}
-                        disabled={!filtroDispositivo || !filtroEmpleado} // Bloqueado hasta seleccionar dispositivo y empleado
+                        disabled={!filtroDispositivo || !filtroEmpleado}
                     >
                         Nuevo Registro
                     </Button>
                 </Box>
+                {filtroEmpleado && (() => {
+                    const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                    return empSel ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" sx={{ mb: 2 }}>
+                            <Typography sx={{ fontSize: "20px" }}>
+                                <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno} ||
+                                <strong> Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
+                            </Typography>
+                        </Box>
+                    ) : null;
+                })()}
+
+
 
                 {/* Tabla principal */}
                 <Box sx={{
@@ -417,18 +444,18 @@ function AdminMarcas() {
                     width: "100%",
                     position: "relative"
                 }}>
+
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de marcas">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell align="center"><strong>Num ficha</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Marca</strong></TableCell>
                                     <TableCell align="center"><strong>Hora Marca</strong></TableCell>
                                     <TableCell align="center"><strong>Evento</strong></TableCell>
                                     <TableCell align="center"><strong>Turno</strong></TableCell>
                                     <TableCell align="center"><strong>Más Info</strong></TableCell>
                                     <TableCell align="center"><strong>Hashcode</strong></TableCell>
-                                    <TableCell align="center"><strong>Tipo Marca Manual</strong></TableCell>
+                                    <TableCell align="center"><strong>Tipo Marca</strong></TableCell>
                                     <TableCell align="center"><strong>Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Comentario</strong></TableCell>
                                     <TableCell align="center"><strong>Editar</strong></TableCell>
@@ -453,28 +480,27 @@ function AdminMarcas() {
                                     </TableRow>
                                 ) : (
                                     marcasFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
-                                        const esRoja = (row.id_marca === null && row.tieneTurno === true && row.info_adicional === "Sin marca") || (row.info_adicional === "Falta Marca Salida");
+                                        const esRoja = (row.id_marca === null && row.tieneTurno === true && row.info_adicional?.trim() === "Sin marca") || row.info_adicional?.trim() === "Falta Marca Salida" || row.info_adicional?.trim() === "Faltan ambas marcas" || row.info_adicional?.trim() === "Falta Marca Entrada";
                                         return (
-                                        <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#ffebee" : "inherit" }}>
-                                            <TableCell align="center">{row.empleado?.num_ficha || "-"}</TableCell>
-                                            <TableCell align="center">{row.fecha_marca}</TableCell>
-                                            <TableCell align="center">{row.hora_marca || "-"}</TableCell>
-                                            <TableCell align="center">{row.evento === 1 ? "Entrada" : "Salida"}</TableCell>
-                                            <TableCell align="center">{formatTurno(row.empleado)}</TableCell>
-                                            <TableCell align="center">{row.info_adicional || "-"}</TableCell>
-                                            <TableCell align="center">{row.hashcode || "-"}</TableCell>
-                                            <TableCell align="center">Marca manual</TableCell>
-                                            <TableCell align="center">Marca manual</TableCell>
-                                            <TableCell align="center">Marca manual</TableCell>
-                                            <TableCell align="center">
-                                                {row.id_marca !== null && (
-                                                    <IconButton size="small" onClick={() => openDialogEdit(row)}>
-                                                        <EditIcon fontSize="small" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    );
+                                            <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#cf4c60ff" : "inherit" }}>
+                                                <TableCell align="center">{row.fecha_marca}</TableCell>
+                                                <TableCell align="center">{row.hora_marca || "-"}</TableCell>
+                                                <TableCell align="center">{row.evento === 1 ? "Entrada" : !row.evento ? "-" : "Salida"}</TableCell>
+                                                <TableCell align="center">{formatTurno(row.empleado)}</TableCell>
+                                                <TableCell align="center">{row.info_adicional || "-"}</TableCell>
+                                                <TableCell align="center">{row.hashcode || "-"}</TableCell>
+                                                <TableCell align="center">{row.tipo_marca?.nombre}</TableCell>
+                                                <TableCell align="center">Marca manual</TableCell>
+                                                <TableCell align="center">{row.comentario}</TableCell>
+                                                <TableCell align="center">
+                                                    {row.id_marca !== null && (
+                                                        <IconButton size="small" onClick={() => openDialogEdit(row)}>
+                                                            <EditIcon fontSize="small" />
+                                                        </IconButton>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
                                     })
                                 )}
                             </TableBody>
@@ -508,11 +534,11 @@ function AdminMarcas() {
                                 <Box sx={{ mb: 2 }}>
                                     <TextField size="small" fullWidth label="Num ficha" value={crearNumFicha} disabled InputLabelProps={{ shrink: true }} />
                                 </Box>
-                                
+
                                 <Box sx={{ mb: 2 }}>
                                     <TextField size="small" fullWidth label="Empresa" value={getNombreEmpresa()} disabled InputLabelProps={{ shrink: true }} />
                                 </Box>
-                                
+
                                 <Box sx={{ mb: 2 }}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                                         <DatePicker label="Fecha marca" format="YYYY-MM-DD" value={crearFecha} onChange={(val) => setCrearFecha(val)} slotProps={{ textField: { size: "small", fullWidth: true, InputLabelProps: { shrink: true } } }} />
@@ -537,10 +563,10 @@ function AdminMarcas() {
                                 </Box>
 
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel shrink>Tipo Marca Manual</InputLabel>
-                                    <Select value={crearIdTipo} onChange={(e) => setCrearIdTipo(e.target.value)} label="Tipo Marca Manual" notched>
+                                    <InputLabel shrink>Tipo Marca</InputLabel>
+                                    <Select value={crearIdTipo} onChange={(e) => setCrearIdTipo(e.target.value)} label="Tipo Marca" notched>
                                         {tiposMarcas.map(t => (
-                                            <MenuItem key={t.id} value={t.id}>{t.nombre}</MenuItem>
+                                            <MenuItem key={t.tipo_marca_id} value={t.tipo_marca_id}>{t.nombre}</MenuItem>
                                         ))}
                                     </Select>
                                 </FormControl>
@@ -554,9 +580,9 @@ function AdminMarcas() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={() => setOpenCrear(false)} color="error">Cancelar</Button>
-                    <Button 
-                        onClick={handleGuardarCreacion} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleGuardarCreacion}
+                        variant="contained"
                         color="primary"
                         disabled={!crearNumFicha || !crearFecha || !crearHora || !crearMins || !crearEvento || !filtroDispositivo}
                     >
@@ -578,7 +604,7 @@ function AdminMarcas() {
                                 <Box sx={{ mb: 2 }}>
                                     <TextField size="small" fullWidth label="Rut" value={editRut} disabled InputLabelProps={{ shrink: true }} />
                                 </Box>
-                                
+
                                 <Box sx={{ mb: 2 }}>
                                     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                                         <DatePicker label="Fecha marca" format="YYYY-MM-DD" value={editFecha} onChange={(val) => setEditFecha(val)} slotProps={{ textField: { size: "small", fullWidth: true, InputLabelProps: { shrink: true } } }} />

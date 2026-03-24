@@ -155,7 +155,15 @@ function AdminTurnosRotativosAsignacion() {
             const horarioEnviar = horarioId === "descanso" ? null : horarioId;
 
             if (asignacionSeleccionada) {
-                await actualizarTurnoRotativo(asignacionSeleccionada.id, horarioEnviar);
+                // Si el horario es nocturno, fecha fin = fecha inicio + 1 día
+                const horarioSel = horarios.find(h => h.horario_id === horarioId);
+                let fechaFinEnviar = fechaFin;
+                if (horarioSel?.nocturno && fechaInicio) {
+                    const nextDay = new Date(fechaInicio + "T12:00:00");
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    fechaFinEnviar = nextDay.toISOString().split('T')[0];
+                }
+                await actualizarTurnoRotativo(asignacionSeleccionada.id, horarioEnviar, fechaFinEnviar);
                 toast.success("Turno actualizado exitosamente");
             } else {
                 await asignarTurnosRotativos({
@@ -480,7 +488,7 @@ function AdminTurnosRotativosAsignacion() {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                                
+
                                 {historialTotalPages > 1 && (
                                     <Box display="flex" justifyContent="center" mt={2}>
                                         <Pagination

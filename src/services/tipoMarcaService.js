@@ -21,7 +21,7 @@ export const obtenerTiposMarcas = async () => {
     }
 };
 
-export const crearTipoMarca = async (nombre, estado_id, orden) => {
+export const crearTipoMarca = async (nombre, estado_id) => {
     try {
         const response = await fetch(`${API_URL}/tipo-marcas`, {
             method: "POST",
@@ -32,7 +32,6 @@ export const crearTipoMarca = async (nombre, estado_id, orden) => {
             body: JSON.stringify({
                 nombre: nombre,
                 estado_id: estado_id,
-                orden_despliegue: orden
             }),
         })
         if (!response.ok) {
@@ -55,7 +54,6 @@ export const actualizarTipoMarca = async (id, nombre, estado_id, orden) => {
             body: JSON.stringify({
                 nombre: nombre,
                 estado_id: estado_id,
-                orden_despliegue: orden
             }),
         })
         if (!response.ok) {

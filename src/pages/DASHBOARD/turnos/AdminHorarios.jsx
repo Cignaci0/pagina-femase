@@ -46,7 +46,7 @@ function AdminHorarios() {
     const enviarHoraSalidaCrear = `${horaSalidaCrear || "00"}:${minutoSalidaCrear || "00"}:00`
     const enviarHolguraCrear = `00:${minutoHolguraCrear || "00"}:00`
     const enviarColacionCrear = `00:${minutoColacionCrear || "00"}:00`
-    const [nocturno, setNocturno]= useState(false)
+    const [nocturno, setNocturno] = useState(false)
 
     // Estados editar
     const [mostrarEdit, setMostrarEdit] = useState("")
@@ -66,7 +66,7 @@ function AdminHorarios() {
     const enviarColacionEdit = `00:${minutoColacionEdit || "00"}:00`
     const [eliminar, setEliminar] = useState(false)
     const [inputConfirmacion, setInputConfirmacion] = useState("");
-    const [nocturnoEdit, setNocturnoEdit]= useState(false)
+    const [nocturnoEdit, setNocturnoEdit] = useState(false)
 
     // Carga de datos
     const obtenerEmpresasCrear = async () => {
@@ -96,9 +96,6 @@ function AdminHorarios() {
         }
     }
 
-    // Exportacion
-    // (No definida en este archivo)
-
     // Manejo de dialogs
     const abrirDialog = () => setOpen(true);
 
@@ -121,7 +118,7 @@ function AdminHorarios() {
 
     const clickCrear = async () => {
         try {
-            const respuesta = await crearHorario(enviarHoraEntradaCrear, enviarHoraSalidaCrear, idEmpresaCrear, enviarHolguraCrear, enviarColacionCrear,nocturno)
+            const respuesta = await crearHorario(enviarHoraEntradaCrear, enviarHoraSalidaCrear, idEmpresaCrear, enviarHolguraCrear, enviarColacionCrear, nocturno)
             toast.success("Se creo con exito")
             setOpen(false)
             setNuevoHorarioEntrada("")
@@ -144,7 +141,7 @@ function AdminHorarios() {
 
     const clickEdit = async () => {
         try {
-            const respuesta = await actualizarHorario(editId, enviarHoraEntradaEdit, enviarHoraSalidaEdit, idEmpresaEdit, enviarHolguraEdit, enviarColacionEdit,nocturnoEdit)
+            const respuesta = await actualizarHorario(editId, enviarHoraEntradaEdit, enviarHoraSalidaEdit, idEmpresaEdit, enviarHolguraEdit, enviarColacionEdit, nocturnoEdit)
             setMostrarEdit(false)
             toast.success("Se edito con exito")
             cargarHorarios()
@@ -215,6 +212,24 @@ function AdminHorarios() {
     useEffect(() => {
         setPagina(0);
     }, [filtroEmpresa]);
+
+    // Auto-calcular nocturno en crear: si hora entrada > hora salida => nocturno
+    useEffect(() => {
+        if (horaEntradaCrear !== "" && horaSalidaCrear !== "") {
+            const entrada = parseInt(horaEntradaCrear, 10) * 60 + parseInt(minutoEntradaCrear || "0", 10);
+            const salida = parseInt(horaSalidaCrear, 10) * 60 + parseInt(minutoSalidaCrear || "0", 10);
+            setNocturno(entrada > salida);
+        }
+    }, [horaEntradaCrear, minutoEntradaCrear, horaSalidaCrear, minutoSalidaCrear]);
+
+    // Auto-calcular nocturno en editar: si hora entrada > hora salida => nocturno
+    useEffect(() => {
+        if (horaEntradaEdit !== "" && horaSalidaEdit !== "") {
+            const entrada = parseInt(horaEntradaEdit, 10) * 60 + parseInt(minutoEntradaEdit || "0", 10);
+            const salida = parseInt(horaSalidaEdit, 10) * 60 + parseInt(minutoSalidaEdit || "0", 10);
+            setNocturnoEdit(entrada > salida);
+        }
+    }, [horaEntradaEdit, minutoEntradaEdit, horaSalidaEdit, minutoSalidaEdit]);
 
 
 
@@ -315,7 +330,7 @@ function AdminHorarios() {
 
                                                             const [, mC] = (row.colacion || "00:00:00").split(':');
                                                             setMinutoColacionEdit(mC || "00");
-                                                            
+
                                                             setNocturnoEdit(row.nocturno);
                                                             setMostrarEdit(true);
                                                         }}
@@ -382,22 +397,9 @@ function AdminHorarios() {
                                     </Select>
                                     {idEmpresaCrear === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
                                 </FormControl>
-                                
-                                 <FormControl size="small" sx={{ mb: 2, width: "40vh", mx: "auto", display: "flex" }} >
-                                    <InputLabel>Nocturno</InputLabel>
-                                    <Select
-                                        value={nocturno}
-                                        onChange={(e) => setNocturno(e.target.value)}
-                                        label="Nocturno"
-                                    >
-                                        <MenuItem value="">Seleccione</MenuItem>
-                                        <MenuItem value={true}>Si</MenuItem>
-                                        <MenuItem value={false}>No</MenuItem>
-                                    </Select>
-                                    {nocturno === "" && <FormHelperText>El Nocturno es obligatorio</FormHelperText>}
-                                </FormControl>
 
-                               
+
+
                                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
                                     HORARIO ENTRADA
                                 </Typography>
@@ -478,6 +480,16 @@ function AdminHorarios() {
                                         inputProps={{ style: { textAlign: 'center' } }}
                                     />
                                 </Stack>
+
+                                <TextField
+                                    size="small"
+                                    label="Nocturno"
+                                    value={nocturno === true ? "Si" : nocturno === false ? "No" : ""}
+                                    disabled
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{ mb: 2, width: "40vh", mx: "auto" }}
+                                />
+
                             </Paper>
                         </Box>
                     </Box>
@@ -513,19 +525,7 @@ function AdminHorarios() {
                                     </Select>
                                 </FormControl>
 
-                                <FormControl size="small" sx={{ mb: 2, width: "40vh", mx: "auto", display: "flex" }} >
-                                    <InputLabel>Nocturno</InputLabel>
-                                    <Select
-                                        value={nocturnoEdit}
-                                        onChange={(e) => setNocturnoEdit(e.target.value)}
-                                        label="Nocturno"
-                                    >
-                                        <MenuItem value="">Seleccione</MenuItem>
-                                        <MenuItem value={true}>Si</MenuItem>
-                                        <MenuItem value={false}>No</MenuItem>
-                                    </Select>
-                                    {nocturnoEdit === "" && <FormHelperText>El Nocturno es obligatorio</FormHelperText>}
-                                </FormControl>
+
 
                                 <Typography
                                     variant="subtitle2"
@@ -538,6 +538,7 @@ function AdminHorarios() {
                                     <TextField
                                         value={horaEntradaEdit}
                                         onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaEdit, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraEntradaEdit)}
                                         placeholder="HH"
                                         size="small"
                                         sx={{ width: '70px' }}
@@ -549,6 +550,7 @@ function AdminHorarios() {
                                     <TextField
                                         value={minutoEntradaEdit}
                                         onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaEdit, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoEntradaEdit)}
                                         placeholder="MM"
                                         size="small"
                                         sx={{ width: '70px' }}
@@ -618,7 +620,17 @@ function AdminHorarios() {
                                     />
                                 </Stack>
 
+                                <TextField
+                                    size="small"
+                                    label="Nocturno"
+                                    value={nocturnoEdit === true ? "Si" : nocturnoEdit === false ? "No" : ""}
+                                    disabled
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{ mb: 2, width: "40vh", mx: "auto" }}
+                                />
+                                <Box>
                                 <Button color="error" variant="contained" onClick={() => setEliminar(true)}>Eliminar</Button>
+                                </Box>
 
 
                             </Paper>
@@ -634,8 +646,7 @@ function AdminHorarios() {
                         minutoSalidaEdit === "" ||
                         idEmpresaEdit === "" ||
                         minutoHolguraEdit === "" ||
-                        minutoColacionEdit === "" ||
-                        nocturnoEdit === ""
+                        minutoColacionEdit === ""
                     }>Guardar</Button>
                 </DialogActions>
             </Dialog>

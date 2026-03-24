@@ -113,7 +113,6 @@ function AdminAsignacionCiclica() {
                 ? null 
                 : horarios.find(h => String(h.horario_id) === String(horarioIdRotativa));
             
-            // Evaluamos si es nocturno de forma más estricta pero abarcando posibles tipos de datos devueltos por la BD
             const esNocturno = horarioSeleccionado?.nocturno === true || 
                                horarioSeleccionado?.nocturno === 1 || 
                                horarioSeleccionado?.nocturno === "1" || 

@@ -42,14 +42,15 @@ export const asignarTurnosRotativos = async (datosAsignar) => {
     return datos;
 }
 
-export const actualizarTurnoRotativo = async (id, horario) => {
+export const actualizarTurnoRotativo = async (id, horario,fecha_fin) => {
     const peticion = await fetch(`${API_URL}/asignacion-turno-rotativo/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            horario: horario
+            horario: horario,
+            fecha_fin_turno: fecha_fin
         }),
     });
     const datos = await peticion.json();

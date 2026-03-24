@@ -19,28 +19,55 @@ export const getMarcas = async (numFicha, fechaInicio, fechaFin) => {
     }
 }
 
-export const crearMarca = async(datos)=>{
-try{
-    const response = await fetch(`${API_URL}/marcas`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            fecha_marca: datos.fecha_marca,
-            hora_marca: datos.hora_marca,
-            evento: datos.evento,
-            hashcode: datos.hashcode,
-            dispositivo_id: datos.dispositivo_id,
-            num_ficha: datos.num_ficha,
-        }),
-    });
-    if (!response.ok) {
-        throw new Error("Error al crear marca");
+export const crearMarca = async (datos) => {
+    try {
+        const response = await fetch(`${API_URL}/marcas`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                fecha_marca: datos.fecha_marca,
+                hora_marca: datos.hora_marca,
+                evento: datos.evento,
+                hashcode: datos.hashcode,
+                dispositivo_id: datos.dispositivo_id,
+                num_ficha: datos.num_ficha,
+                comentario: datos.comentario,
+                id_tipo_marca: datos.tipo_marca_id,
+            }),
+        });
+        if (!response.ok) {
+            throw new Error("Error al crear marca");
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        throw error;
     }
-    const data = await response.json();
-    return data;
-}catch(error){
-    throw error;
 }
+
+export const actualizarMarcas = async (editId, fecha_marca, hora_marca, evento, comentario) => {
+    try {
+        const response = await fetch(`${API_URL}/marcas/${editId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                fecha_marca: fecha_marca,
+                hora_marca: hora_marca,
+                evento: evento,
+                comentario: comentario,
+            }),
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+        const datos = await response.json();
+        return datos || [];
+    } catch (error) {
+        return [];
+    }
 }

@@ -52,12 +52,12 @@ function AdminTipoMarcasManuales() {
 
     // Crear 
     const handleCrearTipoMarca = async () => {
-        if (!nuevoNombre || !nuevoVigente || !nuevoOrdenDespliegue) {
+        if (!nuevoNombre || !nuevoVigente) {
             toast.error("Por favor complete todos los campos");
             return;
         }
         try {
-            await crearTipoMarca(nuevoNombre, nuevoVigente, nuevoOrdenDespliegue);
+            await crearTipoMarca(nuevoNombre, nuevoVigente);
             setOpen(false)
             setNuevoNombre("")
             setNuevoVigente("")
@@ -72,12 +72,12 @@ function AdminTipoMarcasManuales() {
 
     // Editar
     const handleEditarTipoMarca = async () => {
-        if (!editNombre || !editVigente || !editOrdenDespliegue) {
+        if (!editNombre || !editVigente) {
             toast.error("Por favor complete todos los campos");
             return;
         }
         try {
-            await actualizarTipoMarca(editId, editNombre, editVigente, editOrdenDespliegue);
+            await actualizarTipoMarca(editId, editNombre, editVigente);
             setOpenEdit(false)
             cargarDatos()
             toast.success("Tipo de marca editada exitosamente")
@@ -204,10 +204,7 @@ function AdminTipoMarcasManuales() {
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell width="16%" align="center"><strong>Nombre</strong></TableCell>
-                                    <TableCell width="16%" align="center"><strong>Orden Despliegue</strong></TableCell>
                                     <TableCell width="16%" align="center"><strong>Vigente</strong></TableCell>
-                                    <TableCell width="16%" align="center"><strong>Fecha creacion</strong></TableCell>
-                                    <TableCell width="16%" align="center"><strong>Actualización</strong></TableCell>
                                     <TableCell width="16%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
@@ -222,9 +219,6 @@ function AdminTipoMarcasManuales() {
                                                     {row.nombre}
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    {row.orden_despliegue}
-                                                </TableCell>
-                                                <TableCell align="center">
                                                     <CircleIcon
                                                         sx={{
                                                             fontSize: '1rem',
@@ -233,17 +227,10 @@ function AdminTipoMarcasManuales() {
                                                     />
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    {row.fecha_creacion || ""}
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    {row.fecha_actualizacion || ""}
-                                                </TableCell>
-                                                <TableCell align="center">
                                                     <IconButton
                                                         onClick={() => {
-                                                            setEditId(row.id);
+                                                            setEditId(row.tipo_marca_id);
                                                             setEditNombre(row.nombre);
-                                                            setEditOrdenDespliegue(row.orden_despliegue);
                                                             setEditVigente(row.estado_id?.estado_id);
                                                             setOpenEdit(true);
                                                         }}
@@ -299,18 +286,7 @@ function AdminTipoMarcasManuales() {
                                 />
                             </Box>
 
-                            {/* Campo orden */}
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Orden Despliegue"
-                                    size="small"
-                                    value={nuevoOrdenDespliegue}
-                                    onChange={(e) => handleOrdenChange(e, setNuevoOrdenDespliegue)}
-                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                                    helperText={nuevoOrdenDespliegue === "" ? "La orden es obligatoria" : ""}
-                                />
-                            </Box>
+                      
 
                             {/* Campo vigente */}
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
@@ -355,17 +331,7 @@ function AdminTipoMarcasManuales() {
                                 />
                             </Box>
 
-                            {/* Campo orden */}
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Orden Despliegue"
-                                    value={editOrdenDespliegue}
-                                    onChange={(e) => handleOrdenChange(e, setEditOrdenDespliegue)}
-                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                                    helperText={editOrdenDespliegue === "" ? "La orden es obligatoria y solo permite números" : ""}
-                                />
-                            </Box>
+                       
 
                             {/* Campo vigente */}
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
