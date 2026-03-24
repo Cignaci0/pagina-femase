@@ -6,6 +6,7 @@ export const getMarcas = async (numFicha, fechaInicio, fechaFin) => {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
             },
         });
 
@@ -53,6 +54,7 @@ export const actualizarMarcas = async (editId, fecha_marca, hora_marca, evento, 
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
             },
             body: JSON.stringify({
                 fecha_marca: fecha_marca,
@@ -60,6 +62,26 @@ export const actualizarMarcas = async (editId, fecha_marca, hora_marca, evento, 
                 evento: evento,
                 comentario: comentario,
             }),
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+        const datos = await response.json();
+        return datos || [];
+    } catch (error) {
+        return [];
+    }
+}
+
+export const historialMarcas = async (idMarca) => {
+    try {
+        const response = await fetch(`${API_URL}/marcas-auditoria?idMarca=${idMarca}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
+            },
         });
 
         if (!response.ok) {

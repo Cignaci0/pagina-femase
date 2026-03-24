@@ -11,7 +11,7 @@ import { toast } from "react-hot-toast";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
 import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
-import { getMarcas, crearMarca, actualizarMarcas } from "../../../services/marcasServices";
+import { getMarcas, crearMarca, actualizarMarcas, historialMarcas } from "../../../services/marcasServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -55,6 +55,10 @@ function AdminMarcas() {
     const [marcas, setMarcas] = useState([]);
     const [haBuscado, setHaBuscado] = useState(false);
 
+    // --- HISTORIAL (AUDITORÍA) ---
+    const [openHistorial, setOpenHistorial] = useState(false);
+    const [historialData, setHistorialData] = useState([]);
+
     const handleBuscarMarcas = async () => {
         if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
             toast.error("Seleccione empleado, y fechas desde/hasta");
@@ -94,7 +98,7 @@ function AdminMarcas() {
         return (
             m.fecha_marca?.toLowerCase().includes(term) ||
             m.info_adicional?.toLowerCase().includes(term) ||
-            m.hora_marca?.toLowerCase().includes(term) 
+            m.hora_marca?.toLowerCase().includes(term)
         );
     });
 
@@ -293,7 +297,7 @@ function AdminMarcas() {
             toast.success("Registro editado exitosamente");
             setOpenEdit(false);
             if (desdeFecha && hastaFecha && filtroEmpleado) {
-                handleBuscarMarcas();
+                await handleBuscarMarcas();
             }
         } catch (error) {
             toast.error("Error al editar la marca");
@@ -306,6 +310,19 @@ function AdminMarcas() {
     const handleChangeRowsPerPage = (event) => {
         setFilaPorPagina(parseInt(event.target.value, 10));
         setPagina(0);
+    };
+
+    const handleVerHistorial = async (idMarca) => {
+        setCargando(true);
+        try {
+            const res = await historialMarcas(idMarca);
+            setHistorialData(res);
+            setOpenHistorial(true);
+        } catch (error) {
+            toast.error("Error al obtener historial");
+        } finally {
+            setCargando(false);
+        }
     };
 
     return (
@@ -490,7 +507,7 @@ function AdminMarcas() {
                                                 <TableCell align="center">{row.info_adicional || "-"}</TableCell>
                                                 <TableCell align="center">{row.hashcode || "-"}</TableCell>
                                                 <TableCell align="center">{row.tipo_marca?.nombre}</TableCell>
-                                                <TableCell align="center">Marca manual</TableCell>
+                                                <TableCell align="center">{row.id_marca !== null && <Button variant="contained" color="primary" size="small" onClick={() => handleVerHistorial(row.id_marca)}>Historial</Button>}</TableCell>
                                                 <TableCell align="center">{row.comentario}</TableCell>
                                                 <TableCell align="center">
                                                     {row.id_marca !== null && (
@@ -634,6 +651,56 @@ function AdminMarcas() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={() => setOpenEdit(false)} color="error">Cancelar</Button>
                     <Button onClick={handleGuardarEdicion} variant="contained" color="primary">Guardar Cambios</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Historial Auditoría */}
+            <Dialog open={openHistorial} onClose={() => setOpenHistorial(false)} maxWidth="l" fullWidth>
+                <DialogTitle sx={{ textAlign: "center" }}>Historial de Auditoría</DialogTitle>
+                <DialogContent>
+                    <TableContainer component={Paper} sx={{ mt: 1, maxHeight: 400, overflowY: "auto" }}>
+                        <Table size="small" stickyHeader>
+                            <TableHead sx={{ '& th': { bgcolor: '#f5f5f5', borderBottom: '2px solid #ddd' } }}>
+                                <TableRow>
+                                    <TableCell align="center"><strong>Correlativo</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha Marca</strong></TableCell>
+                                    <TableCell align="center"><strong>Hora Marca</strong></TableCell>
+                                    <TableCell align="center"><strong>Evento</strong></TableCell>
+                                    <TableCell align="center"><strong>Hashcode</strong></TableCell>
+                                    <TableCell align="center"><strong>Num Ficha</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha Actualización</strong></TableCell>
+                                    <TableCell align="center"><strong>Usuario Actualizador</strong></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {historialData.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={8} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 2 }}>
+                                                No hay historial disponible
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    historialData.map((h, idx) => (
+                                        <TableRow key={idx}>
+                                            <TableCell align="center">{h.correlativo}</TableCell>
+                                            <TableCell align="center">{h.fecha_marca ? dayjs(h.fecha_marca).format("YYYY-MM-DD") : "-"}</TableCell>
+                                            <TableCell align="center">{h.hora_marca || "-"}</TableCell>
+                                            <TableCell align="center">{h.evento === 1 ? "Entrada" : h.evento === 2 ? "Salida" : "-"}</TableCell>
+                                            <TableCell align="center">{h.hashcode || "-"}</TableCell>
+                                            <TableCell align="center">{h.num_ficha || "-"}</TableCell>
+                                            <TableCell align="center">{h.fecha_actualizacion ? dayjs(h.fecha_actualizacion).format("YYYY-MM-DD HH:mm") : "-"}</TableCell>
+                                            <TableCell align="center">{h.usuario_actualizador || "-"}</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenHistorial(false)} color="error">Cerrar</Button>
                 </DialogActions>
             </Dialog>
 
