@@ -805,7 +805,7 @@ function AdminEmpleados() {
                 </Box>
 
                 {/* Paginacion */}
-                <TablePagination rowsPerPageOptions={[]} component="div" count={empleadosFiltrados.length} rowsPerPage={filaPorPagina} page={pagina} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} labelRowsPerPage="" labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`} />
+                <TablePagination rowsPerPageOptions={[5, 10, 25]} component="div" count={empleadosFiltrados.length} rowsPerPage={filaPorPagina} page={pagina} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} labelRowsPerPage="Paginas" labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`} />
             </Paper >
 
             {/* Dialog email laboral */}

@@ -1,0 +1,46 @@
+const API_URL = "http://localhost:3000";
+
+export const getMarcas = async (numFicha, fechaInicio, fechaFin) => {
+    try {
+        const response = await fetch(`${API_URL}/marcas?numFicha=${numFicha}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+        const datos = await response.json();
+        return datos || [];
+    } catch (error) {
+        return [];
+    }
+}
+
+export const crearMarca = async(datos)=>{
+try{
+    const response = await fetch(`${API_URL}/marcas`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            fecha_marca: datos.fecha_marca,
+            hora_marca: datos.hora_marca,
+            evento: datos.evento,
+            hashcode: datos.hashcode,
+            dispositivo_id: datos.dispositivo_id,
+            num_ficha: datos.num_ficha,
+        }),
+    });
+    if (!response.ok) {
+        throw new Error("Error al crear marca");
+    }
+    const data = await response.json();
+    return data;
+}catch(error){
+    throw error;
+}
+}

@@ -219,10 +219,10 @@ function AdminPerfilUsuarios() {
                     component="div"
                     count={filasFiltradas.length}
                     rowsPerPage={filaPorPagina}
-                    rowsPerPageOptions={[]}
+                    rowsPerPageOptions={[5, 10, 25]}
                     page={pagina}
                     onPageChange={CambiarPagina}
-                    labelRowsPerPage=""
+                    labelRowsPerPage="Paginas"
                 />
             </Paper>
 

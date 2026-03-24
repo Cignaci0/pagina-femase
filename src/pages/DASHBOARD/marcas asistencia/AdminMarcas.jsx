@@ -11,6 +11,7 @@ import { toast } from "react-hot-toast";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
 import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
+import { getMarcas, crearMarca } from "../../../services/marcasServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -50,23 +51,52 @@ function AdminMarcas() {
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
 
-    // Dummy data para la tabla visual
-    const [marcasMock] = useState([
-        {
-            id: 1, 
-            rut: "20162351-0", 
-            fecha: "2026-03-01", 
-            horaStr: "09:00", 
-            correlativo: "1",
-            evento: "Entrada",
-            turno: "Turno Diurno",
-            masInfo: "-",
-            hashcode: "a3f9e2b1",
-            tipoMarca: "Normal",
-            hora_actualizacion: "2026-03-01 10:00:00",
-            comentario: "Prueba visual"
+    // Datos reales
+    const [marcas, setMarcas] = useState([]);
+    const [haBuscado, setHaBuscado] = useState(false);
+
+    const handleBuscarMarcas = async () => {
+        if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
+            toast.error("Seleccione empleado, y fechas desde/hasta");
+            return;
         }
-    ]);
+        setCargando(true);
+        try {
+            const emp = opcionesEmpleados.find(e => (e.empleado_id === filtroEmpleado || e.run === filtroEmpleado));
+            const numFicha = emp?.num_ficha || emp?.run || filtroEmpleado;
+            const fi = desdeFecha.format("YYYY-MM-DD");
+            const ff = hastaFecha.format("YYYY-MM-DD");
+            const res = await getMarcas(numFicha, fi, ff);
+            setMarcas(res);
+            setHaBuscado(true);
+            setPagina(0);
+        } catch (error) {
+            toast.error("Error al buscar marcas");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const formatTurno = (empleado) => {
+        if (!empleado?.turno?.detalle_turno?.horario) return "-";
+        const { hora_entrada, hora_salida } = empleado.turno.detalle_turno.horario;
+        if (hora_entrada && hora_salida) {
+            return `${hora_entrada} - ${hora_salida}`;
+        } else if (hora_entrada) {
+            return hora_entrada;
+        }
+        return "-";
+    };
+
+    const marcasFiltradas = marcas.filter(m => {
+        if (!busqueda) return true;
+        const term = busqueda.toLowerCase();
+        return (
+            m.empleado?.num_ficha?.toLowerCase().includes(term) ||
+            m.fecha_marca?.toLowerCase().includes(term) ||
+            m.info_adicional?.toLowerCase().includes(term)
+        );
+    });
 
     // --- EFECTOS DE CARGA Y CASCADA ---
     useEffect(() => {
@@ -172,35 +202,57 @@ function AdminMarcas() {
 
     // --- MODAL CREAR ---
     const [openCrear, setOpenCrear] = useState(false);
-    const [crearRut, setCrearRut] = useState("");
+    const [crearNumFicha, setCrearNumFicha] = useState("");
     const [crearFecha, setCrearFecha] = useState(null);
     const [crearHora, setCrearHora] = useState("");
     const [crearMins, setCrearMins] = useState("");
-    const [crearEvento, setCrearEvento] = useState("Entrada");
+    const [crearEvento, setCrearEvento] = useState(1);
     const [crearIdTipo, setCrearIdTipo] = useState("");
     const [crearComentario, setCrearComentario] = useState("");
 
     const openDialogCrear = () => {
-        // Rellenar rut si un empleado fue seleccionado
+        // Rellenar num ficha si un empleado fue seleccionado
         if (filtroEmpleado) {
             const empleadoActual = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
-            if (empleadoActual) setCrearRut(empleadoActual.run);
+            if (empleadoActual) setCrearNumFicha(empleadoActual.num_ficha || empleadoActual.run);
         } else {
-            setCrearRut("");
+            setCrearNumFicha("");
         }
 
         setCrearFecha(dayjs());
         setCrearHora("");
         setCrearMins("");
-        setCrearEvento("Entrada");
+        setCrearEvento(1);
         setCrearIdTipo("");
         setCrearComentario("");
         setOpenCrear(true);
     };
 
-    const handleGuardarCreacion = () => {
-        toast.success("Registro creado exitosamente (Visual)");
-        setOpenCrear(false);
+    const handleGuardarCreacion = async () => {
+        setCargando(true);
+        try {
+            const datosMarca = {
+                fecha_marca: crearFecha.format("YYYY-MM-DD"),
+                hora_marca: `${crearHora}:${crearMins}:00`,
+                evento: crearEvento, 
+                hashcode: "a",
+                dispositivo_id: filtroDispositivo,
+                num_ficha: crearNumFicha
+            };
+
+            await crearMarca(datosMarca);
+            toast.success("Marca creada exitosamente");
+            setOpenCrear(false);
+            
+            // Refrescar tabla si es posible
+            if (desdeFecha && hastaFecha && filtroEmpleado) {
+                handleBuscarMarcas();
+            }
+        } catch (error) {
+            toast.error("Error al crear la marca");
+        } finally {
+            setCargando(false);
+        }
     };
 
     // --- MODAL EDITAR ---
@@ -209,22 +261,22 @@ function AdminMarcas() {
     const [editFecha, setEditFecha] = useState(null);
     const [editHora, setEditHora] = useState("");
     const [editMins, setEditMins] = useState("");
-    const [editEvento, setEditEvento] = useState("Entrada");
+    const [editEvento, setEditEvento] = useState(1);
     const [editComentario, setEditComentario] = useState("");
 
     const openDialogEdit = (row) => {
-        setEditRut(row.rut || "");
-        setEditFecha(dayjs(row.fecha));
-        if (row.horaStr) {
-            const partes = row.horaStr.split(":");
+        setEditRut(row.empleado?.num_ficha || "");
+        setEditFecha(dayjs(row.fecha_marca));
+        if (row.hora_marca) {
+            const partes = row.hora_marca.split(":");
             setEditHora(partes[0] || "00");
             setEditMins(partes[1] || "00");
         } else {
             setEditHora("");
             setEditMins("");
         }
-        setEditEvento(row.evento || "Entrada");
-        setEditComentario(row.comentario || "");
+        setEditEvento(row.evento !== null ? Number(row.evento) : 1);
+        setEditComentario(""); 
         setOpenEdit(true);
     };
 
@@ -343,6 +395,10 @@ function AdminMarcas() {
                         </LocalizationProvider>
                     </Box>
 
+                    <Button variant="contained" color="secondary" onClick={handleBuscarMarcas} disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}>
+                        Buscar
+                    </Button>
+
                     <Button 
                         variant="contained" 
                         startIcon={<AddIcon />} 
@@ -365,13 +421,12 @@ function AdminMarcas() {
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de marcas">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell align="center"><strong>Rut</strong></TableCell>
-                                    <TableCell align="center"><strong>Fecha Hr Marca</strong></TableCell>
-                                    <TableCell align="center"><strong>Correlativo</strong></TableCell>
+                                    <TableCell align="center"><strong>Num ficha</strong></TableCell>
+                                    <TableCell align="center"><strong>Fecha Marca</strong></TableCell>
+                                    <TableCell align="center"><strong>Hora Marca</strong></TableCell>
                                     <TableCell align="center"><strong>Evento</strong></TableCell>
                                     <TableCell align="center"><strong>Turno</strong></TableCell>
                                     <TableCell align="center"><strong>Más Info</strong></TableCell>
-                                    <TableCell align="center"><strong>Id</strong></TableCell>
                                     <TableCell align="center"><strong>Hashcode</strong></TableCell>
                                     <TableCell align="center"><strong>Tipo Marca Manual</strong></TableCell>
                                     <TableCell align="center"><strong>Actualización</strong></TableCell>
@@ -380,39 +435,62 @@ function AdminMarcas() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {marcasMock.map((row) => (
-                                    <TableRow key={row.id}>
-                                        <TableCell align="center">{row.rut}</TableCell>
-                                        <TableCell align="center">{row.fecha} {row.horaStr}</TableCell>
-                                        <TableCell align="center">{row.correlativo}</TableCell>
-                                        <TableCell align="center">{row.evento}</TableCell>
-                                        <TableCell align="center">{row.turno}</TableCell>
-                                        <TableCell align="center">{row.masInfo}</TableCell>
-                                        <TableCell align="center">{row.id}</TableCell>
-                                        <TableCell align="center">{row.hashcode}</TableCell>
-                                        <TableCell align="center">{row.tipoMarca}</TableCell>
-                                        <TableCell align="center">{row.hora_actualizacion}</TableCell>
-                                        <TableCell align="center">{row.comentario}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton size="small" onClick={() => openDialogEdit(row)}>
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
+                                {!haBuscado ? (
+                                    <TableRow>
+                                        <TableCell colSpan={10} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                                Seleccione un empleado y un rango de fechas para comenzar la búsqueda
+                                            </Typography>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ) : marcasFiltradas.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={10} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                                No se encontraron resultados
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    marcasFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
+                                        const esRoja = (row.id_marca === null && row.tieneTurno === true && row.info_adicional === "Sin marca") || (row.info_adicional === "Falta Marca Salida");
+                                        return (
+                                        <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#ffebee" : "inherit" }}>
+                                            <TableCell align="center">{row.empleado?.num_ficha || "-"}</TableCell>
+                                            <TableCell align="center">{row.fecha_marca}</TableCell>
+                                            <TableCell align="center">{row.hora_marca || "-"}</TableCell>
+                                            <TableCell align="center">{row.evento === 1 ? "Entrada" : "Salida"}</TableCell>
+                                            <TableCell align="center">{formatTurno(row.empleado)}</TableCell>
+                                            <TableCell align="center">{row.info_adicional || "-"}</TableCell>
+                                            <TableCell align="center">{row.hashcode || "-"}</TableCell>
+                                            <TableCell align="center">Marca manual</TableCell>
+                                            <TableCell align="center">Marca manual</TableCell>
+                                            <TableCell align="center">Marca manual</TableCell>
+                                            <TableCell align="center">
+                                                {row.id_marca !== null && (
+                                                    <IconButton size="small" onClick={() => openDialogEdit(row)}>
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                    })
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
                 </Box>
 
                 <TablePagination
-                    rowsPerPageOptions={[]}
+                    rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={marcasMock.length}
+                    count={marcasFiltradas.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelRowsPerPage="Paginas"
                     labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
                 />
             </Paper >
@@ -428,7 +506,7 @@ function AdminMarcas() {
                                 <DialogTitle sx={{ p: 0, mb: 3 }}>Crear nuevo registro</DialogTitle>
 
                                 <Box sx={{ mb: 2 }}>
-                                    <TextField size="small" fullWidth label="Rut" value={crearRut} disabled InputLabelProps={{ shrink: true }} />
+                                    <TextField size="small" fullWidth label="Num ficha" value={crearNumFicha} disabled InputLabelProps={{ shrink: true }} />
                                 </Box>
                                 
                                 <Box sx={{ mb: 2 }}>
@@ -449,8 +527,8 @@ function AdminMarcas() {
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel shrink>Evento</InputLabel>
                                     <Select value={crearEvento} onChange={(e) => setCrearEvento(e.target.value)} label="Evento" notched>
-                                        <MenuItem value="Entrada">Entrada</MenuItem>
-                                        <MenuItem value="Salida">Salida</MenuItem>
+                                        <MenuItem value={1}>Entrada</MenuItem>
+                                        <MenuItem value={2}>Salida</MenuItem>
                                     </Select>
                                 </FormControl>
 
@@ -476,7 +554,14 @@ function AdminMarcas() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={() => setOpenCrear(false)} color="error">Cancelar</Button>
-                    <Button onClick={handleGuardarCreacion} variant="contained" color="primary">Guardar</Button>
+                    <Button 
+                        onClick={handleGuardarCreacion} 
+                        variant="contained" 
+                        color="primary"
+                        disabled={!crearNumFicha || !crearFecha || !crearHora || !crearMins || !crearEvento || !filtroDispositivo}
+                    >
+                        Guardar
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -508,8 +593,8 @@ function AdminMarcas() {
                                 <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                     <InputLabel shrink>Evento</InputLabel>
                                     <Select value={editEvento} onChange={(e) => setEditEvento(e.target.value)} label="Evento" notched>
-                                        <MenuItem value="Entrada">Entrada</MenuItem>
-                                        <MenuItem value="Salida">Salida</MenuItem>
+                                        <MenuItem value={1}>Entrada</MenuItem>
+                                        <MenuItem value={2}>Salida</MenuItem>
                                     </Select>
                                 </FormControl>
 

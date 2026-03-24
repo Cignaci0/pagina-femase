@@ -368,14 +368,14 @@ function AdminTiposDispositivos() {
 
                 {/* Paginacion */}
                 <TablePagination
-                    rowsPerPageOptions={[]}
+                    rowsPerPageOptions={[5, 10, 25]}
                     component="div"
                     count={tipoDispositivosFiltrados.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    labelRowsPerPage=""
+                    labelRowsPerPage="Paginas"
                     labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
                 />
             </Paper>
