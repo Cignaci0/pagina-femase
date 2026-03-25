@@ -215,14 +215,12 @@ function AdminMarcas() {
     const [crearComentario, setCrearComentario] = useState("");
 
     const openDialogCrear = () => {
-        // Rellenar num ficha si un empleado fue seleccionado
         if (filtroEmpleado) {
             const empleadoActual = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
             if (empleadoActual) setCrearNumFicha(empleadoActual.num_ficha || empleadoActual.run);
         } else {
             setCrearNumFicha("");
         }
-
         setCrearFecha(dayjs());
         setCrearHora("");
         setCrearMins("");
@@ -249,8 +247,6 @@ function AdminMarcas() {
             await crearMarca(datosMarca);
             toast.success("Marca creada exitosamente");
             setOpenCrear(false);
-
-            // Refrescar tabla si es posible
             if (desdeFecha && hastaFecha && filtroEmpleado) {
                 handleBuscarMarcas();
             }

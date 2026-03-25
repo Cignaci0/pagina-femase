@@ -60,16 +60,13 @@ import CargaUsuarios from "../DASHBOARD/carga desde archivo/CargaUsuarios";
 import CargaVacaciones from "../DASHBOARD/carga desde archivo/CargaVacaciones";
 import CargaFeriados from "../DASHBOARD/carga desde archivo/Cargaferiados";
 
-// CONFIGURACION DE SISTEMA
-import AdminModuloSistea from "../DASHBOARD/configuracion de sistema/AdminModulosSistema";
-import AdminAccesos from "../DASHBOARD/configuracion de sistema/AdminAccesos";
 
 // MARCAS ASISTENCIA
 import AdminTiposMarcasManuales from "../DASHBOARD/marcas asistencia/AdminTiposMarcasManuales";
 import AdminMarcas from "../DASHBOARD/marcas asistencia/AdminMarcas";
 
 // REPORTES/INFORMES
-import ReporteUsuarios from "../DASHBOARD/reportes informes/ReporteUsuarios";
+import ReporteAsistencia from "./reportes informes/ReporteAsistencia";
 
 // VACACIONES
 import AdminVacaciones from "../DASHBOARD/vacaciones/AdminVacaciones";
@@ -127,16 +124,12 @@ const COMPONENTES_VISTA = {
   "Carga Vacaciones": <CargaVacaciones />,
   "Carga Feriados": <CargaFeriados />,
 
-  // CONFIGURACION DE SISTEMA
-  //"Sistema": <AdminModuloSistea />,
-  //"Accesos": <AdminAccesos />,
-
   // MARCAS ASISTENCIA
   "Tipos Marcas Manuales": <AdminTiposMarcasManuales />,
   "Admin Marcas": <AdminMarcas />,
 
   // REPORTES/INFORMES
-  "Reporte Usuarios": <ReporteUsuarios />,
+  "Reporte Asistencia": <ReporteAsistencia />,
 
   // VACACIONES
   "Admin Vacaciones": <AdminVacaciones />,
