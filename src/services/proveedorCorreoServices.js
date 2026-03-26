@@ -6,6 +6,7 @@ export async function obtenerProveedorCorreo() {
       method: 'GET',
       headers: {
          "Content-Type": "application/json",
+         "Authorization": "Bearer " + window.localStorage.getItem("token"),
       },
    });
    const data = await response.json();
@@ -21,6 +22,7 @@ export async function crearProveedorCorreo(dominio, id) {
       method: 'POST',
       headers: {
          "Content-Type": "application/json",
+         "Authorization": "Bearer " + window.localStorage.getItem("token"),
       },
       body: JSON.stringify({
          dominio,
@@ -40,6 +42,7 @@ export async function actualizarProveedorCorreo(id, dominio, empresa) {
       method: 'PATCH',
       headers: {
          "Content-Type": "application/json",
+         "Authorization": "Bearer " + window.localStorage.getItem("token"),
       },
       body: JSON.stringify({
          dominio,

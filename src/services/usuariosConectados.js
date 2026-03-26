@@ -6,6 +6,7 @@ export const obtenerUsuariosConectados = async () => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": "Bearer " + window.localStorage.getItem("token"),
       },
     });
 

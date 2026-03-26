@@ -26,12 +26,12 @@ export const crearMarca = async (datos) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
             },
             body: JSON.stringify({
                 fecha_marca: datos.fecha_marca,
                 hora_marca: datos.hora_marca,
                 evento: datos.evento,
-                hashcode: datos.hashcode,
                 dispositivo_id: datos.dispositivo_id,
                 num_ficha: datos.num_ficha,
                 comentario: datos.comentario,

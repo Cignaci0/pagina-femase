@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { reporteAsistencia } from "../../../services/reportes";
 
 function ReporteAsistencia() {
 
@@ -33,8 +34,7 @@ function ReporteAsistencia() {
 
     // Formulario de abajo
     const [fechaInicio, setFechaInicio] = useState(new Date().toISOString().split('T')[0]);
-    const [fechaFin, setFechaFin] = useState(new Date().toISOString().split('T')[0]);
-    const [formato, setFormato] = useState(1); 
+    const [fechaFin, setFechaFin] = useState(new Date().toISOString().split('T')[0]); 
 
     // Carga inicial
     useEffect(() => {
@@ -143,6 +143,42 @@ function ReporteAsistencia() {
         setEmpleadosSeleccionados([]);
         setCheckedDer([]);
     }
+
+    const handleGenerarReporte = async () => {
+        if (empleadosSeleccionados.length === 0) {
+            toast.error("Seleccione al menos un empleado");
+            return;
+        }
+
+        const toastId = toast.loading("Generando reportes...");
+
+        try {
+            for (const emp of empleadosSeleccionados) {
+                const numFicha = emp.num_ficha;
+                if (!numFicha) continue;
+
+                const blob = await reporteAsistencia(numFicha, fechaInicio, fechaFin);
+                if (!blob || blob.length === 0) {
+                    toast.error(`Error al generar reporte de ${emp.nombres}`);
+                    continue;
+                }
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.style.display = "none";
+                a.href = url;
+                a.download = `Reporte_Asistencia_${emp.nombres}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }
+            toast.success("Reportes generados exitosamente", { id: toastId });
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al generar reportes", { id: toastId });
+        }
+    };
 
     return (
         <>
@@ -288,20 +324,12 @@ function ReporteAsistencia() {
                                 sx={{ minWidth: 180, bgcolor: '#fff' }}
                             />
                         </Box>
-                        <Box>
-                            <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 'bold', color: 'text.secondary' }}>Formato</Typography>
-                            <FormControl size="small" sx={{ minWidth: 150, bgcolor: '#fff' }}>
-                                <Select value={formato} onChange={(e) => setFormato(e.target.value)}>
-                                    <MenuItem value={1}>PDF</MenuItem>
-                                    <MenuItem value={2}>CSV</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
                         <Box sx={{ display: 'flex', alignItems: 'flex-end', pt: 2.5, ml: 'auto' }}>
                             <Button
                                 variant="contained"
                                 color="primary"
                                 disabled={empleadosSeleccionados.length === 0}
+                                onClick={handleGenerarReporte}
                             >
                                 Generar Reporte
                             </Button>

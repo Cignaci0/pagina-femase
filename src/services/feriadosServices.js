@@ -6,6 +6,7 @@ export const obtenerFeriados = async () => {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
     });
     const data = await response.json();
@@ -19,7 +20,8 @@ export const crearFeriado = async (feriado) => {
     const response = await fetch(`${API_URL}/feriados/crear`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify(
             {
@@ -46,7 +48,8 @@ export const editarFeriado = async (id,feriado) => {
     const response = await fetch(`${API_URL}/feriados/actualizar/${id}`, {
         method: "PATCH",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify(
             {

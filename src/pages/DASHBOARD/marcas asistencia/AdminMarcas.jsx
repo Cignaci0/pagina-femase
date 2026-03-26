@@ -98,7 +98,8 @@ function AdminMarcas() {
         return (
             m.fecha_marca?.toLowerCase().includes(term) ||
             m.info_adicional?.toLowerCase().includes(term) ||
-            m.hora_marca?.toLowerCase().includes(term)
+            m.hora_marca?.toLowerCase().includes(term) ||
+            m.hashcode?.toLowerCase().includes(term)
         );
     });
 
@@ -237,7 +238,6 @@ function AdminMarcas() {
                 fecha_marca: crearFecha.format("YYYY-MM-DD"),
                 hora_marca: `${crearHora}:${crearMins}:00`,
                 evento: crearEvento,
-                hashcode: "a",
                 dispositivo_id: filtroDispositivo,
                 num_ficha: crearNumFicha,
                 comentario: crearComentario,
@@ -251,7 +251,9 @@ function AdminMarcas() {
                 handleBuscarMarcas();
             }
         } catch (error) {
+
             toast.error("Error al crear la marca");
+
         } finally {
             setCargando(false);
         }
@@ -270,7 +272,9 @@ function AdminMarcas() {
     const openDialogEdit = (row) => {
         setEditIdMarca(row.id_marca);
         setEditRut(row.empleado?.num_ficha || "");
-        setEditFecha(dayjs(row.fecha_marca));
+        const datePart = row.fecha_marca.split(" ").pop(); // Extrae "26-03-2026"
+        const [d, m, y] = datePart.split("-");
+        setEditFecha(dayjs(`${y}-${m}-${d}`)); // Convierte a "2026-03-26" para que dayjs lo tome correctamente
         if (row.hora_marca) {
             const partes = row.hora_marca.split(":");
             setEditHora(partes[0] || "00");

@@ -7,6 +7,7 @@ export const getTurnosRotativos = async (idEmpleado, page = 1) => {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
             },
         });
 
@@ -26,6 +27,7 @@ export const asignarTurnosRotativos = async (datosAsignar) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({
             empleado_id: datosAsignar.empleado,
@@ -47,6 +49,7 @@ export const actualizarTurnoRotativo = async (id, horario,fecha_fin) => {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({
             horario: horario,

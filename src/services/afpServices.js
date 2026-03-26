@@ -6,6 +6,7 @@ export async function obtenerAfp() {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
     });
     const datos = await peticion.json();
@@ -21,6 +22,7 @@ export async function crearAfp(nombre_afp, estado_id) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({ nombre_afp, estado_id }),
     });
@@ -36,6 +38,7 @@ export async function editarAfp(id, nombre_afp, estado_id) {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({ nombre_afp, estado_id }),
     });

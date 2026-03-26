@@ -7,6 +7,7 @@ export const crearErrorRechazo = async (descripcion) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({ descripcion }),
     });
@@ -24,6 +25,7 @@ export const obtenerErrorRechazo = async () => {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
     });
     const data = await response.json();
@@ -39,6 +41,7 @@ export const actualizarErrorRechazo = async (id, descripcion) => {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({ descripcion }),
     });

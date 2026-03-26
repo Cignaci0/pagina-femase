@@ -6,6 +6,7 @@ export const getTipoAusencia = async () => {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
             },
         });
 
@@ -25,6 +26,7 @@ export const createTipoAusencia = async (data) =>{
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({
             nombre: data.nombre,
