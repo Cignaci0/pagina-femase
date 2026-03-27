@@ -34,7 +34,7 @@ function ReporteAsistencia() {
 
     // Formulario de abajo
     const [fechaInicio, setFechaInicio] = useState(new Date().toISOString().split('T')[0]);
-    const [fechaFin, setFechaFin] = useState(new Date().toISOString().split('T')[0]); 
+    const [fechaFin, setFechaFin] = useState(new Date().toISOString().split('T')[0]);
 
     // Carga inicial
     useEffect(() => {
@@ -170,6 +170,8 @@ function ReporteAsistencia() {
                 a.download = `Reporte_Asistencia_${emp.nombres}.pdf`;
                 document.body.appendChild(a);
                 a.click();
+                await new Promise(resolve => setTimeout(resolve, 600));
+
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
             }
@@ -191,7 +193,7 @@ function ReporteAsistencia() {
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
-                p: 3, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", display: 'flex', flexDirection: 'column',
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Filtros */}
@@ -199,12 +201,14 @@ function ReporteAsistencia() {
                     <Stack direction="row" spacing={2} alignItems="center">
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Empresa</InputLabel>
+
                             <Select label="Empresa" value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
                                 {opcionesEmpresas.map((emp) => (
                                     <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
                                 ))}
                             </Select>
+                            
                         </FormControl>
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Depto</InputLabel>

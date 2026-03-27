@@ -499,7 +499,7 @@ function AdminMarcas() {
                                     marcasFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
                                         const esRoja = (row.id_marca === null && row.tieneTurno === true && row.info_adicional?.trim() === "Sin marca") || row.info_adicional?.trim() === "Falta Marca Salida" || row.info_adicional?.trim() === "Faltan ambas marcas" || row.info_adicional?.trim() === "Falta Marca Entrada";
                                         return (
-                                            <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#cf4c60ff" : "inherit" }}>
+                                            <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#cf4c60ff" : "inherit", "& .MuiTableCell-root": { color: esRoja ? "white" : "inherit" } }}>
                                                 <TableCell align="center">{row.fecha_marca}</TableCell>
                                                 <TableCell align="center">{row.hora_marca || "-"}</TableCell>
                                                 <TableCell align="center">{row.evento === 1 ? "Entrada" : !row.evento ? "-" : "Salida"}</TableCell>
