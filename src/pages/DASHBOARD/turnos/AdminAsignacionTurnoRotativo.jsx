@@ -110,19 +110,19 @@ function AdminAsignacionCiclica() {
         setCargandoEnvio(true);
         try {
             const horarioSeleccionado = horarioIdRotativa === "descanso" || !horarioIdRotativa
-                ? null 
+                ? null
                 : horarios.find(h => String(h.horario_id) === String(horarioIdRotativa));
-            
-            const esNocturno = horarioSeleccionado?.nocturno === true || 
-                               horarioSeleccionado?.nocturno === 1 || 
-                               horarioSeleccionado?.nocturno === "1" || 
-                               horarioSeleccionado?.nocturno === "true" ||
-                               String(horarioSeleccionado?.nocturno).toLowerCase() === "si";
+
+            const esNocturno = horarioSeleccionado?.nocturno === true ||
+                horarioSeleccionado?.nocturno === 1 ||
+                horarioSeleccionado?.nocturno === "1" ||
+                horarioSeleccionado?.nocturno === "true" ||
+                String(horarioSeleccionado?.nocturno).toLowerCase() === "si";
 
             console.log("Horario Seleccionado:", horarioSeleccionado, "/ Es Nocturno:", esNocturno);
 
             const horarioEnviar = horarioIdRotativa === "descanso" ? null : horarioIdRotativa;
-            
+
             const start = new Date(fechaInicio + "T12:00:00");
             const end = new Date(fechaFinRotativa + "T12:00:00");
 
@@ -148,11 +148,11 @@ function AdminAsignacionCiclica() {
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
             }
-            toast.success("Turnos personales asignados exitosamente");
+            toast.success("Turnos asignados exitosamente");
             setEmpleadosSeleccionados([]);
             setHorarioIdRotativa("");
         } catch (error) {
-            toast.error(error.message || "Error al asignar asignaciones personales");
+            toast.error(error.message || "Error al asignar asignaciones");
         } finally {
             setCargandoEnvio(false);
         }
@@ -408,7 +408,7 @@ function AdminAsignacionCiclica() {
         <>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">
-                    Admin Turnos Rotativos
+                    Asignación Turnos Rotativos
                 </Typography>
             </Box>
 
@@ -513,21 +513,21 @@ function AdminAsignacionCiclica() {
                     </Box>
                 </Box>
                 <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                    <Button 
-                        variant={tipoAsignacion === 'ciclica' ? "contained" : "outlined"} 
-                        size="small" 
+                    <Button
+                        variant={tipoAsignacion === 'ciclica' ? "contained" : "outlined"}
+                        size="small"
                         onClick={() => setTipoAsignacion('ciclica')}
                     >
                         Asignación Cíclica
                     </Button>
-                    <Button 
-                        variant={tipoAsignacion === 'rotativa' ? "contained" : "outlined"} 
-                        size="small" 
+                    <Button
+                        variant={tipoAsignacion === 'rotativa' ? "contained" : "outlined"}
+                        size="small"
                         onClick={() => setTipoAsignacion('rotativa')}
                     >
                         Asignación Personalizada
                     </Button>
-                </Box>  
+                </Box>
 
                 {tipoAsignacion === 'ciclica' && (
                     <Box sx={{ mt: 3, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
@@ -598,7 +598,7 @@ function AdminAsignacionCiclica() {
                             Asignación Rotativa
                         </Typography>
                         <Grid container spacing={3}>
-                            
+
                             <Grid item xs={12} md={3}>
                                 <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de inicio</Typography>
                                 <TextField
@@ -637,20 +637,26 @@ function AdminAsignacionCiclica() {
                                             </MenuItem>
                                         ))}
                                     </Select>
+
+
                                 </FormControl>
+
                             </Grid>
+                            <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={handleGuardarRotativa}
+                                    disabled={cargandoEnvio || horarioIdRotativa === "" || empleadosSeleccionados.length === 0}
+                                    startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}
+                                >
+                                    {cargandoEnvio ? "Guardando..." : "Guardar Asignación"}
+                                </Button>
+                            </Grid>
+
+
                         </Grid>
-                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-start', pt: 2 }}>
-                            <Button
-                                color="primary"
-                                variant="contained"
-                                onClick={handleGuardarRotativa}
-                                disabled={cargandoEnvio || horarioIdRotativa === "" || empleadosSeleccionados.length === 0}
-                                startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}
-                            >
-                                {cargandoEnvio ? "Guardando..." : "Guardar Asignación Personalizada"}
-                            </Button>
-                        </Box>
+
                     </Box>
                 )}
             </Paper>

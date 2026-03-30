@@ -154,15 +154,18 @@ function AdminTurnosRotativosAsignacion() {
         try {
             const horarioEnviar = horarioId === "descanso" ? null : horarioId;
 
+            // Calcular siempre la fecha fin basada en el horario seleccionado
+            const horarioSel = horarios.find(h => h.horario_id === horarioId);
+            let fechaFinEnviar = fechaInicio; // Por defecto es el mismo día
+
+            if (horarioSel && String(horarioSel.nocturno).toLowerCase() !== "false" && horarioSel.nocturno && fechaInicio) {
+                // Consideramos cualquier truthy que no sea el string "false" como nocturno
+                const nextDay = new Date(fechaInicio + "T12:00:00");
+                nextDay.setDate(nextDay.getDate() + 1);
+                fechaFinEnviar = nextDay.toISOString().split('T')[0];
+            }
+
             if (asignacionSeleccionada) {
-                // Si el horario es nocturno, fecha fin = fecha inicio + 1 día
-                const horarioSel = horarios.find(h => h.horario_id === horarioId);
-                let fechaFinEnviar = fechaFin;
-                if (horarioSel?.nocturno && fechaInicio) {
-                    const nextDay = new Date(fechaInicio + "T12:00:00");
-                    nextDay.setDate(nextDay.getDate() + 1);
-                    fechaFinEnviar = nextDay.toISOString().split('T')[0];
-                }
                 await actualizarTurnoRotativo(asignacionSeleccionada.id, horarioEnviar, fechaFinEnviar);
                 toast.success("Turno actualizado exitosamente");
             } else {
@@ -170,7 +173,7 @@ function AdminTurnosRotativosAsignacion() {
                     empleado: empleadoSeleccionado.empleado_id,
                     horario: horarioEnviar,
                     fecha_inicio_turno: fechaInicio,
-                    fecha_fin_turno: fechaFin
+                    fecha_fin_turno: fechaFinEnviar
                 });
                 toast.success("Turno asignado exitosamente");
             }

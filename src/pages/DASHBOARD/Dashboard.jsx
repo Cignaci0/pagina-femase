@@ -34,9 +34,8 @@ import AdminAccesosPerfil from "../DASHBOARD/usuarios/AdminAccesosPerfil";
 
 // TURNOS
 import AdminTurnos from "../DASHBOARD/turnos/AdminTurnos";
-import AdminTurnosRotativos from "../DASHBOARD/turnos/AdminTurnosRotativos";
-import AdminTurnosRotativosAsignacion from "../DASHBOARD/turnos/AdminTurnosRotativosAsignacion";
-import AdminAsignacionCiclica from "../DASHBOARD/turnos/AdminAsignacionCiclica";
+import AdminTurnosRotativo from "./turnos/AdminTurnosRotativo";
+import AdminAsignacionTurnoRotativo from "../DASHBOARD/turnos/AdminAsignacionTurnoRotativo";
 import AdminHorarios from "../DASHBOARD/turnos/AdminHorarios";
 // AUDITORIA
 import AdminEventosSistema from "../DASHBOARD/auditoria/AdminEventosSistema";
@@ -44,6 +43,7 @@ import AdminUsuariosConectados from "../DASHBOARD/auditoria/AdminUsuariosConecta
 
 // AUSENCIAS
 import AdminTipoAusencia from "../DASHBOARD/ausencias/AdminTipoAusencia";
+import AdminAusencias from "../DASHBOARD/ausencias/AdminAusencias";
 
 // CALCULO ASISTENCIA
 import AdminCalculoAsis from "../DASHBOARD/calculo asistencia/AdminCalculoAsistencia";
@@ -97,9 +97,8 @@ const COMPONENTES_VISTA = {
 
   // TURNOS
   "Gestion turnos": <AdminTurnos />, //
-  "Turnos Rotativos": <AdminTurnosRotativos />,//
-  "Admin Turnos Rotativos": <AdminTurnosRotativosAsignacion />,//
-  "Asignacion turno Rotativo": <AdminAsignacionCiclica />,//
+  "Admin Turnos Rotativos": <AdminTurnosRotativo />,//
+  "Asignacion turno Rotativo": <AdminAsignacionTurnoRotativo />,//
   "Horarios": <AdminHorarios />, //
 
   // AUDITORIA
@@ -108,6 +107,7 @@ const COMPONENTES_VISTA = {
 
   // AUSENCIAS
   "Tipo Ausencia": <AdminTipoAusencia />,
+  "Ausencias (detalle)": <AdminAusencias />,
 
   // CALCULO ASISTENCIA
   "Calculo Asistencia": <AdminCalculoAsis />,

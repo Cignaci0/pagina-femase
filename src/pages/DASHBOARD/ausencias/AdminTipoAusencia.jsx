@@ -565,9 +565,9 @@ function AdminTipoAusencia() {
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
                         <Box width="100%">
-                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                                <Box sx={{ mb: 2 }}>
-                                    <Stack direction="row" spacing={2} sx={{ ml: 3 }} >
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9"}}>
+                                <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
+                                    <Stack direction="row" spacing={2}>
                                         <Paper
                                             onClick={copiarPortapapeles}
                                             sx={{
@@ -610,9 +610,11 @@ function AdminTipoAusencia() {
                                         </Paper>
                                     </Stack>
                                 </Box>
-                                <Button variant="outlined" color="error" onClick={cerrarEmail}>
-                                    cerrar
-                                </Button>
+                                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                    <Button variant="outlined" color="error" onClick={cerrarEmail}>
+                                        cerrar
+                                    </Button>
+                                </Box>
                             </Paper>
                         </Box>
                     </Box>

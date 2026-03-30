@@ -272,9 +272,9 @@ function AdminMarcas() {
     const openDialogEdit = (row) => {
         setEditIdMarca(row.id_marca);
         setEditRut(row.empleado?.num_ficha || "");
-        const datePart = row.fecha_marca.split(" ").pop(); // Extrae "26-03-2026"
+        const datePart = row.fecha_marca.split(" ").pop();
         const [d, m, y] = datePart.split("-");
-        setEditFecha(dayjs(`${y}-${m}-${d}`)); // Convierte a "2026-03-26" para que dayjs lo tome correctamente
+        setEditFecha(dayjs(`${y}-${m}-${d}`)); 
         if (row.hora_marca) {
             const partes = row.hora_marca.split(":");
             setEditHora(partes[0] || "00");
@@ -290,17 +290,18 @@ function AdminMarcas() {
 
     const handleGuardarEdicion = async () => {
         setCargando(true);
+        const toastId = toast.loading("Guardando cambios...");
         try {
             const fechaEnviar = editFecha.format("YYYY-MM-DD");
             const horaEnviar = `${editHora}:${editMins}:00`;
             await actualizarMarcas(editIdMarca, fechaEnviar, horaEnviar, editEvento, editComentario);
-            toast.success("Registro editado exitosamente");
+            toast.success("Registro editado exitosamente", { id: toastId });
             setOpenEdit(false);
             if (desdeFecha && hastaFecha && filtroEmpleado) {
                 await handleBuscarMarcas();
             }
         } catch (error) {
-            toast.error("Error al editar la marca");
+            toast.error("Error al editar la marca", { id: toastId });
         } finally {
             setCargando(false);
         }

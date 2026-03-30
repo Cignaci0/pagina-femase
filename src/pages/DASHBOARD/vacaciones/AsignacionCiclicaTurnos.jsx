@@ -153,11 +153,6 @@ function AsignacionCiclicaTurnos() {
         }
     }, [filtroPerfil]);
 
-
-
-    // Renderizado condicional
-
-
     return (
         <>
             {/* Titulo */}
@@ -166,10 +161,7 @@ function AsignacionCiclicaTurnos() {
                     Admin Acceso Perfil
                 </Typography>
             </Box>
-
-            {/* Alerta de exito */}
-
-
+            
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
                 p: 3, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",

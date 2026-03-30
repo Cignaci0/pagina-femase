@@ -11,6 +11,8 @@ import { toast } from "react-hot-toast";
 
 import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
 import { regiones, comunas } from "../../../utils/dataGeografica";
+import { obtenerCentroCostos } from "../../../services/centroCostosServices";
+import { obtenerEmpleados } from "../../../services/empleadosServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -42,10 +44,6 @@ function AdminVacaciones() {
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
-    const [filtroTipo, setFiltroTipo] = useState("")
-    const [filtroEstado, setfiltroEstado] = useState("")
-    const [filtrojustificaHrs, setFiltrojustificaHrs] = useState("")
-    const [filtroPagada, setFiltroPagada] = useState("")
     const [desdeFecha, setDesdeFecha] = useState(null)
     const [hastaFecha, setHastaFecha] = useState(null)
 
@@ -57,29 +55,149 @@ function AdminVacaciones() {
 
     // Estados dialog Generar Reporte
     const [openReporte, setOpenReporte] = useState(false);
-    const [selectedEmpleados, setSelectedEmpleados] = useState([]);
+    
+    // Estados base (catalogos)
+    const [cencosGlobal, setCencosGlobal] = useState([]);
+    const [empleadosGlobal, setEmpleadosGlobal] = useState([]);
+
+    // Opciones cascada reporte
+    const [opcionesEmpresas, setOpcionesEmpresas] = useState([]);
+    const [opcionesDeptos, setOpcionesDeptos] = useState([]);
+    const [opcionesCencos, setOpcionesCencos] = useState([]);
+
+    // Filtros generales
+    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroDepto, setFiltroDepto] = useState("");
+    const [filtroCenco, setFiltroCenco] = useState("");
+    const [filtroEmpleado, setFiltroEmpleado] = useState("");
+
+    const [empleadosFiltro, setEmpleadosFiltro] = useState([]);
+
+    // Transfer list
+    const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
+    const [empleadosSeleccionados, setEmpleadosSeleccionados] = useState([]);
+    const [checkedIzq, setCheckedIzq] = useState([]);
+    const [checkedDer, setCheckedDer] = useState([]);
 
     // Estado dialog Info Historica
     const [openHistorica, setOpenHistorica] = useState(false);
 
-    // Lista de empleados (demo)
-    const listaEmpleados = [
-        { id: 1, nombre: "NICOLE ABRIL QUIÑONES" },
-        { id: 2, nombre: "ADRIANA MARJORIE MORENO" },
-        { id: 3, nombre: "CRISTOPHER IGNACIO ESCOBAR" },
-        { id: 4, nombre: "JUAN CARLOS PÉREZ" },
-        { id: 5, nombre: "MARÍA JOSÉ GONZÁLEZ" },
-    ];
+    // Carga inicial para la transfer list de reportes
+    useEffect(() => {
+        const fetchCatalogos = async () => {
+            try {
+                const cencos = await obtenerCentroCostos();
+                const emps = await obtenerEmpleados();
 
-    const handleToggleEmpleado = (id) => {
-        setSelectedEmpleados((prev) =>
-            prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
-        );
-    };
+                setCencosGlobal(cencos || []);
+                setEmpleadosGlobal(emps || []);
+
+                const empresasMap = new Map();
+                (cencos || []).forEach(c => {
+                    const e = c.departamento?.empresa;
+                    if (e && !empresasMap.has(e.empresa_id)) {
+                        empresasMap.set(e.empresa_id, e);
+                    }
+                });
+                setOpcionesEmpresas(Array.from(empresasMap.values()));
+            } catch (error) {
+                toast.error("Error al cargar datos base");
+            }
+        };
+        fetchCatalogos();
+    }, []);
+
+    // Cascada: Empresa -> Deptos
+    useEffect(() => {
+        if (filtroEmpresa !== "") {
+            const deptosMap = new Map();
+            cencosGlobal.forEach(c => {
+                if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
+                    if (!deptosMap.has(c.departamento.departamento_id)) {
+                        deptosMap.set(c.departamento.departamento_id, c.departamento);
+                    }
+                }
+            });
+            setOpcionesDeptos(Array.from(deptosMap.values()));
+        } else {
+            setOpcionesDeptos([]);
+        }
+        setFiltroDepto("");
+    }, [filtroEmpresa, cencosGlobal]);
+
+    // Cascada: Depto -> Cencos
+    useEffect(() => {
+        if (filtroDepto !== "") {
+            const cencosValidos = cencosGlobal.filter(c => c.departamento?.departamento_id === filtroDepto);
+            setOpcionesCencos(cencosValidos);
+        } else {
+            setOpcionesCencos([]);
+        }
+        setFiltroCenco("");
+    }, [filtroDepto, cencosGlobal]);
+
+    // Cascada: Cenco -> Empleados
+    useEffect(() => {
+        if (filtroCenco !== "") {
+            const empsFiltrados = empleadosGlobal.filter(e => e.cenco?.cenco_id === filtroCenco || e.cenco === filtroCenco);
+            setEmpleadosFiltro(empsFiltrados);
+            setEmpleadosDisponibles(empsFiltrados);
+        } else {
+            setEmpleadosFiltro([]);
+            setEmpleadosDisponibles([]);
+        }
+        setFiltroEmpleado("");
+        setEmpleadosSeleccionados([]);
+        setCheckedIzq([]);
+        setCheckedDer([]);
+    }, [filtroCenco, empleadosGlobal]);
+
+    // Handlers transfer list
+    const handleToggleIzq = (empId) => {
+        setCheckedIzq(prev => prev.includes(empId) ? prev.filter(id => id !== empId) : [...prev, empId]);
+    }
+
+    const handleToggleDer = (empId) => {
+        setCheckedDer(prev => prev.includes(empId) ? prev.filter(id => id !== empId) : [...prev, empId]);
+    }
+
+    const moverDerecha = () => {
+        const mover = empleadosDisponibles.filter(e => checkedIzq.includes(e.empleado_id || e.run));
+        setEmpleadosSeleccionados(prev => [...prev, ...mover]);
+        setEmpleadosDisponibles(prev => prev.filter(e => !checkedIzq.includes(e.empleado_id || e.run)));
+        setCheckedIzq([]);
+    }
+
+    const moverTodosDerecha = () => {
+        setEmpleadosSeleccionados(prev => [...prev, ...empleadosDisponibles]);
+        setEmpleadosDisponibles([]);
+        setCheckedIzq([]);
+    }
+
+    const moverIzquierda = () => {
+        const mover = empleadosSeleccionados.filter(e => checkedDer.includes(e.empleado_id || e.run));
+        setEmpleadosDisponibles(prev => [...prev, ...mover]);
+        setEmpleadosSeleccionados(prev => prev.filter(e => !checkedDer.includes(e.empleado_id || e.run)));
+        setCheckedDer([]);
+    }
+
+    const moverTodosIzquierda = () => {
+        setEmpleadosDisponibles(prev => [...prev, ...empleadosSeleccionados]);
+        setEmpleadosSeleccionados([]);
+        setCheckedDer([]);
+    }
 
     const cerrarDialogReporte = () => {
         setOpenReporte(false);
-        setSelectedEmpleados([]);
+        setEmpleadosSeleccionados([]);
+        setCheckedIzq([]);
+        setCheckedDer([]);
+        if (filtroCenco !== "") {
+            const empsFiltrados = empleadosGlobal.filter(e => e.cenco?.cenco_id === filtroCenco || e.cenco === filtroCenco);
+            setEmpleadosDisponibles(empsFiltrados);
+        } else {
+            setEmpleadosDisponibles([]);
+        }
     };
 
     // Estados crear
@@ -177,31 +295,45 @@ function AdminVacaciones() {
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
 
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Tipo" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} label="Empresa" value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
+                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            {opcionesEmpresas.map(emp => (
+                                <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroEstado} onChange={(e) => setfiltroEstado(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Estado" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} label="Depto" value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
+                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            {opcionesDeptos.map(dep => (
+                                <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtrojustificaHrs} onChange={(e) => setFiltrojustificaHrs(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} label="Cenco" value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
+                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            {opcionesCencos.map(c => (
+                                <MenuItem key={c.cenco_id} value={c.cenco_id}>{c.nombre_cenco}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroPagada} onChange={(e) => setFiltroPagada(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco || empleadosFiltro.length === 0}>
+                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            {empleadosFiltro.map(emp => (
+                                <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
+                                    {emp.nombres} {emp.apellido_paterno}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
@@ -262,11 +394,17 @@ function AdminVacaciones() {
                 }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto", textAlign: "center" }}>
 
-                        <Typography>
-                            <strong> Cristopher Ignacio Escobar</strong> ||
-                            <strong> RUT:</strong> <span> 21.287.800-6</span> ||
-                            <strong> Centro de costo: </strong> <span>Dpto. Sistemas</span>
-                        </Typography >
+                        {filtroEmpleado && (() => {
+                            const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                            return empSel ? (
+                                <Box display="flex" justifyContent="center" alignItems="center" sx={{ mb: 2 }}>
+                                    <Typography sx={{ fontSize: "20px" }}>
+                                        <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno} ||
+                                        <strong> Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
+                                    </Typography>
+                                </Box>
+                            ) : null;
+                        })()}
 
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%", mt: 2 }} aria-label="tabla de usuarios">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
@@ -643,33 +781,61 @@ function AdminVacaciones() {
             </Dialog>
 
             {/* Dialog Generar Reporte */}
-            <Dialog open={openReporte} onClose={cerrarDialogReporte} sx={{ textAlign: "center" }}>
+            <Dialog open={openReporte} onClose={cerrarDialogReporte} sx={{ textAlign: "center" }} maxWidth="md" fullWidth>
                 <DialogContent>
-                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "65vh", minWidth: "55vh" }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                            <DialogTitle sx={{ p: 0, mb: 3 }}>Generar Reporte</DialogTitle>
+                            <DialogTitle sx={{ p: 0, mb: 3 }}>Generar Reporte por Área</DialogTitle>
+                            
+                            {/* (Los filtros fueron movidos a la vista principal) */}
 
-                            <List sx={{ width: "100%", maxHeight: "40vh", overflow: "auto" }}>
-                                {listaEmpleados.map((emp) => (
-                                    <ListItem
-                                        key={emp.id}
-                                        dense
-                                        button
-                                        onClick={() => handleToggleEmpleado(emp.id)}
-                                        sx={{ borderBottom: "1px solid #eee" }}
-                                    >
-                                        <ListItemIcon sx={{ minWidth: 36 }}>
-                                            <Checkbox
-                                                edge="start"
-                                                checked={selectedEmpleados.includes(emp.id)}
-                                                tabIndex={-1}
-                                                disableRipple
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText primary={emp.nombre} />
-                                    </ListItem>
-                                ))}
-                            </List>
+                            {/* Transfer list empleados */}
+                            <Box sx={{ display: 'flex', flex: 1, gap: 2, minHeight: "250px" }}>
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', textAlign: "left" }}>Empleados disponibles</Typography>
+                                    <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff', maxHeight: "40vh" }}>
+                                        <List dense sx={{ p: 0 }}>
+                                            {empleadosDisponibles.map((emp) => {
+                                                const eid = emp.empleado_id || emp.run;
+                                                return (
+                                                    <ListItem key={eid} dense button onClick={() => handleToggleIzq(eid)}>
+                                                        <ListItemIcon sx={{ minWidth: 36 }}>
+                                                            <Checkbox edge="start" checked={checkedIzq.includes(eid)} size="small" tabIndex={-1} disableRipple />
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={`(${emp.run || emp.num_ficha || "-"}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""}`} />
+                                                    </ListItem>
+                                                );
+                                            })}
+                                        </List>
+                                    </Box>
+                                </Box>
+
+                                <Stack spacing={1} justifyContent="center">
+                                    <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverTodosDerecha}>&gt;&gt;</Button>
+                                    <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverDerecha}>&gt;</Button>
+                                    <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverIzquierda}>&lt;</Button>
+                                    <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverTodosIzquierda}>&lt;&lt;</Button>
+                                </Stack>
+
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', textAlign: "left" }}>Empleados seleccionados</Typography>
+                                    <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff', maxHeight: "40vh" }}>
+                                        <List dense sx={{ p: 0 }}>
+                                            {empleadosSeleccionados.map((emp) => {
+                                                const eid = emp.empleado_id || emp.run;
+                                                return (
+                                                    <ListItem key={eid} dense button onClick={() => handleToggleDer(eid)}>
+                                                        <ListItemIcon sx={{ minWidth: 36 }}>
+                                                            <Checkbox edge="start" checked={checkedDer.includes(eid)} size="small" tabIndex={-1} disableRipple />
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={`(${emp.run || emp.num_ficha || "-"}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""}`} />
+                                                    </ListItem>
+                                                );
+                                            })}
+                                        </List>
+                                    </Box>
+                                </Box>
+                            </Box>
                         </Paper>
                     </Box>
                 </DialogContent>
@@ -678,7 +844,7 @@ function AdminVacaciones() {
                     <Button
                         variant="contained"
                         color="primary"
-                        disabled={selectedEmpleados.length === 0}
+                        disabled={empleadosSeleccionados.length === 0}
                     >
                         Generar Reporte
                     </Button>
