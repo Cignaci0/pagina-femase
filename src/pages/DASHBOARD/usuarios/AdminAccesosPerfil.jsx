@@ -66,7 +66,7 @@ function AdminAccesosPerfil() {
             const listaFinalSinDuplicados = [...new Set(todosLosIds)];
             console.log("Enviando estos IDs:", listaFinalSinDuplicados);
             await agregarSubMenu(filtroPerfil, listaFinalSinDuplicados);
-            toast.success("Turnos asignados correctamente");
+            toast.success("Submenus asignados correctamente");
         } catch (error) {
             toast.error(error.message || "Error al asignar submenus");
         }
@@ -166,9 +166,6 @@ function AdminAccesosPerfil() {
                     Admin Acceso Perfil
                 </Typography>
             </Box>
-
-            {/* Alerta de exito */}
-
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

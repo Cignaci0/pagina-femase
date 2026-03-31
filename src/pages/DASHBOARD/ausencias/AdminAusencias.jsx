@@ -9,6 +9,7 @@ import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
 import { getTipoAusencia } from "../../../services/tiposAusencia";
+import { crearAusencia } from "../../../services/ausencias";
 
 function AdminAusencias() {
     // Datos globales para listas
@@ -148,20 +149,57 @@ function AdminAusencias() {
         }
     };
 
-    const handleGuardar = () => {
+    const handleGuardar = async () => {
         if (!filtroEmpleado || !motivoAusencia || !fechaInicio || !fechaFin) {
             toast.error("Complete todos los campos obligatorios (*)");
             return;
         }
 
-        if (tipoAusenciaVisual === "Ausencia por hora") {
+        const esPorHora = tipoAusenciaVisual === "Ausencia por hora";
+
+        if (esPorHora) {
             if (!horaInicioH || !horaInicioM || !horaFinH || !horaFinM) {
                 toast.error("Ingrese los horarios de entrada y salida");
                 return;
             }
         }
-        // Solo para visual por ahora
-        toast.success("Ausencia registrada correctamente (Local/Visual)");
+
+        // Buscar el empleado seleccionado para obtener num_ficha
+        const empleadoSeleccionado = empleadosGlobal.find(emp => emp.empleado_id === filtroEmpleado);
+        if (!empleadoSeleccionado || !empleadoSeleccionado.num_ficha) {
+            toast.error("No se encontró el número de ficha del empleado");
+            return;
+        }
+
+        const datos = {
+            empleado: empleadoSeleccionado.num_ficha,
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin,
+            hora_inicio: esPorHora ? `${horaInicioH}:${horaInicioM}` : null,
+            hora_fin: esPorHora ? `${horaFinH}:${horaFinM}` : null,
+            dia_completo: !esPorHora,
+            tipo_ausencia: motivoAusencia
+        };
+
+        setCargandoEnvio(true);
+        try {
+            await crearAusencia(datos);
+            toast.success("Ausencia registrada correctamente");
+            // Limpiar formulario
+            setFiltroEmpleado("");
+            setMotivoAusencia("");
+            setFechaInicio("");
+            setFechaFin("");
+            setHoraInicioH("");
+            setHoraInicioM("");
+            setHoraFinH("");
+            setHoraFinM("");
+            setTipoAusenciaVisual("Ausencia por todo el dia");
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setCargandoEnvio(false);
+        }
     };
 
     return (
@@ -173,7 +211,7 @@ function AdminAusencias() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 5, bgcolor: "#f9f9f9", borderRadius: 2, width: "100%", height: "70vh", overflowY: "auto", boxSizing: "border-box"
+                p: 5, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", overflowY: "auto", boxSizing: "border-box"
             }}>
                 <Typography variant="h5" fontWeight="bold" sx={{ mb: 4, color: "#333", borderBottom: '1px solid #ddd', pb: 2 }}>
                     Formulario de Ingreso
