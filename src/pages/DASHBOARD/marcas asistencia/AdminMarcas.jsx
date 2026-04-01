@@ -4,14 +4,15 @@ import {
     TableRow, TableCell, TableBody, Dialog, DialogTitle,
     DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
     IconButton, Typography, CircularProgress,
-    TablePagination, Stack, FormHelperText
+    TablePagination, Stack, FormHelperText, DialogContentText
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import { obtenerEmpleados } from "../../../services/empleadosServices";
 import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
-import { getMarcas, crearMarca, actualizarMarcas, historialMarcas } from "../../../services/marcasServices";
+import { getMarcas, crearMarca, actualizarMarcas, historialMarcas, eliminarMarca } from "../../../services/marcasServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -23,6 +24,8 @@ import "dayjs/locale/es";
 dayjs.locale("es");
 
 function AdminMarcas() {
+
+    const perfilId = localStorage.getItem("perfilId");
 
     // --- ESTADOS BASE (CATÁLOGOS) ---
     const [cencosGlobal, setCencosGlobal] = useState([]);
@@ -59,7 +62,7 @@ function AdminMarcas() {
     const [openHistorial, setOpenHistorial] = useState(false);
     const [historialData, setHistorialData] = useState([]);
 
-    const handleBuscarMarcas = async () => {
+    const handleBuscarMarcas = async (mantenerPag) => {
         if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
             toast.error("Seleccione empleado, y fechas desde/hasta");
             return;
@@ -73,7 +76,9 @@ function AdminMarcas() {
             const res = await getMarcas(numFicha, fi, ff);
             setMarcas(res);
             setHaBuscado(true);
-            setPagina(0);
+            if (mantenerPag !== true) {
+                setPagina(0);
+            }
         } catch (error) {
             toast.error("Error al buscar marcas");
         } finally {
@@ -233,6 +238,7 @@ function AdminMarcas() {
 
     const handleGuardarCreacion = async () => {
         setCargando(true);
+        const toastId = toast.loading("Guardando registro...");
         try {
             const datosMarca = {
                 fecha_marca: crearFecha.format("YYYY-MM-DD"),
@@ -245,14 +251,14 @@ function AdminMarcas() {
             };
 
             await crearMarca(datosMarca);
-            toast.success("Marca creada exitosamente");
+            toast.success("Marca creada exitosamente", { id: toastId });
             setOpenCrear(false);
             if (desdeFecha && hastaFecha && filtroEmpleado) {
-                handleBuscarMarcas();
+                handleBuscarMarcas(true);
             }
         } catch (error) {
 
-            toast.error("Error al crear la marca");
+            toast.error("Error al crear la marca", { id: toastId });
 
         } finally {
             setCargando(false);
@@ -268,13 +274,15 @@ function AdminMarcas() {
     const [editMins, setEditMins] = useState("");
     const [editEvento, setEditEvento] = useState(1);
     const [editComentario, setEditComentario] = useState("");
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
     const openDialogEdit = (row) => {
         setEditIdMarca(row.id_marca);
         setEditRut(row.empleado?.num_ficha || "");
         const datePart = row.fecha_marca.split(" ").pop();
         const [d, m, y] = datePart.split("-");
-        setEditFecha(dayjs(`${y}-${m}-${d}`)); 
+        setEditFecha(dayjs(`${y}-${m}-${d}`));
         if (row.hora_marca) {
             const partes = row.hora_marca.split(":");
             setEditHora(partes[0] || "00");
@@ -298,10 +306,35 @@ function AdminMarcas() {
             toast.success("Registro editado exitosamente", { id: toastId });
             setOpenEdit(false);
             if (desdeFecha && hastaFecha && filtroEmpleado) {
-                await handleBuscarMarcas();
+                await handleBuscarMarcas(true);
             }
         } catch (error) {
             toast.error("Error al editar la marca", { id: toastId });
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const handleOpenDeleteDialog = () => {
+        setDeleteConfirmText("");
+        setOpenDeleteDialog(true);
+    };
+
+    const handleEliminarMarca = async () => {
+        if (deleteConfirmText !== "ELIMINAR") return;
+
+        setCargando(true);
+        const toastId = toast.loading("Eliminando registro...");
+        try {
+            await eliminarMarca(editIdMarca);
+            toast.success("Registro eliminado exitosamente", { id: toastId });
+            setOpenDeleteDialog(false);
+            setOpenEdit(false);
+            if (desdeFecha && hastaFecha && filtroEmpleado) {
+                await handleBuscarMarcas(true);
+            }
+        } catch (error) {
+            toast.error("Error al eliminar la marca", { id: toastId });
         } finally {
             setCargando(false);
         }
@@ -645,6 +678,13 @@ function AdminMarcas() {
                                 <Box sx={{ mb: 2 }}>
                                     <TextField size="small" fullWidth label="Comentario" multiline rows={2} value={editComentario} onChange={(e) => setEditComentario(e.target.value)} InputLabelProps={{ shrink: true }} />
                                 </Box>
+                                {perfilId === "2" && (
+                                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                        <Button size="small" variant="contained" color="error" onClick={handleOpenDeleteDialog}>
+                                            Eliminar
+                                        </Button>
+                                    </Box>
+                                )}
                             </Paper>
                         </Box>
                     </Box>
@@ -705,8 +745,61 @@ function AdminMarcas() {
                 </DialogActions>
             </Dialog>
 
+            {/* Alerta de eliminar */}
+            <Dialog
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <Box sx={{ textAlign: 'center', pt: 3 }}>
+                    <WarningAmberRoundedIcon sx={{ fontSize: 60, color: 'error.main' }} />
+                </Box>
+
+                <DialogTitle sx={{ textAlign: "center", fontWeight: 'bold' }}>
+                    ¿Eliminar Registro?
+                </DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText sx={{ textAlign: "center", mb: 3 }}>
+                        Esta acción es irreversible. Para confirmar que desea borrar este registro, por favor escriba <strong>ELIMINAR</strong> en el cuadro de abajo.
+                    </DialogContentText>
+
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Escriba ELIMINAR"
+                        color="error"
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                        sx={{ bgcolor: '#fff' }}
+                    />
+                </DialogContent>
+
+                <DialogActions sx={{ p: 3, pt: 0, justifyContent: "center" }}>
+                    <Button
+                        onClick={() => setOpenDeleteDialog(false)}
+                        variant="outlined"
+                        color="inherit"
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        onClick={handleEliminarMarca}
+                        variant="contained"
+                        color="error"
+                        disabled={deleteConfirmText !== "ELIMINAR" || cargando}
+                        startIcon={cargando ? <CircularProgress size={20} color="inherit" /> : <WarningAmberRoundedIcon />}
+                    >
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </>
     );
 }
 
-export default AdminMarcas;;
+export default AdminMarcas;

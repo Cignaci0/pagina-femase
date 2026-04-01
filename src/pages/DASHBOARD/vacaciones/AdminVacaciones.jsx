@@ -13,6 +13,7 @@ import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../servi
 import { regiones, comunas } from "../../../utils/dataGeografica";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerVacaciones, crearSolicitudVacaciones } from "../../../services/vacaciones";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -46,6 +47,9 @@ function AdminVacaciones() {
     const [busqueda, setBusqueda] = useState("");
     const [desdeFecha, setDesdeFecha] = useState(null)
     const [hastaFecha, setHastaFecha] = useState(null)
+    const [haBuscado, setHaBuscado] = useState(false);
+    const [vacacionesFiltradas, setVacacionesFiltradas] = useState([]);
+    const [resumenSaldos, setResumenSaldos] = useState({});
 
     // Estados dialogs de detalle (Fechas, Dias, Saldos)
     const [openFechas, setOpenFechas] = useState(false);
@@ -55,7 +59,7 @@ function AdminVacaciones() {
 
     // Estados dialog Generar Reporte
     const [openReporte, setOpenReporte] = useState(false);
-    
+
     // Estados base (catalogos)
     const [cencosGlobal, setCencosGlobal] = useState([]);
     const [empleadosGlobal, setEmpleadosGlobal] = useState([]);
@@ -200,25 +204,53 @@ function AdminVacaciones() {
         }
     };
 
+    const handleBuscarVacaciones = async () => {
+        if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
+            toast.error("Debe seleccionar empleado y rango de fechas");
+            return;
+        }
+
+        const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+        const numFicha = empSel?.num_ficha;
+
+        if (!numFicha) {
+            toast.error("El empleado seleccionado no tiene número de ficha registrado");
+            return;
+        }
+
+        setCargando(true);
+        try {
+            const fi = desdeFecha.format("YYYY-MM-DD");
+            const ff = hastaFecha.format("YYYY-MM-DD");
+            const response = await obtenerVacaciones(numFicha, fi, ff);
+
+            if (response && response.vacaciones) {
+                setVacacionesFiltradas(response.vacaciones);
+                setResumenSaldos(response.resumen || {});
+            } else {
+                setVacacionesFiltradas([]);
+                setResumenSaldos({});
+            }
+            setHaBuscado(true);
+        } catch (error) {
+            toast.error("Error al buscar las vacaciones");
+        } finally {
+            setCargando(false);
+            setPagina(0);
+        }
+    };
+
     // Estados crear
     const [open, setOpen] = useState(false);
-    const [nuevoEmpresa, setNuevoEmpresa] = useState("");
-    const [nuevoDepartamento, setNuevoDepartamento] = useState("");
-    const [nuevoCenco, setNuevoCenco] = useState("");
-    const [nuevoEmpleado, setNuevoEmpleado] = useState("");
     const [nuevoFechaInicio, setNuevoFechaInicio] = useState(null);
     const [nuevoFechaFin, setNuevoFechaFin] = useState(null);
-    const [nuevoAutorizador, setNuevoAutorizador] = useState("");
+    const [nuevoEstado, setNuevoEstado] = useState("A");
 
     const cerrarDialog = () => {
         setOpen(false);
-        setNuevoEmpresa("");
-        setNuevoDepartamento("");
-        setNuevoCenco("");
-        setNuevoEmpleado("");
         setNuevoFechaInicio(null);
         setNuevoFechaFin(null);
-        setNuevoAutorizador("");
+        setNuevoEstado("A");
     };
 
     // Estados editar
@@ -252,7 +284,35 @@ function AdminVacaciones() {
     };
 
     const clickCrear = async () => {
+        if (!filtroEmpleado) {
+            toast.error("Debe seleccionar un empleado primero");
+            return;
+        }
 
+        const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+        const numFicha = empSel?.num_ficha;
+
+        if (!numFicha) {
+            toast.error("El empleado no tiene número de ficha registrado");
+            return;
+        }
+
+        const toastId = toast.loading("Registrando solicitud...");
+        try {
+            const fi = nuevoFechaInicio.format("YYYY-MM-DD");
+            const ff = nuevoFechaFin.format("YYYY-MM-DD");
+            
+            await crearSolicitudVacaciones(numFicha, fi, ff, nuevoEstado);
+            
+            toast.success("Solicitud creada exitosamente", { id: toastId });
+            cerrarDialog();
+            
+            if (haBuscado && desdeFecha && hastaFecha) {
+                await handleBuscarVacaciones();
+            }
+        } catch (error) {
+            toast.error("Error al registrar solicitud", { id: toastId });
+        }
     };
 
     // Filtrado y paginacion
@@ -275,8 +335,6 @@ function AdminVacaciones() {
         setPagina(0);
     }, [busqueda]);
 
-    // Renderizado condicional
-    if (cargando) return;
 
     return (
         <>
@@ -374,14 +432,15 @@ function AdminVacaciones() {
                         </LocalizationProvider>
                     </Box>
 
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 'auto' }}>
-                        <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", maxWidth: "30vh" }} onClick={(e) => setOpen(true)}>
-                            Nuevo Registro
-                        </Button>
-                        <Button variant="contained" startIcon={<AssessmentIcon />} sx={{ height: "40px", maxWidth: "30vh" }} onClick={() => setOpenReporte(true)}>
-                            Reportes
-                        </Button>
-                    </Box>
+                    <Button variant="contained" color="warning" startIcon={<SearchIcon />} sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }} onClick={handleBuscarVacaciones}>
+                        Buscar
+                    </Button>
+                    <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={(e) => setOpen(true)} disabled={!filtroEmpleado}>
+                        Nuevo Registro
+                    </Button>
+                    <Button variant="contained" startIcon={<AssessmentIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={() => setOpenReporte(true)}>
+                        Reportes
+                    </Button>
 
                 </Box>
 
@@ -397,7 +456,7 @@ function AdminVacaciones() {
                         {filtroEmpleado && (() => {
                             const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
                             return empSel ? (
-                                <Box display="flex" justifyContent="center" alignItems="center" sx={{ mb: 2 }}>
+                                <Box display="flex" justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
                                     <Typography sx={{ fontSize: "20px" }}>
                                         <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno} ||
                                         <strong> Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
@@ -412,9 +471,10 @@ function AdminVacaciones() {
                                     <TableCell align="center"><strong>Fechas</strong></TableCell>
                                     <TableCell align="center"><strong>Ultima Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Dias</strong></TableCell>
-                                    <TableCell align="center"><strong>Saldos</strong></TableCell>
+                                    <TableCell align="center"><strong>Saldo Vacaciones</strong></TableCell>
                                     <TableCell align="center"><strong>Zona Extrema</strong></TableCell>
                                     <TableCell align="center"><strong>Autorizador</strong></TableCell>
+                                    <TableCell align="center"><strong>Estado</strong></TableCell>
                                     <TableCell align="center"><strong>Generar Reporte</strong></TableCell>
                                     <TableCell align="center"><strong>Info Historica</strong></TableCell>
                                     <TableCell align="center"><strong>Editar</strong></TableCell>
@@ -422,35 +482,81 @@ function AdminVacaciones() {
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">
-                                        <Tooltip title="Ver Fechas">
-                                            <IconButton onClick={() => { setSelectedRow({}); setOpenFechas(true); }}>
-                                                <CalendarMonthIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center">
-                                        <Tooltip title="Ver Dias">
-                                            <IconButton onClick={() => { setSelectedRow({}); setOpenDias(true); }}>
-                                                <TodayIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Tooltip title="Ver Saldos">
-                                            <IconButton onClick={() => { setSelectedRow({}); setOpenSaldos(true); }}>
-                                                <AccessAlarmIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"><IconButton><AssessmentIcon /></IconButton></TableCell>
-                                    <TableCell align="center"><IconButton onClick={() => setOpenHistorica(true)}><HistoryIcon /></IconButton></TableCell>
-                                    <TableCell align="center"><IconButton onClick={() => handleAbrirEditar()}><EditIcon /></IconButton></TableCell>
-                                </TableRow>
+                                {cargando ? (
+                                    <TableRow>
+                                        <TableCell colSpan={10} align="center">
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 5 }}>
+                                                <CircularProgress />
+                                                <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                                                    Buscando registro...
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : !haBuscado ? (
+                                    <TableRow>
+                                        <TableCell colSpan={10} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                                Seleccione un empleado y un rango de fechas para comenzar la búsqueda
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : vacacionesFiltradas.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={10} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                                No se encontraron resultados
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    vacacionesFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
+                                        return (
+                                            <TableRow key={row.id_vacaciones || idx}>
+                                                <TableCell align="center">
+                                                    <Tooltip title="Ver Fechas">
+                                                        <IconButton onClick={() => {
+                                                            setSelectedRow({
+                                                                fecIngreso: dayjs(row.fecha_ingreso).format("DD-MM-YYYY"),
+                                                                fecInicio: dayjs(row.fecha_inicio).format("DD-MM-YYYY"),
+                                                                fecFin: dayjs(row.fecha_fin).format("DD-MM-YYYY")
+                                                            });
+                                                            setOpenFechas(true);
+                                                        }}>
+                                                            <CalendarMonthIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </TableCell>
+                                                <TableCell align="center">{dayjs(row.fecha_ingreso).format("DD-MM-YYYY HH:mm")}</TableCell>
+                                                <TableCell align="center">
+                                                    <Tooltip title="Ver Dias">
+                                                        <IconButton onClick={() => {
+                                                            setSelectedRow({
+                                                                diasAcumulados: row.dias_acumulados,
+                                                                diasEfectivos: row.dias_efectivos
+                                                            });
+                                                            setOpenDias(true);
+                                                        }}>
+                                                            <TodayIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </TableCell>
+                                                <TableCell align="center">{row.saldo_vacaciones}</TableCell>
+                                                <TableCell align="center">{row.zona_extrema ? "Sí" : "No"}</TableCell>
+                                                <TableCell align="center">{row.autorizador || "-"}</TableCell>
+                                                <TableCell align="center">
+                                                    {row.estado === "A" && <CircleIcon sx={{ color: "green", fontSize: 18 }} />}
+                                                    {row.estado === "P" && <CircleIcon sx={{ color: "gold", fontSize: 18 }} />}
+                                                    {row.estado === "R" && <CircleIcon sx={{ color: "red", fontSize: 18 }} />}
+                                                    {row.estado !== "A" && row.estado !== "P" && row.estado !== "R" && row.estado}
+                                                </TableCell>
+                                                <TableCell align="center"><IconButton><AssessmentIcon /></IconButton></TableCell>
+                                                <TableCell align="center"><IconButton onClick={() => setOpenHistorica(true)}><HistoryIcon /></IconButton></TableCell>
+                                                <TableCell align="center"><IconButton onClick={() => handleAbrirEditar(row)}><EditIcon /></IconButton></TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -460,7 +566,7 @@ function AdminVacaciones() {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={empresasFiltradas.length}
+                    count={haBuscado ? vacacionesFiltradas.length : 0}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -475,43 +581,7 @@ function AdminVacaciones() {
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "65vh", minWidth: "55vh" }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                            <DialogTitle sx={{ p: 0, mb: 3 }}>Agregar Vacaciones</DialogTitle>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Empresa *</InputLabel>
-                                <Select label="Empresa *" value={nuevoEmpresa} onChange={(e) => setNuevoEmpresa(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Empresa</em></MenuItem>
-                                    <MenuItem value="1">Empresa Demo</MenuItem>
-                                </Select>
-                                {nuevoEmpresa === "" && <FormHelperText >La Empresa es obligatoria</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Departamento *</InputLabel>
-                                <Select label="Departamento *" value={nuevoDepartamento} onChange={(e) => setNuevoDepartamento(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Departamento</em></MenuItem>
-                                    <MenuItem value="1">Depto Sistemas</MenuItem>
-                                </Select>
-                                {nuevoDepartamento === "" && <FormHelperText >El Departamento es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Centro de Costo *</InputLabel>
-                                <Select label="Centro de Costo *" value={nuevoCenco} onChange={(e) => setNuevoCenco(e.target.value)}>
-                                    <MenuItem value=""><em>----------</em></MenuItem>
-                                    <MenuItem value="1">Sistema</MenuItem>
-                                </Select>
-                                {nuevoCenco === "" && <FormHelperText >El Centro de Costo es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Empleado *</InputLabel>
-                                <Select label="Empleado *" value={nuevoEmpleado} onChange={(e) => setNuevoEmpleado(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Empleado</em></MenuItem>
-                                    <MenuItem value="1">NICOLE ABRIL QUIÑONES...</MenuItem>
-                                </Select>
-                                {nuevoEmpleado === "" && <FormHelperText >El Empleado es obligatorio</FormHelperText>}
-                            </FormControl>
+                            <DialogTitle sx={{ p: 0, mb: 3 }}>Agregar Solicitud de Vacaciones</DialogTitle>
 
                             <Box sx={{ mb: 2 }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
@@ -550,14 +620,13 @@ function AdminVacaciones() {
                             </Box>
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Autorizador *</InputLabel>
-                                <Select label="Autorizador *" value={nuevoAutorizador} onChange={(e) => setNuevoAutorizador(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Autorizador</em></MenuItem>
-                                    <MenuItem value="1">ADRIANA MARJORIE MORENO [Región Metropolitana-PIE 24 HRS EL BOSQUE]</MenuItem>
+                                <InputLabel>Estado *</InputLabel>
+                                <Select label="Estado *" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
+                                    <MenuItem value="A">Aprobado</MenuItem>
+                                    <MenuItem value="P">Pendiente</MenuItem>
+                                    <MenuItem value="R">Rechazado</MenuItem>
                                 </Select>
-                                {nuevoAutorizador === "" && <FormHelperText >El Autorizador es obligatorio</FormHelperText>}
                             </FormControl>
-
                         </Paper>
                     </Box>
                 </DialogContent>
@@ -567,15 +636,7 @@ function AdminVacaciones() {
                         onClick={clickCrear}
                         variant="contained"
                         color="primary"
-                        disabled={
-                            nuevoEmpresa === "" ||
-                            nuevoDepartamento === "" ||
-                            nuevoCenco === "" ||
-                            nuevoEmpleado === "" ||
-                            !nuevoFechaInicio ||
-                            !nuevoFechaFin ||
-                            nuevoAutorizador === ""
-                        }
+                        disabled={!nuevoFechaInicio || !nuevoFechaFin || !nuevoEstado}
                     >
                         Guardar
                     </Button>
@@ -721,26 +782,20 @@ function AdminVacaciones() {
             </Dialog>
 
             {/* Dialog Dias */}
-            <Dialog open={openDias} onClose={() => setOpenDias(false)} maxWidth="md" fullWidth>
+            <Dialog open={openDias} onClose={() => setOpenDias(false)} maxWidth="xs" fullWidth>
                 <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>Dias</DialogTitle>
                 <DialogContent>
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell align="center"><strong>Dias Acum.Vac Asignadas</strong></TableCell>
+                                <TableCell align="center"><strong>Dias Acumulados</strong></TableCell>
                                 <TableCell align="center"><strong>Dias Efectivos</strong></TableCell>
-                                <TableCell align="center"><strong>Dias Especiales</strong></TableCell>
-                                <TableCell align="center"><strong>Dias Efectivos VBA</strong></TableCell>
-                                <TableCell align="center"><strong>Dias Efectivos VP</strong></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             <TableRow>
-                                <TableCell align="center">{selectedRow?.diasAcumVacAsignadas || "-"}</TableCell>
+                                <TableCell align="center">{selectedRow?.diasAcumulados || "-"}</TableCell>
                                 <TableCell align="center">{selectedRow?.diasEfectivos || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.diasEspeciales || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.diasEfectivosVBA || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.diasEfectivosVP || "-"}</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
@@ -750,43 +805,13 @@ function AdminVacaciones() {
                 </DialogActions>
             </Dialog>
 
-            {/* Dialog Saldos */}
-            <Dialog open={openSaldos} onClose={() => setOpenSaldos(false)} maxWidth="md" fullWidth>
-                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>Saldos</DialogTitle>
-                <DialogContent>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="center"><strong>Saldo Vac Asignadas</strong></TableCell>
-                                <TableCell align="center"><strong>Saldo VBA Pre Vacaciones</strong></TableCell>
-                                <TableCell align="center"><strong>Saldo VP Pre Vacaciones</strong></TableCell>
-                                <TableCell align="center"><strong>Saldo VBA Post Vacaciones</strong></TableCell>
-                                <TableCell align="center"><strong>Saldo VP Post Vacaciones</strong></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell align="center">{selectedRow?.saldoVacAsignadas || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.saldoVBAPreVacaciones || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.saldoVPPreVacaciones || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.saldoVBAPostVacaciones || "-"}</TableCell>
-                                <TableCell align="center">{selectedRow?.saldoVPPostVacaciones || "-"}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenSaldos(false)} color="error">Cerrar</Button>
-                </DialogActions>
-            </Dialog>
-
             {/* Dialog Generar Reporte */}
             <Dialog open={openReporte} onClose={cerrarDialogReporte} sx={{ textAlign: "center" }} maxWidth="md" fullWidth>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                            <DialogTitle sx={{ p: 0, mb: 3 }}>Generar Reporte por Área</DialogTitle>
-                            
+                            <DialogTitle sx={{ p: 0, mb: 3 }}>Generar Reporte por Cenco</DialogTitle>
+
                             {/* (Los filtros fueron movidos a la vista principal) */}
 
                             {/* Transfer list empleados */}
