@@ -13,7 +13,7 @@ import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../servi
 import { regiones, comunas } from "../../../utils/dataGeografica";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados } from "../../../services/empleadosServices";
-import { obtenerVacaciones, crearSolicitudVacaciones } from "../../../services/vacaciones";
+import { obtenerVacaciones, crearSolicitudVacaciones, aprobarRechazar, generarreporte } from "../../../services/vacaciones";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -50,6 +50,7 @@ function AdminVacaciones() {
     const [haBuscado, setHaBuscado] = useState(false);
     const [vacacionesFiltradas, setVacacionesFiltradas] = useState([]);
     const [resumenSaldos, setResumenSaldos] = useState({});
+    const [filtroEstado, setFiltroEstado] = useState("");
 
     // Estados dialogs de detalle (Fechas, Dias, Saldos)
     const [openFechas, setOpenFechas] = useState(false);
@@ -204,6 +205,83 @@ function AdminVacaciones() {
         }
     };
 
+    const handleGenerarReporte = async () => {
+        if (empleadosSeleccionados.length === 0) {
+            toast.error("Debe seleccionar al menos un empleado");
+            return;
+        }
+
+        const toastId = toast.loading("Generando reportes...");
+
+        try {
+            for (const emp of empleadosSeleccionados) {
+                const numFicha = emp.num_ficha;
+                if (!numFicha) continue;
+
+                const blob = await generarreporte(numFicha);
+                if (!blob) {
+                    toast.error(`Error al generar reporte de ${emp.nombres}`);
+                    continue;
+                }
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.style.display = "none";
+                a.href = url;
+                a.download = `Reporte_Vacaciones_${emp.nombres}_${emp.apellido_paterno}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }
+            toast.success("Reportes generados exitosamente", { id: toastId });
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al generar reportes", { id: toastId });
+        }
+    };
+
+    const handleReporteIndividual = async () => {
+        if (!filtroEmpleado) {
+            toast.error("Debe seleccionar un empleado");
+            return;
+        }
+
+        const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+        const numFicha = empSel?.num_ficha;
+
+        if (!numFicha) {
+            toast.error("El empleado no tiene número de ficha registrado");
+            return;
+        }
+
+        const toastId = toast.loading("Generando reporte...");
+        try {
+            const blob = await generarreporte(numFicha);
+            if (!blob) {
+                toast.error("Error al generar el reporte", { id: toastId });
+                return;
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = `Reporte_Vacaciones_${empSel.nombres}_${empSel.apellido_paterno}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            toast.success("Reporte generado exitosamente", { id: toastId });
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al generar el reporte", { id: toastId });
+        }
+    };
+
     const handleBuscarVacaciones = async () => {
         if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
             toast.error("Debe seleccionar empleado y rango de fechas");
@@ -253,34 +331,33 @@ function AdminVacaciones() {
         setNuevoEstado("A");
     };
 
-    // Estados editar
-    const [openEdit, setOpenEdit] = useState(false);
-    const [editId, setEditId] = useState("");
-    const [editEmpresa, setEditEmpresa] = useState("");
-    const [editDepartamento, setEditDepartamento] = useState("");
-    const [editCenco, setEditCenco] = useState("");
-    const [editEmpleado, setEditEmpleado] = useState("");
-    const [editFechaInicio, setEditFechaInicio] = useState(null);
-    const [editFechaFin, setEditFechaFin] = useState(null);
-    const [editAutorizador, setEditAutorizador] = useState("");
+    // Estados de Aprobar/Rechazar
+    const [openAprobar, setOpenAprobar] = useState(false);
+    const [solicitudSeleccionada, setSolicitudSeleccionada] = useState(null);
 
-    const cerrarDialogEdit = () => {
-        setOpenEdit(false);
-        setEditEmpresa("");
-        setEditDepartamento("");
-        setEditCenco("");
-        setEditEmpleado("");
-        setEditFechaInicio(null);
-        setEditFechaFin(null);
-        setEditAutorizador("");
+    const handleAbrirAprobar = (row) => {
+        setSolicitudSeleccionada(row);
+        setOpenAprobar(true);
     };
 
-    const handleAbrirEditar = (row) => {
-        setOpenEdit(true)
+    const cerrarDialogAprobar = () => {
+        setOpenAprobar(false);
+        setSolicitudSeleccionada(null);
     };
 
-    const clickEditar = async () => {
-
+    const handleAccionAprobarRechazar = async (estado) => {
+        if (!solicitudSeleccionada) return;
+        const toastId = toast.loading(estado === "A" ? "Aprobando solicitud..." : "Rechazando solicitud...");
+        try {
+            await aprobarRechazar(solicitudSeleccionada.id_vacaciones || solicitudSeleccionada.id, estado);
+            toast.success(estado === "A" ? "Solicitud aprobada exitosamente" : "Solicitud rechazada exitosamente", { id: toastId });
+            cerrarDialogAprobar();
+            if (haBuscado && desdeFecha && hastaFecha) {
+                await handleBuscarVacaciones();
+            }
+        } catch (error) {
+            toast.error(error.message || "Error al procesar la solicitud", { id: toastId });
+        }
     };
 
     const clickCrear = async () => {
@@ -329,6 +406,11 @@ function AdminVacaciones() {
         setFilaPorPagina(parseInt(event.target.value, 10));
         setPagina(0);
     };
+
+    // Filtrado de la tabla
+    const vacacionesParaMostrar = filtroEstado
+        ? vacacionesFiltradas.filter((v) => v.estado === filtroEstado)
+        : vacacionesFiltradas;
 
     // Effects
     useEffect(() => {
@@ -394,6 +476,16 @@ function AdminVacaciones() {
                             ))}
                         </Select>
                     </FormControl>
+                    
+                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Estado</InputLabel>
+                        <Select sx={{ width: "15vh" }} label="Estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            <MenuItem value="P">Pendiente</MenuItem>
+                            <MenuItem value="A">Aprobado</MenuItem>
+                            <MenuItem value="R">Rechazado</MenuItem>
+                        </Select>
+                    </FormControl>
 
                     {/* Filtros de fecha */}
                     <Box sx={{ mb: 2, maxWidth: "15%" }}>
@@ -432,14 +524,19 @@ function AdminVacaciones() {
                         </LocalizationProvider>
                     </Box>
 
+                   
+
                     <Button variant="contained" color="warning" startIcon={<SearchIcon />} sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }} onClick={handleBuscarVacaciones} disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}>
                         Buscar
                     </Button>
                     <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={(e) => setOpen(true)} disabled={!filtroEmpleado}>
                         Nuevo Registro
                     </Button>
-                    <Button variant="contained" startIcon={<AssessmentIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={() => setOpenReporte(true)}>
-                        Reportes
+                    <Button variant="contained"   startIcon={<AssessmentIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={handleReporteIndividual} disabled={!filtroEmpleado}>
+                        Reporte
+                    </Button>
+                    <Button variant="contained" startIcon={<AssessmentIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={() => setOpenReporte(true)} disabled={!filtroCenco}>
+                        Reportes Masivos
                     </Button>
 
                 </Box>
@@ -475,9 +572,8 @@ function AdminVacaciones() {
                                     <TableCell align="center"><strong>Zona Extrema</strong></TableCell>
                                     <TableCell align="center"><strong>Autorizador</strong></TableCell>
                                     <TableCell align="center"><strong>Estado</strong></TableCell>
-                                    <TableCell align="center"><strong>Generar Reporte</strong></TableCell>
                                     <TableCell align="center"><strong>Info Historica</strong></TableCell>
-                                    <TableCell align="center"><strong>Editar</strong></TableCell>
+                                    <TableCell align="center"><strong>Aprobar/Rechazar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 
@@ -501,7 +597,7 @@ function AdminVacaciones() {
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
-                                ) : vacacionesFiltradas.length === 0 ? (
+                                ) : vacacionesParaMostrar.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={10} align="center">
                                             <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
@@ -510,7 +606,7 @@ function AdminVacaciones() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    vacacionesFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
+                                    vacacionesParaMostrar.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
                                         return (
                                             <TableRow key={row.id_vacaciones || idx}>
                                                 <TableCell align="center">
@@ -550,9 +646,14 @@ function AdminVacaciones() {
                                                     {row.estado === "R" && <CircleIcon sx={{ color: "red", fontSize: 18 }} />}
                                                     {row.estado !== "A" && row.estado !== "P" && row.estado !== "R" && row.estado}
                                                 </TableCell>
-                                                <TableCell align="center"><IconButton><AssessmentIcon /></IconButton></TableCell>
                                                 <TableCell align="center"><IconButton onClick={() => setOpenHistorica(true)}><HistoryIcon /></IconButton></TableCell>
-                                                <TableCell align="center"><IconButton onClick={() => handleAbrirEditar(row)}><EditIcon /></IconButton></TableCell>
+                                                <TableCell align="center">
+                                                    {row.estado === "P" && (
+                                                        <IconButton onClick={() => handleAbrirAprobar(row)}>
+                                                            <EditIcon />
+                                                        </IconButton>
+                                                    )}
+                                                </TableCell>
                                             </TableRow>
                                         );
                                     })
@@ -566,7 +667,7 @@ function AdminVacaciones() {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={haBuscado ? vacacionesFiltradas.length : 0}
+                    count={haBuscado ? vacacionesParaMostrar.length : 0}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -643,117 +744,24 @@ function AdminVacaciones() {
                 </DialogActions>
             </Dialog>
 
-            {/* Dialog editar */}
-            <Dialog open={openEdit} onClose={cerrarDialogEdit} sx={{ textAlign: "center" }}>
+            {/* Dialog Aprobar/Rechazar */}
+            <Dialog open={openAprobar} onClose={cerrarDialogAprobar} sx={{ textAlign: "center" }} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold" }}>Aprobar o Rechazar Solicitud</DialogTitle>
                 <DialogContent>
-                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "65vh", minWidth: "55vh" }}>
-                        <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                            <DialogTitle sx={{ p: 0, mb: 3 }}>Editar Vacaciones</DialogTitle>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Empresa *</InputLabel>
-                                <Select label="Empresa *" value={editEmpresa} onChange={(e) => setEditEmpresa(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Empresa</em></MenuItem>
-                                    <MenuItem value="1">Empresa Demo</MenuItem>
-                                </Select>
-                                {editEmpresa === "" && <FormHelperText>La Empresa es obligatoria</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Departamento *</InputLabel>
-                                <Select label="Departamento *" value={editDepartamento} onChange={(e) => setEditDepartamento(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Departamento</em></MenuItem>
-                                    <MenuItem value="1">Depto Sistemas</MenuItem>
-                                </Select>
-                                {editDepartamento === "" && <FormHelperText>El Departamento es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Centro de Costo *</InputLabel>
-                                <Select label="Centro de Costo *" value={editCenco} onChange={(e) => setEditCenco(e.target.value)}>
-                                    <MenuItem value=""><em>----------</em></MenuItem>
-                                    <MenuItem value="1">Sistema</MenuItem>
-                                </Select>
-                                {editCenco === "" && <FormHelperText>El Centro de Costo es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Empleado *</InputLabel>
-                                <Select label="Empleado *" value={editEmpleado} onChange={(e) => setEditEmpleado(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Empleado</em></MenuItem>
-                                    <MenuItem value="1">NICOLE ABRIL QUIÑONES...</MenuItem>
-                                </Select>
-                                {editEmpleado === "" && <FormHelperText>El Empleado es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                            <Box sx={{ mb: 2 }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-                                    <DatePicker
-                                        label="Fecha de inicio *"
-                                        format="DD-MM-YYYY"
-                                        value={editFechaInicio}
-                                        onChange={(newValue) => setEditFechaInicio(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                fullWidth: true,
-                                                size: "small",
-                                                helperText: !editFechaInicio ? "Ingrese fecha de inicio" : "",
-                                            },
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </Box>
-
-                            <Box sx={{ mb: 2 }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-                                    <DatePicker
-                                        label="Fecha fin *"
-                                        format="DD-MM-YYYY"
-                                        value={editFechaFin}
-                                        onChange={(newValue) => setEditFechaFin(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                fullWidth: true,
-                                                size: "small",
-                                                helperText: !editFechaFin ? "Ingrese fecha fin" : "",
-                                            },
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </Box>
-
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Autorizador *</InputLabel>
-                                <Select label="Autorizador *" value={editAutorizador} onChange={(e) => setEditAutorizador(e.target.value)}>
-                                    <MenuItem value=""><em>Seleccione Autorizador</em></MenuItem>
-                                    <MenuItem value="1">ADRIANA MARJORIE MORENO [Región Metropolitana-PIE 24 HRS EL BOSQUE]</MenuItem>
-                                </Select>
-                                {editAutorizador === "" && <FormHelperText>El Autorizador es obligatorio</FormHelperText>}
-                            </FormControl>
-
-                        </Paper>
-                    </Box>
+                    <Typography sx={{ mt: 2 }}>¿Desea aprobar o rechazar esta solicitud de vacaciones?</Typography>
                 </DialogContent>
-                <DialogActions sx={{ p: 3, pt: 0 }}>
-                    <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
-                    <Button
-                        onClick={clickEditar}
-                        variant="contained"
-                        color="primary"
-                        disabled={
-                            editEmpresa === "" ||
-                            editDepartamento === "" ||
-                            editCenco === "" ||
-                            editEmpleado === "" ||
-                            !editFechaInicio ||
-                            !editFechaFin ||
-                            editAutorizador === ""
-                        }
-                    >
-                        Guardar
+                <DialogActions sx={{ p: 3, pt: 0, justifyContent: "center", gap: 2 }}>
+                    <Button variant="contained" color="success" onClick={() => handleAccionAprobarRechazar("A")}>
+                        Aprobar
+                    </Button>
+                    <Button variant="contained" color="error" onClick={() => handleAccionAprobarRechazar("R")}>
+                        Rechazar
+                    </Button>
+                    <Button variant="outlined" color="secondary" onClick={cerrarDialogAprobar}>
+                        Cancelar
                     </Button>
                 </DialogActions>
-            </Dialog >
+            </Dialog>
 
             {/* Dialog Fechas */}
             <Dialog open={openFechas} onClose={() => setOpenFechas(false)} maxWidth="sm" fullWidth>
@@ -870,6 +878,7 @@ function AdminVacaciones() {
                         variant="contained"
                         color="primary"
                         disabled={empleadosSeleccionados.length === 0}
+                        onClick={handleGenerarReporte}
                     >
                         Generar Reporte
                     </Button>

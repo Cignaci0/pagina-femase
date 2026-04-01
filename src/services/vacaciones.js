@@ -51,9 +51,9 @@ export const generarSolicitudVacaciones = async (datosPayload) => {
                 fechaFin: datosPayload.fechaFin,
             }),
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.message || "Error al generar la solicitud de vacaciones");
         }
@@ -84,5 +84,42 @@ export const crearSolicitudVacaciones = async (numFicha, fechaInicio, fechaFin, 
         return data || [];
     } catch (error) {
         return [];
+    }
+}
+
+export const aprobarRechazar = async (id, estado) => {
+    try {
+        const response = await fetch(`${API_URL}/vacaciones/aprobar-rechazar?idSolicitud=${id}&estado=${estado}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || "Error al aprobar o rechazar la solicitud de vacaciones");
+        }
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const generarreporte = async (numFicha) => {
+    try {
+        const response = await fetch(`${API_URL}/reportes/vacaciones/pdf?numFicha=${numFicha}`, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Error al descargar el reporte');
+        }
+        const blob = await response.blob();
+        return blob;
+    } catch (error) {
+        return null;
     }
 }

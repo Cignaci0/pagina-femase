@@ -134,7 +134,7 @@ const COMPONENTES_VISTA = {
 
   // VACACIONES
   "Admin Vacaciones": <AdminVacaciones />,
-  "Solicitud Vacaciones": <AdminSolicitudVacaciones />,
+  //"Solicitud Vacaciones": <AdminSolicitudVacaciones />,
   "Ingresar Solicitud Vacaciones": <AdminIngresarSolicitudVacaciones />,
 }
 
