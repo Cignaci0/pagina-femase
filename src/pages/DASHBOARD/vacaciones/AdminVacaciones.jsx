@@ -432,7 +432,7 @@ function AdminVacaciones() {
                         </LocalizationProvider>
                     </Box>
 
-                    <Button variant="contained" color="warning" startIcon={<SearchIcon />} sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }} onClick={handleBuscarVacaciones}>
+                    <Button variant="contained" color="warning" startIcon={<SearchIcon />} sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }} onClick={handleBuscarVacaciones} disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}>
                         Buscar
                     </Button>
                     <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={(e) => setOpen(true)} disabled={!filtroEmpleado}>
