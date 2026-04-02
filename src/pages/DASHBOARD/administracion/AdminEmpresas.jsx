@@ -57,6 +57,8 @@ function AdminEmpresas() {
     const [editEmail, setEditEmail] = useState("")
     const [editEmailLocal, setEditEmailLocal] = useState("")
     const [editEmailDominio, setEditEmailDominio] = useState("")
+    const [editEmailNotiLocal, setEditEmailNotiLocal] = useState("")
+    const [editEmailNotiDominio, setEditEmailNotiDominio] = useState("")
 
     // Estados region y comuna
     const [comunasFiltradas, setComunasFiltradas] = useState([]);
@@ -66,11 +68,15 @@ function AdminEmpresas() {
     const [EmpresaSeleccionada, setEmpresaSeleccionada] = useState(null);
     const [proveedorCorreo, setProveedorCorreo] = useState([]);
 
+
+
     // Estados contacto
     const [contactoNombre, setContactoNombre] = useState("")
     const [contactoTelefono, setContactoTelefono] = useState("")
     const [contactoEmailLocal, setContactoEmailLocal] = useState("")
     const [contactoEmailDominio, setContactoEmailDominio] = useState("")
+    const [nuevoEmailNoti, setNuevoEmailNoti] = useState("")
+    const [nuevoEmailNotiDominio, setNuevoEmailNotiDominio] = useState("")
 
     // Carga de datos
     const cargarDatos = async () => {
@@ -245,6 +251,8 @@ function AdminEmpresas() {
         setNuevoEmail("")
         setNuevoEmailLocal("")
         setNuevoEmailDominio("")
+        setNuevoEmailNoti("")
+        setNuevoEmailNotiDominio("")
     }
 
     const cerrarDialogEdit = () => {
@@ -262,9 +270,15 @@ function AdminEmpresas() {
 
     const guardarContacto = async () => {
         if (!EmpresaSeleccionada) return;
+        
         const emailContacto = contactoEmailLocal && contactoEmailDominio
             ? `${contactoEmailLocal}${contactoEmailDominio}`
-            : "";
+            : EmpresaSeleccionada.email_empresa;
+
+        const emailNoti = nuevoEmailNoti && nuevoEmailNotiDominio
+            ? `${nuevoEmailNoti}${nuevoEmailNotiDominio}`
+            : EmpresaSeleccionada.email_noti;
+
         try {
             await actualizarEmpresa(
                 EmpresaSeleccionada.empresa_id,
@@ -273,11 +287,12 @@ function AdminEmpresas() {
                 EmpresaSeleccionada.direccion_empresa,
                 EmpresaSeleccionada.comuna_empresa,
                 EmpresaSeleccionada.estado?.estado_id,
-                emailContacto || EmpresaSeleccionada.email_empresa,
+                emailContacto,
                 contactoNombre,
-                contactoTelefono
+                contactoTelefono,
+                emailNoti
             );
-            toast.success("Contacto guardado con exito");
+            toast.success("Contacto guardado con éxito");
             cerrarEmail();
             cargarDatos();
         } catch (error) {
@@ -287,21 +302,23 @@ function AdminEmpresas() {
 
     // Acciones crear y editar
     const clickCrearEmpresa = async () => {
-        const emailFinal = nuevoEmailLocal && nuevoEmailDominio ? `${nuevoEmailLocal}${nuevoEmailDominio}` : nuevoEmail;
         try {
-            const respuesta = await crearEmpresa(nuevoNombre,
+            await crearEmpresa(
+                nuevoNombre,
                 nuevoRun.trim(),
                 nuevoDireccion,
                 nuevoComuna,
-                emailFinal,
-                nuevoEstado)
+                "", // email_empresa
+                nuevoEstado,
+                "" // email_noti
+            )
             setOpen(false)
-            toast.success("Empresa creada con exito")
+            toast.success("Empresa creada con éxito")
             cargarDatos()
-
+            cerrarDialog();
         } catch (error) {
             if (error.message === "Failed fetch") {
-                toast.error("Error de conexion")
+                toast.error("Error de conexión")
             } else {
                 toast.error(error.message || "Error al crear la empresa")
             }
@@ -309,21 +326,25 @@ function AdminEmpresas() {
     }
 
     const clickGuardarEdit = async () => {
-        const emailFinal = editEmailLocal && editEmailDominio ? `${editEmailLocal}${editEmailDominio}` : editEmail;
+        const currentEmp = empresas.find(e => e.empresa_id === editId);
         try {
-            const respuesta = await actualizarEmpresa(editId,
+            await actualizarEmpresa(
+                editId,
                 editNombre,
                 editRun,
                 editDireccion,
                 editComuna,
                 editEstado,
-                emailFinal)
+                currentEmp?.email_empresa || "",
+                currentEmp?.nombre_contacto || null,
+                currentEmp?.telefono_contacto || null,
+                currentEmp?.email_noti || ""
+            )
             setMostrarEdit(false)
-            toast.success("Se edito con exito")
+            toast.success("Se editó con éxito")
             cargarDatos()
-
         } catch (error) {
-            toast.error(error.message);
+            toast.error(error.message || "Error al actualizar");
         }
     }
 
@@ -506,6 +527,14 @@ function AdminEmpresas() {
                                                             setContactoEmailLocal(empresa.email_empresa || "");
                                                             setContactoEmailDominio("");
                                                         }
+                                                        if (empresa.email_noti && empresa.email_noti.includes("@")) {
+                                                            const parts = empresa.email_noti.split("@");
+                                                            setNuevoEmailNoti(parts[0]);
+                                                            setNuevoEmailNotiDominio(`@${parts[1]}`);
+                                                        } else {
+                                                            setNuevoEmailNoti(empresa.email_noti || "");
+                                                            setNuevoEmailNotiDominio("");
+                                                        }
                                                         setAbrirEmail(true);
                                                     }}>
                                                         <DraftsIcon />
@@ -537,6 +566,16 @@ function AdminEmpresas() {
                                                             setEditEmailLocal("");
                                                             setEditEmailDominio("");
                                                         }
+                                                        // Notification Email
+                                                        if (empresa.email_noti && empresa.email_noti.includes("@")) {
+                                                            const parts = empresa.email_noti.split("@");
+                                                            setEditEmailNotiLocal(parts[0]);
+                                                            setEditEmailNotiDominio(`@${parts[1]}`);
+                                                        } else {
+                                                            setEditEmailNotiLocal(empresa.email_noti || "");
+                                                            setEditEmailNotiDominio("");
+                                                        }
+
                                                         setEditEstado(empresa.estado?.estado_id);
                                                         const comunaEncontrada = comunas.find(c => c.nombre === empresa.comuna_empresa);
                                                         if (comunaEncontrada) {
@@ -676,6 +715,7 @@ function AdminEmpresas() {
                                     {nuevoEstado === "" && <FormHelperText>El Estado es obligatorio</FormHelperText>}
                                 </FormControl>
 
+
                             </Paper>
                         </Box>
                     </Box>
@@ -786,6 +826,7 @@ function AdminEmpresas() {
                                     {editEstado === "" && <FormHelperText>El estado es obligatorio</FormHelperText>}
                                 </FormControl>
 
+
                             </Paper>
                         </Box>
                     </Box>
@@ -860,6 +901,32 @@ function AdminEmpresas() {
                                             label="Dominio"
                                             value={contactoEmailDominio}
                                             onChange={(e) => setContactoEmailDominio(e.target.value)}
+                                        >
+                                            {proveedorCorreo
+                                                .filter(p => p.empresa?.empresa_id === EmpresaSeleccionada?.empresa_id)
+                                                .map((prov) => (
+                                                    <MenuItem key={prov.id} value={prov.dominio}>{prov.dominio}</MenuItem>
+                                                ))}
+                                        </Select>
+                                    </FormControl>
+                                </Box>
+
+                                {/* Email contacto + dominio de la empresa */}
+                                <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Email Notificacion"
+                                        size="small"
+                                        value={nuevoEmailNoti}
+                                        onChange={(e) => setNuevoEmailNoti(e.target.value.replace(/@/g, ""))}
+                                    />
+                                    <FormControl size="small" sx={{ minWidth: 160 }}
+                                        disabled={!EmpresaSeleccionada}>
+                                        <InputLabel>Dominio</InputLabel>
+                                        <Select
+                                            label="Dominio"
+                                            value={nuevoEmailNotiDominio}
+                                            onChange={(e) => setNuevoEmailNotiDominio(e.target.value)}
                                         >
                                             {proveedorCorreo
                                                 .filter(p => p.empresa?.empresa_id === EmpresaSeleccionada?.empresa_id)

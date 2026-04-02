@@ -43,7 +43,7 @@ import AdminUsuariosConectados from "../DASHBOARD/auditoria/AdminUsuariosConecta
 
 // AUSENCIAS
 import AdminTipoAusencia from "../DASHBOARD/ausencias/AdminTipoAusencia";
-import AdminAusencias from "../DASHBOARD/ausencias/AdminAusencias";
+import IngresarAusencia from "../DASHBOARD/ausencias/IngresarAusencias";
 
 // CALCULO ASISTENCIA
 import AdminCalculoAsis from "../DASHBOARD/calculo asistencia/AdminCalculoAsistencia";
@@ -67,11 +67,13 @@ import AdminMarcas from "../DASHBOARD/marcas asistencia/AdminMarcas";
 
 // REPORTES/INFORMES
 import ReporteAsistencia from "./reportes informes/ReporteAsistencia";
+import ReporteAusencia from "./reportes informes/ReporteAusencias";
+import ReporteVacaciones from "./reportes informes/ReporteVacaciones";
 
 // VACACIONES
 import AdminVacaciones from "../DASHBOARD/vacaciones/AdminVacaciones";
-import AdminSolicitudVacaciones from "../DASHBOARD/vacaciones/SolicitudVacaciones";
 import AdminIngresarSolicitudVacaciones from "../DASHBOARD/vacaciones/IngresarSolicitudVacaciones";
+import AdminAusencia from "../DASHBOARD/ausencias/AdminAusencias";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -108,7 +110,8 @@ const COMPONENTES_VISTA = {
 
   // AUSENCIAS
   "Tipo Ausencia": <AdminTipoAusencia />,
-  "Ausencias (detalle)": <AdminAusencias />,
+  "Ingreso Ausencia": <IngresarAusencia />,
+  "Admin Ausencias": <AdminAusencia />,
 
   // CALCULO ASISTENCIA
   "Calculo Asistencia": <AdminCalculoAsis />,
@@ -131,10 +134,11 @@ const COMPONENTES_VISTA = {
 
   // REPORTES/INFORMES
   "Reporte Asistencia": <ReporteAsistencia />,
+  "Reporte Ausencias": <ReporteAusencia />,
+  "Reporte Vacaciones": <ReporteVacaciones />,
 
   // VACACIONES
   "Admin Vacaciones": <AdminVacaciones />,
-  //"Solicitud Vacaciones": <AdminSolicitudVacaciones />,
   "Ingresar Solicitud Vacaciones": <AdminIngresarSolicitudVacaciones />,
 }
 

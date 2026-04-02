@@ -42,6 +42,7 @@ function AdminCargos() {
     const [nuevoNombre, setNuevoNombre] = useState("")
     const [nuevoEstado, setNuevoEstado] = useState("")
     const [idEmpresaCrear, setIdEmpresaCrear] = useState("")
+    const [nuevoTipoCargo, setNuevoTipoCargo] = useState("")
 
     // Estados editar
     const [editId, setEditId] = useState("")
@@ -49,6 +50,7 @@ function AdminCargos() {
     const [editNombre, setEditNombre] = useState("")
     const [editEstado, setEditEstado] = useState("")
     const [idEmpresaEdit, setIdEmpresaEdit] = useState("")
+    const [editTipoCargo, setEditTipoCargo] = useState("")
 
     // Carga de datos
     const cargarCargos = async () => {
@@ -78,7 +80,8 @@ function AdminCargos() {
             "Estado": cargo.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
             "Fecha Creación": cargo.fecha_creacion,
             "Fecha Actualización": cargo.fecha_actualizacion,
-            "Usuario Creador": cargo.usuario_creador
+            "Usuario Creador": cargo.usuario_creador,
+            "Tipo Cargo": cargo.tipo_cargo === 1 ? 'Empleado' : cargo.tipo_cargo === 2 ? 'Intermedio/Jefatura' : cargo.tipo_cargo === 3 ? 'Gerencia' : 'Sin Tipo Cargo'
         }));
     };
 
@@ -161,13 +164,14 @@ function AdminCargos() {
     // Acciones crear y editar
     const clickCrear = async () => {
         try {
-            const respuesta = await crearCargo(nuevoNombre, nuevoEstado, idEmpresaCrear)
+            const respuesta = await crearCargo(nuevoNombre, nuevoEstado, idEmpresaCrear, nuevoTipoCargo)
             toast.success("Se creo con exito")
             setOpen(false)
             cargarCargos()
             setNuevoNombre("")
             setNuevoEstado("")
             setIdEmpresaCrear("")
+            setNuevoTipoCargo("")
         } catch (error) {
             toast.error(error.message || "Error al crear el cargo")
         }
@@ -175,7 +179,7 @@ function AdminCargos() {
 
     const clickEdit = async () => {
         try {
-            const respuesta = await actualizarCargo(editId, editNombre, editEstado, idEmpresaEdit)
+            const respuesta = await actualizarCargo(editId, editNombre, editEstado, idEmpresaEdit, editTipoCargo)
             setMostrarEdit(false)
             toast.success("Se edito con exito")
             cargarCargos()
@@ -345,6 +349,7 @@ function AdminCargos() {
                                     <TableCell width="20%"><strong>Id</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Estado</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Tipo Cargo</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Fecha creación</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Creador</strong></TableCell>
@@ -367,6 +372,10 @@ function AdminCargos() {
                                                             color: row.estado?.estado_id === 1 ? '#4caf50' : '#f44336'
                                                         }}
                                                     />
+                                                </TableCell>
+
+                                                <TableCell align="center">
+                                                    {row.tipo_cargo === 1 ? 'Empleado' : row.tipo_cargo === 2 ? 'Intermedio/Jefatura' : row.tipo_cargo === 3 ? 'Gerencia' : 'Sin Tipo Cargo'}
                                                 </TableCell>
 
                                                 <TableCell align="center">
@@ -441,7 +450,6 @@ function AdminCargos() {
                                         value={idEmpresaCrear}
                                         onChange={(e) => setIdEmpresaCrear(e.target.value)}
                                         label="Empresa"
-                                        sx={{ width: "40vh" }}
                                     >
                                         {empresas.map((e) => (
                                             <MenuItem key={e.empresa_id} value={e.empresa_id}>
@@ -456,6 +464,7 @@ function AdminCargos() {
 
                                 <Box sx={{ mt: 2, mb: 2 }}>
                                     <TextField
+                                        size="small"
                                         value={nuevoNombre}
                                         onChange={(e) => setNuevoNombre(e.target.value)}
                                         fullWidth label="Nombre"
@@ -463,14 +472,12 @@ function AdminCargos() {
                                     </TextField>
                                 </Box>
 
-                                <FormControl size="small" fullWidth >
+                                <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                     <InputLabel>Estado</InputLabel>
                                     <Select
                                         value={nuevoEstado}
                                         onChange={(e) => setNuevoEstado(e.target.value)}
                                         label="Estado"
-
-
                                     >
                                         <MenuItem value={1}>
                                             Vigente
@@ -481,6 +488,28 @@ function AdminCargos() {
                                         </MenuItem>
                                     </Select>
                                     {nuevoEstado === "" && <FormHelperText>El Estado es obligatorio</FormHelperText>}
+                                </FormControl>
+
+                                <FormControl size="small" fullWidth >
+                                    <InputLabel>Tipo Cargo</InputLabel>
+                                    <Select
+                                        value={nuevoTipoCargo}
+                                        onChange={(e) => setNuevoTipoCargo(e.target.value)}
+                                        label="Tipo Cargo"
+                                    >
+                                        <MenuItem value={1}>
+                                            Empleado
+                                        </MenuItem>
+
+                                        <MenuItem value={2}>
+                                            Intermedio/Jefatura
+                                        </MenuItem>
+
+                                        <MenuItem value={3}>
+                                            Gerencia
+                                        </MenuItem>
+                                    </Select>
+                                    {nuevoTipoCargo === "" && <FormHelperText>El Tipo Cargo es obligatorio</FormHelperText>}
                                 </FormControl>
                             </Paper>
                         </Box>
@@ -543,6 +572,29 @@ function AdminCargos() {
 
                                         <MenuItem value={2}>
                                             No Vigente
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl size="small" fullWidth sx={{ mt: 2 }}>
+                                    <InputLabel>Tipo Cargo</InputLabel>
+                                    <Select
+                                        value={editTipoCargo}
+                                        onChange={(e) => setEditTipoCargo(e.target.value)}
+                                        label="Tipo Cargo"
+                                        helperText={editTipoCargo === "" ? "El Tipo Cargo es obligatorio" : ""}
+
+                                    >
+                                        <MenuItem value={1}>
+                                            Empleado
+                                        </MenuItem>
+
+                                        <MenuItem value={2}>
+                                            Intermedio/Jefatura
+                                        </MenuItem>
+
+                                        <MenuItem value={3}>
+                                            Gerencia
                                         </MenuItem>
                                     </Select>
                                 </FormControl>

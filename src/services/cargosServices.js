@@ -23,7 +23,7 @@ export const obtenerCargos = async () => {
 };
 
 // Crear cargo
-export const crearCargo = async (nombre, estado, empresa_id) => {
+export const crearCargo = async (nombre, estado, empresa_id, tipo_cargo) => {
   const peticion = await fetch(`${API_URL}/cargos/crear`, {
     method: "POST",
     headers: {
@@ -34,6 +34,7 @@ export const crearCargo = async (nombre, estado, empresa_id) => {
       nombre: nombre,
       estado: estado,
       empresa: empresa_id,
+      tipo_cargo: tipo_cargo,
     }),
   });
 
@@ -45,7 +46,7 @@ export const crearCargo = async (nombre, estado, empresa_id) => {
 };
 
 // Actualizar cargo
-export const actualizarCargo = async (editId, nombre, estado, empresa_id) => {
+export const actualizarCargo = async (editId, nombre, estado, empresa_id, tipo_cargo) => {
   const peticion = await fetch(`${API_URL}/cargos/actualizar/${editId}`, {
     method: "PATCH",
     headers: {
@@ -56,6 +57,7 @@ export const actualizarCargo = async (editId, nombre, estado, empresa_id) => {
       nombre: nombre,
       estado: estado,
       empresa: empresa_id,
+      tipo_cargo: tipo_cargo,
     }),
   });
   
