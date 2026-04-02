@@ -395,6 +395,7 @@ function AdminCargos() {
                                                             setEditNombre(row.nombre)
                                                             setIdEmpresaEdit(row.empresa?.empresa_id)
                                                             setEditEstado(row.estado?.estado_id)
+                                                            setEditTipoCargo(row.tipo_cargo || "")
                                                             setMostrarEdit(true);
                                                         }}
                                                         sx={{ padding: 0 }}
@@ -517,7 +518,7 @@ function AdminCargos() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
-                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={nuevoEstado === "" || nuevoNombre.trim() === ""}>Guardar</Button>
+                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={nuevoEstado === "" || nuevoNombre.trim() === "" || nuevoTipoCargo === ""}>Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -604,7 +605,7 @@ function AdminCargos() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
-                    <Button onClick={clickEdit} variant="contained" color="primary" disabled={editEstado === "" || editNombre.trim() === ""}>Guardar</Button>
+                    <Button onClick={clickEdit} variant="contained" color="primary" disabled={editEstado === "" || editNombre.trim() === "" || editTipoCargo === ""}>Guardar</Button>
                 </DialogActions>
             </Dialog>
         </>

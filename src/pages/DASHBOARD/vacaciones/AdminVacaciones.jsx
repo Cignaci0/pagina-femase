@@ -41,6 +41,23 @@ function AdminVacaciones() {
     const [empresas, setEmpresas] = useState([])
     const [cargando, setCargando] = useState(false);
 
+    // Info Token
+    const [userInfo, setUserInfo] = useState({});
+
+    useEffect(() => {
+        const decodeToken = () => {
+            try {
+                const token = window.localStorage.getItem("token");
+                if (!token) return {};
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setUserInfo(payload);
+            } catch (e) {
+                setUserInfo({});
+            }
+        };
+        decodeToken();
+    }, []);
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -646,11 +663,20 @@ function AdminVacaciones() {
                                                 </TableCell>
                                                 <TableCell align="center"><IconButton onClick={() => setOpenHistorica(true)}><HistoryIcon /></IconButton></TableCell>
                                                 <TableCell align="center">
-                                                    {row.estado === "P" && (
-                                                        <IconButton onClick={() => handleAbrirAprobar(row)}>
-                                                            <EditIcon />
-                                                        </IconButton>
-                                                    )}
+                                                    {row.estado === "P" && (() => {
+                                                        const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                                                        const isSelfRestricted = empSel?.num_ficha === userInfo?.num_ficha && empSel?.cargo?.tipo_cargo === 2;
+                                                        
+                                                        return (
+                                                            <IconButton 
+                                                                onClick={() => handleAbrirAprobar(row)}
+                                                                disabled={isSelfRestricted}
+                                                                sx={{ opacity: isSelfRestricted ? 0.5 : 1 }}
+                                                            >
+                                                                <EditIcon color={isSelfRestricted ? "disabled" : "inherit"} />
+                                                            </IconButton>
+                                                        );
+                                                    })()}
                                                 </TableCell>
                                             </TableRow>
                                         );
