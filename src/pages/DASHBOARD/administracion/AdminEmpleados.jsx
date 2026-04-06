@@ -159,7 +159,9 @@ function AdminEmpleados() {
     const [nuevoEmailLaboral, setNuevoEmailLaboral] = useState("")
     const [dominio, setDominio] = useState("")
     const [dominioPersonal, setDominioPersonal] = useState("")
-    const [nuevoPermiteR,setNuevoPermiteR] = useState("")
+    const [nuevoPermiteR, setNuevoPermiteR] = useState("")
+    const [nuevoEmailNoti, setNuevoEmailNoti] = useState("")
+    const [dominioNoti, setDominioNoti] = useState("")
 
     const [nuevoDepartamento, setNuevoDepartamento] = useState("")
     const [nuevoCenco, setNuevoCenco] = useState("")
@@ -202,10 +204,13 @@ function AdminEmpleados() {
     const [editDominio, setEditDominio] = useState("")
     const [editDominioPersonal, setEditDominioPersonal] = useState("")
     const [editPermiteR, setEditPermiteR] = useState("")
+    const [editEmailNoti, setEditEmailNoti] = useState("")
+    const [editDominioNoti, setEditDominioNoti] = useState("")
 
     // Estados dialogs emails
     const [openDialogEmail, setOpenDialogEmail] = useState(false)
     const [openDialogEmailPersonal, setOpenDialogEmailPersonal] = useState(false)
+    const [openDialogEmailNotificaciones, setOpenDialogEmailNotificaciones] = useState(false)
 
     // Estados nueva asignacion (Genérica)
     const [itemsRight, setItemsRight] = useState([]);
@@ -294,7 +299,8 @@ function AdminEmpleados() {
                 email_laboral: nuevoEmailLaboral && dominio ? `${nuevoEmailLaboral}${dominio}` : null,
                 num_ficha: nuevoNumFicha ? `${nuevoNumFicha}${nuevoLetraFicha}` : null,
                 cenco_id: nuevoCenco,
-                permite_rotativo: nuevoPermiteR
+                permite_rotativo: nuevoPermiteR,
+                email_noti: nuevoEmailNoti && dominioNoti ? `${nuevoEmailNoti}${dominioNoti}` : null,
             };
             const resultado = await crearEmpleado(datosParaEnviar);
             toast.success("Empleado creado exitosamente");
@@ -327,6 +333,7 @@ function AdminEmpleados() {
             setNuevoDepartamento("");
             setNuevoCenco("");
             setNuevoPermiteR("");
+            setNuevoEmailNoti("");
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -363,7 +370,8 @@ function AdminEmpleados() {
                 email_laboral: editEmailLaboral && editDominio ? `${editEmailLaboral}${editDominio}` : null,
                 num_ficha: editNumFicha ? `${editNumFicha}${editLetraFicha}` : null,
                 cenco_id: editCenco,
-                permite_rotativo: editPermiteR
+                permite_rotativo: editPermiteR,
+                email_noti: editEmailNoti && editDominioNoti ? `${editEmailNoti}${editDominioNoti}` : null,
             };
 
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
@@ -409,6 +417,7 @@ function AdminEmpleados() {
 
     const closeDialogEmail = () => { setOpenDialogEmail(false) }
     const closeDialogEmailPersonal = () => { setOpenDialogEmailPersonal(false) }
+    const closeDialogEmailNotificaciones = () => { setOpenDialogEmailNotificaciones(false) }
 
     // Utilidades y validaciones
     const esEmailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -632,6 +641,7 @@ function AdminEmpleados() {
                                     <TableCell width={100} align="center"><strong>Cargo</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Email Laboral</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Email Personal</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Email Notificaciones</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Inicio Contrato</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Fin Contrato</strong></TableCell>
                                     <TableCell width={200} align="center"><strong>Turno</strong></TableCell>
@@ -683,6 +693,17 @@ function AdminEmpleados() {
                                                 <IconButton onClick={() => {
                                                     setOpenDialogEmailPersonal(true),
                                                         setEditEmailPersonal(e.email)
+                                                }}>
+                                                    <DraftsIcon>
+
+                                                    </DraftsIcon>
+                                                </IconButton>
+                                            </TableCell>
+
+                                            <TableCell align="center">
+                                                <IconButton onClick={() => {
+                                                    setOpenDialogEmailNotificaciones(true),
+                                                        setEditEmailNoti(e.email_noti)
                                                 }}>
                                                     <DraftsIcon>
 
@@ -776,6 +797,16 @@ function AdminEmpleados() {
                                                         setEditEmailPersonal(e.email || "");
                                                         setEditDominioPersonal("");
                                                     }
+
+                                                    if (e.email_noti && e.email_noti.includes("@")) {
+                                                        const partsNoti = e.email_noti.split("@");
+                                                        setEditEmailNoti(partsNoti[0]);
+                                                        setEditDominioNoti(`@${partsNoti[1]}`);
+                                                    } else {
+                                                        setEditEmailNoti(e.email_noti || "");
+                                                        setEditDominioNoti("");
+                                                    }
+
                                                     setEditTelefonoFijo(e.telefono_fijo ? String(e.telefono_fijo) : "");
                                                     setEditTelefonoMovil(e.telefono_movil ? String(e.telefono_movil) : "");
 
@@ -843,7 +874,7 @@ function AdminEmpleados() {
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
                         <Box width="100%">
                             <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                                <DialogTitle>Email</DialogTitle>
+                                <DialogTitle>Email Personal</DialogTitle>
                                 <Box>
                                     <Typography
                                         variant="body2"
@@ -859,6 +890,34 @@ function AdminEmpleados() {
                                     </Typography>
                                 </Box>
                                 <Button variant="outlined" color="error" onClick={closeDialogEmailPersonal}>cerrar</Button>
+                            </Paper>
+                        </Box>
+                    </Box>
+                </DialogContent>
+            </Dialog >
+
+            {/* Dialog email notificaciones */}
+            < Dialog sx={{ textAlign: "center" }} open={openDialogEmailNotificaciones}>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
+                        <Box width="100%">
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
+                                <DialogTitle>Email Notificaciones</DialogTitle>
+                                <Box>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            border: '1px solid #E0E0E0',
+                                            borderRadius: '40px',
+                                            p: 0.5,
+                                            color: '#424242',
+                                            mb: 2
+                                        }}
+                                    >
+                                        {editEmailNoti}
+                                    </Typography>
+                                </Box>
+                                <Button variant="outlined" color="error" onClick={closeDialogEmailNotificaciones}>cerrar</Button>
                             </Paper>
                         </Box>
                     </Box>
@@ -1301,6 +1360,19 @@ function AdminEmpleados() {
                                         if (cencoSel && !cencoSel.permite_turno_r) {
                                             setNuevoPermiteR(false);
                                         }
+
+                                        // Lógica condicionada por Cargo tipo 1
+                                        const cargoSelected = cargos.find(c => c.cargo_id === nuevoCargo);
+                                        if (cargoSelected?.tipo_cargo === 1 && cencoSel?.email_notificacion) {
+                                            if (cencoSel.email_notificacion.includes("@")) {
+                                                const parts = cencoSel.email_notificacion.split("@");
+                                                setNuevoEmailNoti(parts[0]);
+                                                setDominioNoti(`@${parts[1]}`);
+                                            } else {
+                                                setNuevoEmailNoti(cencoSel.email_notificacion);
+                                                setDominioNoti("");
+                                            }
+                                        }
                                     }}
                                     disabled={!nuevoDepartamento}
                                 >
@@ -1316,9 +1388,9 @@ function AdminEmpleados() {
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}  >
                                 <InputLabel>Permite Rotativo</InputLabel>
-                                <Select 
-                                    label="Permite Rotativo" 
-                                    value={nuevoPermiteR} 
+                                <Select
+                                    label="Permite Rotativo"
+                                    value={nuevoPermiteR}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         setNuevoPermiteR(val);
@@ -1362,7 +1434,36 @@ function AdminEmpleados() {
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Cargo</InputLabel>
-                                <Select label="Cargo" value={nuevoCargo} onChange={(e) => setNuevoCargo(e.target.value)}>
+                                <Select
+                                    label="Cargo"
+                                    value={nuevoCargo}
+                                    onChange={(e) => {
+                                        const cargoId = e.target.value;
+                                        setNuevoCargo(cargoId);
+                                        const cargoSel = cargos.find(c => c.cargo_id === cargoId);
+                                        if (cargoSel) {
+                                            if (cargoSel.tipo_cargo === 1) {
+                                                const cencoSel = cencos.find(c => c.cenco_id === nuevoCenco);
+                                                if (cencoSel?.email_notificacion) {
+                                                    if (cencoSel.email_notificacion.includes("@")) {
+                                                        const parts = cencoSel.email_notificacion.split("@");
+                                                        setNuevoEmailNoti(parts[0]);
+                                                        setDominioNoti(`@${parts[1]}`);
+                                                    } else {
+                                                        setNuevoEmailNoti(cencoSel.email_notificacion);
+                                                        setDominioNoti("");
+                                                    }
+                                                } else {
+                                                    setNuevoEmailNoti("");
+                                                    setDominioNoti("");
+                                                }
+                                            } else if (cargoSel.tipo_cargo === 2 || cargoSel.tipo_cargo === 3) {
+                                                setNuevoEmailNoti("");
+                                                setDominioNoti("");
+                                            }
+                                        }
+                                    }}
+                                >
                                     {cargos.filter(car => car.empresa?.empresa_id === nuevoEmpresa).map((car) => (
                                         <MenuItem key={car.cargo_id} value={car.cargo_id}>
                                             {car.nombre}
@@ -1386,9 +1487,46 @@ function AdminEmpleados() {
                                     <FormHelperText>El Autoriza ausencia es obligatorio</FormHelperText>
                                 )}
                             </FormControl>
+
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Email Notificaciones"
+                                    size="small"
+                                    value={nuevoEmailNoti}
+                                    disabled={cargos.find(c => c.cargo_id === nuevoCargo)?.tipo_cargo === 1}
+                                    onChange={(e) => {
+                                        // Evitar que ingrese @
+                                        const val = e.target.value.replace(/@/g, "");
+                                        setNuevoEmailNoti(val);
+                                    }}
+                                    helperText={
+                                        nuevoEmailNoti.trim() === ""
+                                            ? "El email es obligatorio"
+                                            : ""
+                                    }
+                                />
+                                <FormControl size="small" sx={{ minWidth: 150 }} disabled={cargos.find(c => c.cargo_id === nuevoCargo)?.tipo_cargo === 1}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select
+                                        label="Dominio"
+                                        value={dominioNoti}
+                                        onChange={(e) => setDominioNoti(e.target.value)}
+                                        disabled={!nuevoEmpresa || cargos.find(c => c.cargo_id === nuevoCargo)?.tipo_cargo === 1}
+                                    >
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === nuevoEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>
+                                                    {prov.dominio}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
                         </Paper>
                     </Box>
-                </DialogContent >
+                </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
                     <Button
@@ -1849,6 +1987,19 @@ function AdminEmpleados() {
                                         if (cencoSel && !cencoSel.permite_turno_r) {
                                             setEditPermiteR(false);
                                         }
+
+                                        // Lógica condicionada por Cargo tipo 1
+                                        const cargoSelected = cargos.find(c => c.cargo_id === editCargo);
+                                        if (cargoSelected?.tipo_cargo === 1 && cencoSel?.email_notificacion) {
+                                            if (cencoSel.email_notificacion.includes("@")) {
+                                                const parts = cencoSel.email_notificacion.split("@");
+                                                setEditEmailNoti(parts[0]);
+                                                setEditDominioNoti(`@${parts[1]}`);
+                                            } else {
+                                                setEditEmailNoti(cencoSel.email_notificacion);
+                                                setEditDominioNoti("");
+                                            }
+                                        }
                                     }}
                                     disabled={!editDepartamento}
                                 >
@@ -1864,9 +2015,9 @@ function AdminEmpleados() {
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Permite Rotativo</InputLabel>
-                                <Select 
-                                    label="Permite Rotativo" 
-                                    value={editPermiteR} 
+                                <Select
+                                    label="Permite Rotativo"
+                                    value={editPermiteR}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         setEditPermiteR(val);
@@ -1909,7 +2060,37 @@ function AdminEmpleados() {
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Cargo</InputLabel>
-                                <Select label="Cargo" value={editCargo} onChange={(e) => setEditCargo(e.target.value)}>
+                                <Select
+                                    label="Cargo"
+                                    value={editCargo}
+                                    onChange={(e) => {
+                                        const cargoId = e.target.value;
+                                        setEditCargo(cargoId);
+                                        const cargoSel = cargos.find(c => c.cargo_id === cargoId);
+                                        if (cargoSel) {
+                                            if (cargoSel.tipo_cargo === 1) {
+                                                const cencoSel = cencos.find(c => c.cenco_id === editCenco);
+                                                if (cencoSel?.email_notificacion) {
+                                                    if (cencoSel.email_notificacion.includes("@")) {
+                                                        const parts = cencoSel.email_notificacion.split("@");
+                                                        setEditEmailNoti(parts[0]);
+                                                        setEditDominioNoti(`@${parts[1]}`);
+                                                    } else {
+                                                        setEditEmailNoti(cencoSel.email_notificacion);
+                                                        setEditDominioNoti("");
+                                                    }
+                                                } else {
+                                                    setEditEmailNoti("");
+                                                    setEditDominioNoti("");
+                                                }
+                                            } else if (cargoSel.tipo_cargo === 2 || cargoSel.tipo_cargo === 3) {
+                                                setEditEmailNoti("");
+                                                setEditDominioNoti("");
+                                            }
+                                        }
+                                    }}
+                                    disabled={!editEmpresa}
+                                >
                                     {cargos.filter(car => car.empresa?.empresa_id === editEmpresa).map((car) => (
                                         <MenuItem key={car.cargo_id} value={car.cargo_id}>
                                             {car.nombre}
@@ -1919,7 +2100,7 @@ function AdminEmpleados() {
                                 {editCargo === "" && <FormHelperText>El Cargo es obligatorio</FormHelperText>}
                             </FormControl>
 
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Autoriza ausencias</InputLabel>
                                 <Select label="Autoriza ausencias" value={editAutorizaAusencia} onChange={(e) => setEditAutorizaAusencia(e.target.value)}>
                                     <MenuItem value={true}>Si</MenuItem>
@@ -1928,6 +2109,41 @@ function AdminEmpleados() {
                                 {(editAutorizaAusencia === "" || editAutorizaAusencia === null) && <FormHelperText>El Autoriza ausencia es obligatorio</FormHelperText>}
                             </FormControl>
 
+                            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Email Notificación"
+                                    size="small"
+                                    value={editEmailNoti}
+                                    disabled={cargos.find(c => c.cargo_id === editCargo)?.tipo_cargo === 1}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/@/g, "");
+                                        setEditEmailNoti(val);
+                                    }}
+                                    helperText={
+                                        editEmailNoti.trim() === ""
+                                            ? "El email es obligatorio"
+                                            : ""
+                                    }
+                                />
+                                <FormControl size="small" sx={{ minWidth: 150 }} disabled={cargos.find(c => c.cargo_id === editCargo)?.tipo_cargo === 1}>
+                                    <InputLabel>Dominio</InputLabel>
+                                    <Select
+                                        label="Dominio"
+                                        value={editDominioNoti}
+                                        onChange={(e) => setEditDominioNoti(e.target.value)}
+                                        disabled={!editEmpresa || cargos.find(c => c.cargo_id === editCargo)?.tipo_cargo === 1}
+                                    >
+                                        {proveedorCorreo
+                                            .filter(p => p.empresa?.empresa_id === editEmpresa)
+                                            .map((prov) => (
+                                                <MenuItem key={prov.id} value={prov.dominio}>
+                                                    {prov.dominio}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
                         </Paper>
                     </Box>
                 </DialogContent>

@@ -9,7 +9,9 @@ import {
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
-import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
+import { obtenerCentroCostos } from "../../../services/centroCostosServices";
+import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerAutorizacionesHE } from "../../../services/autorizaHorasExtras";
 import { regiones, comunas } from "../../../utils/dataGeografica";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -28,25 +30,37 @@ import "dayjs/locale/es";
 dayjs.locale("es");
 
 
-function AdminAsisHorasExtras() {
+function AutorizacionHoraExtra() {
 
     // Estados de datos
     const [empresas, setEmpresas] = useState([])
     const [cargando, setCargando] = useState(false);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
-    const [filtroTipo, setFiltroTipo] = useState("")
-    const [filtroEstado, setfiltroEstado] = useState("")
-    const [filtrojustificaHrs, setFiltrojustificaHrs] = useState("")
-    const [filtroPagada, setFiltroPagada] = useState("")
     const [desdeFecha, setDesdeFecha] = useState(null)
     const [hastaFecha, setHastaFecha] = useState(null)
 
-    // Estados crear
-    // (No definidos en este archivo)
+    // Datos tabla
+    const [datosTabla, setDatosTabla] = useState([]);
+    const [haBuscado, setHaBuscado] = useState(false);
+
+    // Estados de catalogos/opciones
+    const [cencosGlobal, setCencosGlobal] = useState([]);
+    const [empleadosGlobal, setEmpleadosGlobal] = useState([]);
+
+    const [opcionesEmpresas, setOpcionesEmpresas] = useState([]);
+    const [opcionesDeptos, setOpcionesDeptos] = useState([]);
+    const [opcionesCencos, setOpcionesCencos] = useState([]);
+    const [opcionesEmpleados, setOpcionesEmpleados] = useState([]);
+
+    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroDepto, setFiltroDepto] = useState("");
+    const [filtroCenco, setFiltroCenco] = useState("");
+    const [filtroEmpleado, setFiltroEmpleado] = useState("");
+
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
@@ -62,12 +76,6 @@ function AdminAsisHorasExtras() {
     const [horaAutEdit, setHoraAutEdit] = useState("")
     const [minutoAutEdit, setMinutoAutEdit] = useState("")
     const [segAutEdit, setSegAutEdit] = useState("")
-
-    // Carga de datos
-    // (Lógica de servicios no invocada explícitamente en el original)
-
-    // Exportacion
-    // (Lógica de exportación no definida explícitamente en el original para esta vista)
 
     // Manejo de dialogs
     const cerrarDialogEdit = () => {
@@ -134,6 +142,35 @@ function AdminAsisHorasExtras() {
         return coincideTexto;
     });
 
+    const handleBuscarHE = async () => {
+        if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
+            toast.error("Seleccione empleado y rango de fechas");
+            return;
+        }
+        setCargando(true);
+        try {
+            // En una implementación real pasaríamos filtros al service, 
+            // por ahora usamos el service tal cual fue definido.
+            const data = await obtenerAutorizacionesHE();
+            setDatosTabla(data);
+            setHaBuscado(true);
+            setPagina(0);
+        } catch (error) {
+            toast.error("Error al buscar autorizaciones");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const getStatusIcon = (estado) => {
+        let color = "#BDC3C7"; // Default gris
+        if (estado === "P") color = "#FFC107"; // Amarillo/Ambar
+        if (estado === "A") color = "#4CAF50"; // Verde
+        if (estado === "R") color = "#F44336"; // Rojo
+
+        return <CircleIcon sx={{ color, fontSize: 16 }} />;
+    };
+
     const handleChangePage = (event, newPage) => {
         setPagina(newPage);
     };
@@ -144,26 +181,92 @@ function AdminAsisHorasExtras() {
     };
 
     // Effects
-    
+
+
+    // --- EFECTOS DE CARGA Y CASCADA ---
+    useEffect(() => {
+        const fetchCatalogos = async () => {
+            setCargando(true);
+            try {
+                const cencos = await obtenerCentroCostos();
+                const emps = await obtenerEmpleados();
+
+                setCencosGlobal(cencos || []);
+                setEmpleadosGlobal(emps || []);
+
+                // Extraer empresas únicas
+                const empresasMap = new Map();
+                (cencos || []).forEach(c => {
+                    const e = c.departamento?.empresa;
+                    if (e && !empresasMap.has(e.empresa_id)) {
+                        empresasMap.set(e.empresa_id, e);
+                    }
+                });
+                setOpcionesEmpresas(Array.from(empresasMap.values()));
+            } catch (error) {
+                toast.error("Error al cargar datos base");
+            } finally {
+                setCargando(false);
+            }
+        };
+        fetchCatalogos();
+    }, []);
+
+    // Cascada: Empresa -> Deptos
+    useEffect(() => {
+        if (filtroEmpresa !== "") {
+            const deptosMap = new Map();
+            cencosGlobal.forEach(c => {
+                if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
+                    if (!deptosMap.has(c.departamento.departamento_id)) {
+                        deptosMap.set(c.departamento.departamento_id, c.departamento);
+                    }
+                }
+            });
+            setOpcionesDeptos(Array.from(deptosMap.values()));
+        } else {
+            setOpcionesDeptos([]);
+        }
+        setFiltroDepto("");
+    }, [filtroEmpresa, cencosGlobal]);
+
+    // Cascada: Depto -> Cencos
+    useEffect(() => {
+        if (filtroDepto !== "") {
+            const cencosValidos = cencosGlobal.filter(c => c.departamento?.departamento_id === filtroDepto);
+            setOpcionesCencos(cencosValidos);
+        } else {
+            setOpcionesCencos([]);
+        }
+        setFiltroCenco("");
+    }, [filtroDepto, cencosGlobal]);
+
+    // Cascada: Cenco -> Empleados
+    useEffect(() => {
+        if (filtroCenco !== "") {
+            const empsFiltrados = empleadosGlobal.filter(e => e.cenco?.cenco_id === filtroCenco || e.cenco === filtroCenco);
+            setOpcionesEmpleados(empsFiltrados);
+        } else {
+            setOpcionesEmpleados([]);
+        }
+        setFiltroEmpleado("");
+    }, [filtroCenco, cencosGlobal, empleadosGlobal]);
 
     useEffect(() => {
         setPagina(0);
     }, [busqueda]);
 
     // Renderizado condicional
-    if (cargando) return ;
+    if (cargando) return;
 
     return (
         <>
             {/* Titulo */}
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">
-                    Admin Asistencia Horas Extras
+                    Autorización Horas Extras
                 </Typography>
             </Box>
-
-            {/* Alerta de exito */}
-            
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -171,49 +274,44 @@ function AdminAsisHorasExtras() {
                 boxSizing: "border-box"
             }}>
                 {/* Barra de busqueda y filtros */}
-                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
-
-                    {/* Barra de busqueda */}
-                    <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "200px" }, height: "40px", }}>
-                        <TextField
-                            placeholder="Buscar..."
-                            variant="standard"
-                            InputProps={{ disableUnderline: true }}
-                            sx={{ ml: 1, flex: 1, px: 1 }}
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                        />
-                        <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-                            <SearchIcon />
-                        </IconButton>
-                    </Paper>
-
+                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Tipo" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
+                            {opcionesEmpresas.map(emp => (
+                                <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroEstado} onChange={(e) => setfiltroEstado(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Estado" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
+                            {opcionesDeptos.map(dep => (
+                                <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtrojustificaHrs} onChange={(e) => setFiltrojustificaHrs(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
+                            {opcionesCencos.map(cen => (
+                                <MenuItem key={cen.cenco_id} value={cen.cenco_id}>{cen.nombre_cenco}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} values={filtroPagada} onChange={(e) => setFiltroPagada(e.target.value)}>
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" >
-                            <MenuItem value="">Todos</MenuItem>
+                        <Select sx={{ width: "15vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)}>
+                            <MenuItem value="">Seleccione</MenuItem>
+                            {opcionesEmpleados.map(emp => (
+                                <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
+                                    {emp.nombres} {emp.apellido_paterno}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
@@ -253,7 +351,41 @@ function AdminAsisHorasExtras() {
                             />
                         </LocalizationProvider>
                     </Box>
+                    <Box>
+                        <Button variant="contained" color="primary" onClick={handleBuscarHE}>
+                            Buscar
+                        </Button>
+                    </Box>
+
+                    {/* Barra de busqueda */}
+                    <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "200px" }, height: "40px", }}>
+                        <TextField
+                            placeholder="Buscar..."
+                            variant="standard"
+                            InputProps={{ disableUnderline: true }}
+                            sx={{ ml: 1, flex: 1, px: 1 }}
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                        />
+                        <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
+                            <SearchIcon />
+                        </IconButton>
+                    </Paper>
                 </Box>
+
+                {filtroEmpleado && (() => {
+                    const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                    return empSel ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" sx={{ mt: 2 }}>
+                            <Typography sx={{ fontSize: "20px" }}>
+                                <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno} ||
+                                <strong> Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
+                            </Typography>
+                        </Box>
+                    ) : null;
+                })()}
+
+
 
                 {/* Tabla principal */}
                 <Box sx={{
@@ -266,48 +398,55 @@ function AdminAsisHorasExtras() {
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%", mt: 2 }} aria-label="tabla de usuarios">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell width="14.28%" align="center"><strong>Rut</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>F.Entrada</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>H.Entrada</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>F.Salida</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>H.Salida</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Ent.Turno</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Sal.Turno</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Hrs.Pres</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Feriado</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Atraso</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Hrs.Justif</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>HE</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>Autoriza Hrs.Extras</strong></TableCell>
-                                    <TableCell width="14.28%" align="center"><strong>HE.aut</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Cargo</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>F.Marca Entrada</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>H.Marca Entrada</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>H.Marca Entrada Teorica</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>H.Marca Salida</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>H.Marca Salida Teorica</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Duración Turno</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Hrs.Presenciales</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Observacion</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Horas Extras</strong></TableCell>
+                                    <TableCell width="14.28%" align="center"><strong>Estado</strong></TableCell>
                                     <TableCell width="14.28%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
-
                             <TableBody>
-                                <TableRow>
-                                    <TableCell align="center">10397800-9</TableCell>
-                                    <TableCell align="center">Jue. 01/01/2026</TableCell>
-                                    <TableCell align="center">06:45:08</TableCell>
-                                    <TableCell align="center">Jue. 01/01/2026</TableCell>
-                                    <TableCell align="center">15:36:53</TableCell>
-                                    <TableCell align="center">00:00:00</TableCell>
-                                    <TableCell align="center">00:00:00</TableCell>
-                                    <TableCell align="center">08:51</TableCell>
-                                    <TableCell align="center">Si</TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center"></TableCell>
-                                    <TableCell align="center">00:00</TableCell>
-                                    <TableCell align="center">No</TableCell>
-                                    <TableCell align="center">00:00</TableCell>
-                                    <TableCell align="center">Sin turno</TableCell>
-                                    <TableCell align="center">
-                                        <IconButton onClick={() => setOpenEdit(true)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
+                                {haBuscado && datosTabla.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={12} align="center">
+                                            No se encontraron registros
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    datosTabla.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row) => {
+                                        const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                                        const cleanTime = (timeStr) => timeStr ? timeStr.split('-')[0] : "-";
+                                        return (
+                                            <TableRow key={row.id}>
+                                                <TableCell align="center">{row.cargo?.nombre || "-"}</TableCell>
+                                                <TableCell align="center">{row.fecha_marca ? dayjs(row.fecha_marca).format("DD-MM-YYYY") : "-"}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.hora_entrada)}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.hora_entrada_teorica)}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.hora_salida)}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.hora_salida_teorica)}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.duracion_turno)}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.horas_presenciales)}</TableCell>
+                                                <TableCell align="center">{row.observacion || "-"}</TableCell>
+                                                <TableCell align="center">{cleanTime(row.horas_extras)}</TableCell>
+                                                <TableCell align="center">
+                                                    {getStatusIcon(row.estado)}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton onClick={() => setOpenEdit(true)}>
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -317,7 +456,7 @@ function AdminAsisHorasExtras() {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={empresasFiltradas.length}
+                    count={datosTabla.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -332,26 +471,7 @@ function AdminAsisHorasExtras() {
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, minWidth: "50vh" }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
-                            <DialogTitle sx={{ p: 0, mb: 3 }}>Editar Departamento</DialogTitle>
-
-                            {/* Campo rut */}
-                            <Box sx={{ mb: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    label="Rut"
-                                    placeholder="12345678-K"
-                                    value={editRun}
-                                    onChange={(e) => setEditRun(formatearRut(e.target.value))}
-                                    inputProps={{ maxLength: 12 }}
-                                    error={editRun.length > 0 && !esRutValido(editRun)}
-                                    helperText={
-                                        editRun.trim() === ""
-                                            ? "El Rut es obligatorio"
-                                            : (!esRutValido(editRun) ? "RUT inválido" : "")
-                                    }
-                                />
-                            </Box>
-
+                            <DialogTitle sx={{ p: 0, mb: 3 }}>Autorización de Horas Extras</DialogTitle>
                             {/* Campo fecha */}
                             <Box sx={{ mb: 2, }}>
                                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
@@ -371,10 +491,10 @@ function AdminAsisHorasExtras() {
                                     />
                                 </LocalizationProvider>
                             </Box>
-               
+
                             {/* Campo autorizacion */}
                             <FormControl
-                                size="small" variant="outlined" fullWidth sx={{mb:2,}}>
+                                size="small" variant="outlined" fullWidth sx={{ mb: 2, }}>
                                 <InputLabel id="autoriza-label">Autoriza Hrs Extra</InputLabel>
                                 <Select labelId="autoriza-label" label="Autoriza Hrs Extra" value={autoriza} onChange={(e) => setAutoriza(e.target.value)}>
                                     <MenuItem value={1}>Si</MenuItem>
@@ -383,45 +503,9 @@ function AdminAsisHorasExtras() {
                                 {autoriza === "" && (<FormHelperText>Campo obligatorio</FormHelperText>)}
                             </FormControl>
 
-                            {/* Campo HE */}
-                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                HE
-                            </Typography>
-                            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
-                                <TextField
-                                    value={horaHeEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setHoraHeEdit, 23)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setHoraHeEdit)}
-                                    placeholder="HH"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
-                                <Typography variant="h6">:</Typography>
-                                <TextField
-                                    value={minutoHeEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setMinutoHeEdit, 59)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setMinutoHeEdit)}
-                                    placeholder="MM"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
-                                <Typography variant="h6">:</Typography>
-                                <TextField
-                                    value={segHeEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setSegHeEdit, 59)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setSegHeEdit)}
-                                    placeholder="SS"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
-                            </Stack>
-
                             {/* Campo HE AUT */}
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                HE AUT
+                                HE EXTRAS
                             </Typography>
                             <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
                                 <TextField
@@ -443,52 +527,6 @@ function AdminAsisHorasExtras() {
                                     sx={{ width: '70px' }}
                                     inputProps={{ style: { textAlign: 'center' } }}
                                 />
-                                <Typography variant="h6">:</Typography>
-                                <TextField
-                                    value={segHeAutEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setSegHeAutEdit, 59)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setSegHeAutEdit)}
-                                    placeholder="SS"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
-                            </Stack>
-
-                            {/* Campo HORAS AUTORIZADAS */}
-                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                HORAS AUTORIZADAS
-                            </Typography>
-                            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
-                                <TextField
-                                    value={horaAutEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setHoraAutEdit, 23)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setHoraAutEdit)}
-                                    placeholder="HH"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
-                                <Typography variant="h6">:</Typography>
-                                <TextField
-                                    value={minutoAutEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setMinutoAutEdit, 59)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setMinutoAutEdit)}
-                                    placeholder="MM"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
-                                <Typography variant="h6">:</Typography>
-                                <TextField
-                                    value={segAutEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setSegAutEdit, 59)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setSegAutEdit)}
-                                    placeholder="SS"
-                                    size="small"
-                                    sx={{ width: '70px' }}
-                                    inputProps={{ style: { textAlign: 'center' } }}
-                                />
                             </Stack>
                         </Paper>
                     </Box>
@@ -501,4 +539,4 @@ function AdminAsisHorasExtras() {
         </>
     );
 }
-export default AdminAsisHorasExtras;
+export default AutorizacionHoraExtra;

@@ -46,9 +46,7 @@ import AdminTipoAusencia from "../DASHBOARD/ausencias/AdminTipoAusencia";
 import IngresarAusencia from "../DASHBOARD/ausencias/IngresarAusencias";
 
 // CALCULO ASISTENCIA
-import AdminCalculoAsis from "../DASHBOARD/calculo asistencia/AdminCalculoAsistencia";
-import AdminCalculoAsishistorico from "../DASHBOARD/calculo asistencia/AdminCalcularAsistenciaHistorico";
-import AdminAsisHorasExtras from "../DASHBOARD/calculo asistencia/AdminAsistencia-HorasExtras";
+import AutorizacionHoraExtra from "./calculo asistencia/AutorizacionHorasExtras";
 
 // CARGA DESDE ARCHIVO
 import CargaCencos from "../DASHBOARD/carga desde archivo/CargaCencos";
@@ -114,9 +112,7 @@ const COMPONENTES_VISTA = {
   "Admin Ausencias": <AdminAusencia />,
 
   // CALCULO ASISTENCIA
-  "Calculo Asistencia": <AdminCalculoAsis />,
-  "Calculo Asistencia Historico": <AdminCalculoAsishistorico />,
-  "Asistencia Horas Extras": <AdminAsisHorasExtras />,
+  "Autorizacion Horas Extras": <AutorizacionHoraExtra />,
 
   // CARGA DESDE ARCHIVO
   "Carga Cenco": <CargaCencos />,

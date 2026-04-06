@@ -174,6 +174,16 @@ function AdminVacaciones() {
         setCheckedDer([]);
     }, [filtroCenco, empleadosGlobal]);
 
+    useEffect(() => {
+        if (filtroEmpleado && desdeFecha && hastaFecha) {
+            handleBuscarVacaciones();
+        } else if (!filtroEmpleado) {
+            setVacacionesFiltradas([]);
+            setResumenSaldos({});
+            setHaBuscado(false);
+        }
+    }, [filtroEmpleado]);
+
     // Handlers transfer list
     const handleToggleIzq = (empId) => {
         setCheckedIzq(prev => prev.includes(empId) ? prev.filter(id => id !== empId) : [...prev, empId]);
@@ -541,18 +551,57 @@ function AdminVacaciones() {
                         </LocalizationProvider>
                     </Box>
 
-                    <Button variant="contained" color="warning" startIcon={<SearchIcon />} sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }} onClick={handleBuscarVacaciones} disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}>
-                        Buscar
-                    </Button>
-                    <Button variant="contained" startIcon={<AddIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={(e) => setOpen(true)} disabled={!filtroEmpleado}>
-                        Nuevo Registro
-                    </Button>
-                    <Button variant="contained"   startIcon={<AssessmentIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={handleReporteIndividual} disabled={!filtroEmpleado}>
-                        Reporte
-                    </Button>
-                    <Button variant="contained" startIcon={<AssessmentIcon />} sx={{ height: "40px", mb: 2, ml: 1 }} onClick={() => setOpenReporte(true)} disabled={!filtroCenco}>
-                        Reportes Masivos
-                    </Button>
+                    {(() => {
+                        const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
+                        const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
+                        const empSelBusqueda = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                        const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
+                        const isTipoCargo1Global = userRole === 1;
+                        const isTipoCargo1Busqueda = cargoTipoBusqueda === 1;
+                        const isSelfRestrictedNuevo = (cargoTipoBusqueda === 2 && empSelBusqueda?.num_ficha === userInfo?.num_ficha);
+
+                        return (
+                            <>
+                                <Button
+                                    variant="contained"
+                                    color="warning"
+                                    startIcon={<SearchIcon />}
+                                    sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }}
+                                    onClick={handleBuscarVacaciones}
+                                    disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}
+                                >
+                                    Buscar
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    sx={{ height: "40px", mb: 2, ml: 1 }}
+                                    onClick={(e) => setOpen(true)}
+                                    disabled={!filtroEmpleado || isTipoCargo1Global || isTipoCargo1Busqueda || isSelfRestrictedNuevo}
+                                >
+                                    Nuevo Registro
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AssessmentIcon />}
+                                    sx={{ height: "40px", mb: 2, ml: 1 }}
+                                    onClick={handleReporteIndividual}
+                                    disabled={!filtroEmpleado || isTipoCargo1Global || isTipoCargo1Busqueda}
+                                >
+                                    Reporte
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AssessmentIcon />}
+                                    sx={{ height: "40px", mb: 2, ml: 1 }}
+                                    onClick={() => setOpenReporte(true)}
+                                    disabled={!filtroCenco || isTipoCargo1Global}
+                                >
+                                    Reportes Masivos
+                                </Button>
+                            </>
+                        );
+                    })()}
 
                 </Box>
 
@@ -665,7 +714,7 @@ function AdminVacaciones() {
                                                 <TableCell align="center">
                                                     {row.estado === "P" && (() => {
                                                         const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
-                                                        const isSelfRestricted = empSel?.num_ficha === userInfo?.num_ficha && empSel?.cargo?.tipo_cargo === 2;
+                                                        const isSelfRestricted = empSel?.num_ficha === userInfo?.num_ficha && empSel?.cargo?.tipo_cargo === 2 || empSel?.cargo?.tipo_cargo === 1;
                                                         
                                                         return (
                                                             <IconButton 
@@ -843,9 +892,6 @@ function AdminVacaciones() {
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
                             <DialogTitle sx={{ p: 0, mb: 3 }}>Generar Reporte por Cenco</DialogTitle>
-
-                            {/* (Los filtros fueron movidos a la vista principal) */}
-
                             {/* Transfer list empleados */}
                             <Box sx={{ display: 'flex', flex: 1, gap: 2, minHeight: "250px" }}>
                                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

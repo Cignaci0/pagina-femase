@@ -56,6 +56,7 @@ export const crearEmpleado = async (datosEmpleado) => {
       num_ficha: datosEmpleado.num_ficha,
       cenco: datosEmpleado.cenco_id,
       permite_rotativo: datosEmpleado.permite_rotativo,
+      email_noti:datosEmpleado.email_noti,
     }),
   });
 
@@ -101,6 +102,7 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
       num_ficha: datosEmpleado.num_ficha,
       cenco: datosEmpleado.cenco_id,
       permite_rotativo: datosEmpleado.permite_rotativo,
+      email_noti:datosEmpleado.email_noti,
     }),
   });
   const datos = await peticion.json();

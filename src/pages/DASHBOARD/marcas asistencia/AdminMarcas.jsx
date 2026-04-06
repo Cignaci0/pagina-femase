@@ -40,6 +40,23 @@ function AdminMarcas() {
     const [opcionesEmpleados, setOpcionesEmpleados] = useState([]);
     const [opcionesDispositivos, setOpcionesDispositivos] = useState([]);
 
+    // Info Token
+    const [userInfo, setUserInfo] = useState({});
+
+    useEffect(() => {
+        const decodeToken = () => {
+            try {
+                const token = window.localStorage.getItem("token");
+                if (!token) return {};
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setUserInfo(payload);
+            } catch (e) {
+                setUserInfo({});
+            }
+        };
+        decodeToken();
+    }, []);
+
     // --- ESTADOS DE SELECCIÓN DE FILTROS ---
     const [busqueda, setBusqueda] = useState("");
     const [filtroEmpresa, setFiltroEmpresa] = useState("");
@@ -185,6 +202,15 @@ function AdminMarcas() {
         setFiltroEmpleado("");
         setFiltroDispositivo("");
     }, [filtroCenco, cencosGlobal, empleadosGlobal]);
+
+    useEffect(() => {
+        if (filtroEmpleado && desdeFecha && hastaFecha) {
+            handleBuscarMarcas();
+        } else if (!filtroEmpleado) {
+            setMarcas([]);
+            setHaBuscado(false);
+        }
+    }, [filtroEmpleado]);
 
 
     // Funciones Hora y Mins (para inputs de hora locales)
@@ -464,15 +490,30 @@ function AdminMarcas() {
                         </IconButton>
                     </Paper>
 
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        sx={{ ml: 'auto' }}
-                        onClick={openDialogCrear}
-                        disabled={!filtroDispositivo || !filtroEmpleado}
-                    >
-                        Nuevo Registro
-                    </Button>
+                    {(() => {
+                        const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
+                        const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
+
+                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                        const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
+
+                        const isTipoCargo1Global = userRole === 1;
+                        const isTipoCargo1Busqueda = cargoTipoBusqueda === 1;
+
+                        const isSelfRestricted = (cargoTipoBusqueda === 2 && empSelBusqueda?.num_ficha === userInfo?.num_ficha);
+
+                        return (
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                sx={{ ml: 'auto' }}
+                                onClick={openDialogCrear}
+                                disabled={!filtroDispositivo || !filtroEmpleado || isTipoCargo1Global || isTipoCargo1Busqueda || isSelfRestricted}
+                            >
+                                Nuevo Registro
+                            </Button>
+                        );
+                    })()}
                 </Box>
                 {filtroEmpleado && (() => {
                     const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
@@ -544,11 +585,26 @@ function AdminMarcas() {
                                                 <TableCell align="center">{row.id_marca !== null && <Button variant="contained" color="primary" size="small" onClick={() => handleVerHistorial(row.id_marca)}>Historial</Button>}</TableCell>
                                                 <TableCell align="center">{row.comentario}</TableCell>
                                                 <TableCell align="center">
-                                                    {row.id_marca !== null && (
-                                                        <IconButton size="small" onClick={() => openDialogEdit(row)}>
-                                                            <EditIcon fontSize="small" />
-                                                        </IconButton>
-                                                    )}
+                                                    {row.id_marca !== null && (() => {
+                                                        const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
+                                                        const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
+                                                        
+                                                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                                                        const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
+
+                                                        const isRestricted = (userRole === 1) || (cargoTipoBusqueda === 1) || (cargoTipoBusqueda === 2 && empSelBusqueda?.num_ficha === userInfo?.num_ficha);
+
+                                                        return (
+                                                            <IconButton 
+                                                                size="small" 
+                                                                onClick={() => openDialogEdit(row)}
+                                                                disabled={isRestricted}
+                                                                sx={{ opacity: isRestricted ? 0.5 : 1 }}
+                                                            >
+                                                                <EditIcon fontSize="small" color={isRestricted ? "disabled" : "inherit"} />
+                                                            </IconButton>
+                                                        );
+                                                    })()}
                                                 </TableCell>
                                             </TableRow>
                                         );
