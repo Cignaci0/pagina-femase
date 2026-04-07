@@ -15,7 +15,7 @@ import { obtenerAutorizacionesHE } from "../../../services/autorizaHorasExtras";
 import { regiones, comunas } from "../../../utils/dataGeografica";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { DatePicker, TimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -66,6 +66,8 @@ function AutorizacionHoraExtra() {
     const [openEdit, setOpenEdit] = useState(false)
     const [editRun, setEditRun] = useState("")
     const [editFecha, setEditFecha] = useState(null)
+    const [horaEntradaReal, setHoraEntradaReal] = useState(null)
+    const [horaSalidaReal, setHoraSalidaReal] = useState(null)
     const [horaHeEdit, setHoraHeEdit] = useState("")
     const [minutoHeEdit, setMinutoHeEdit] = useState("")
     const [segHeEdit, setSegHeEdit] = useState("")
@@ -80,6 +82,44 @@ function AutorizacionHoraExtra() {
     // Manejo de dialogs
     const cerrarDialogEdit = () => {
         setOpenEdit(false)
+    }
+
+    const handleAbrirEdit = (row) => {
+        const cleanT = (timeStr) => timeStr ? timeStr.split('-')[0] : "-";
+        
+        setEditRun(row.run);
+        setEditFecha(dayjs(row.fecha_marca));
+        
+        const fechaBase = dayjs(row.fecha_marca).format("YYYY-MM-DD");
+        const hEntrada = cleanT(row.hora_entrada);
+        const hSalida = cleanT(row.hora_salida);
+        
+        if (hEntrada !== "-") {
+            setHoraEntradaReal(dayjs(`${fechaBase} ${hEntrada}`));
+        } else {
+            setHoraEntradaReal(null);
+        }
+        
+        if (hSalida !== "-") {
+            setHoraSalidaReal(dayjs(`${fechaBase} ${hSalida}`));
+        } else {
+            setHoraSalidaReal(null);
+        }
+
+        // Cargar HE autorizadas o sugeridas
+        const hExtrasStr = row.horas_extras_autorizadas || row.horas_extras;
+        const hExtras = cleanT(hExtrasStr);
+        if (hExtras !== "-") {
+            const [h, m] = hExtras.split(":");
+            setHoraHeAutEdit(h || "00");
+            setMinutoHeAutEdit(m || "00");
+        } else {
+            setHoraHeAutEdit("00");
+            setMinutoHeAutEdit("00");
+        }
+        
+        setAutoriza(row.estado === 'A' ? 1 : row.estado === 'R' ? 2 : "");
+        setOpenEdit(true);
     }
 
     const handleChangeTime = (val, setter, max) => {
@@ -270,7 +310,7 @@ function AutorizacionHoraExtra() {
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Barra de busqueda y filtros */}
@@ -439,7 +479,7 @@ function AutorizacionHoraExtra() {
                                                     {getStatusIcon(row.estado)}
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    <IconButton onClick={() => setOpenEdit(true)}>
+                                                    <IconButton onClick={() => handleAbrirEdit(row)}>
                                                         <EditIcon fontSize="small" />
                                                     </IconButton>
                                                 </TableCell>
@@ -472,42 +512,52 @@ function AutorizacionHoraExtra() {
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, minWidth: "50vh" }}>
                         <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
                             <DialogTitle sx={{ p: 0, mb: 3 }}>Autorización de Horas Extras</DialogTitle>
+
+
                             {/* Campo fecha */}
-                            <Box sx={{ mb: 2, }}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-                                    <DatePicker
-                                        label="Fecha"
-                                        format="DD-MM-YYYY"
-                                        value={editFecha}
-                                        onChange={(newValue) => setEditFecha(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                fullWidth: true,
-                                                size: "small",
-                                                required: true,
-                                                helperText: !editFecha ? "La fecha es obligatoria" : "",
-                                            },
-                                        }}
-                                    />
-                                </LocalizationProvider>
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    label="Fecha"
+                                    fullWidth
+                                    size="small"
+                                    value={editFecha ? editFecha.format("DD-MM-YYYY") : "-"}
+                                    InputProps={{ readOnly: true }}
+                                    variant="outlined"
+                                    sx={{ bgcolor: "#f5f5f5" }}
+                                />
                             </Box>
 
-                            {/* Campo autorizacion */}
-                            <FormControl
-                                size="small" variant="outlined" fullWidth sx={{ mb: 2, }}>
-                                <InputLabel id="autoriza-label">Autoriza Hrs Extra</InputLabel>
-                                <Select labelId="autoriza-label" label="Autoriza Hrs Extra" value={autoriza} onChange={(e) => setAutoriza(e.target.value)}>
-                                    <MenuItem value={1}>Si</MenuItem>
-                                    <MenuItem value={2}>No</MenuItem>
-                                </Select>
-                                {autoriza === "" && (<FormHelperText>Campo obligatorio</FormHelperText>)}
-                            </FormControl>
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    label="Hora entrada (Real)"
+                                    fullWidth
+                                    size="small"
+                                    value={horaEntradaReal ? horaEntradaReal.format("HH:mm") : "-"}
+                                    InputProps={{ readOnly: true }}
+                                    variant="outlined"
+                                    sx={{ bgcolor: "#f5f5f5" }}
+                                />
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <TextField
+                                    label="Hora salida (Real)"
+                                    fullWidth
+                                    size="small"
+                                    value={horaSalidaReal ? horaSalidaReal.format("HH:mm") : "-"}
+                                    InputProps={{ readOnly: true }}
+                                    variant="outlined"
+                                    sx={{ bgcolor: "#f5f5f5" }}
+                                />
+                            </Box>
+
+                           
 
                             {/* Campo HE AUT */}
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
-                                HE EXTRAS
+                                HORAS EXTRAS
                             </Typography>
-                            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
+                            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
                                 <TextField
                                     value={horaHeAutEdit}
                                     onChange={(e) => handleChangeTime(e.target.value, setHoraHeAutEdit, 23)}
@@ -528,6 +578,17 @@ function AutorizacionHoraExtra() {
                                     inputProps={{ style: { textAlign: 'center' } }}
                                 />
                             </Stack>
+
+                             {/* Campo autorizacion */}
+                            <FormControl
+                                size="small" variant="outlined" fullWidth>
+                                <InputLabel id="autoriza-label">Autoriza Hrs Extra</InputLabel>
+                                <Select labelId="autoriza-label" label="Autoriza Hrs Extra" value={autoriza} onChange={(e) => setAutoriza(e.target.value)}>
+                                    <MenuItem value={1}>Si</MenuItem>
+                                    <MenuItem value={2}>No</MenuItem>
+                                </Select>
+                                {autoriza === "" && (<FormHelperText>Campo obligatorio</FormHelperText>)}
+                            </FormControl>
                         </Paper>
                     </Box>
                 </DialogContent>

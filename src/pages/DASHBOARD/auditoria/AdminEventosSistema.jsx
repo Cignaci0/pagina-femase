@@ -8,7 +8,6 @@ import {
     FormHelperText
 } from "@mui/material";
 import { toast } from "react-hot-toast";
-import { obtenerCargos } from "../../../services/cargosServices";
 import SearchIcon from '@mui/icons-material/Search';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import { FaFileExcel, FaFileCsv } from "react-icons/fa";
@@ -21,39 +20,36 @@ import "dayjs/locale/es";
 dayjs.locale("es");
 
 function AdminEventosSistema() {
-
     // Estados de datos
-    const [cargos, setCargos] = useState([])
-    
+    const [eventos, setEventos] = useState([]);
+    const [totalEventos, setTotalEventos] = useState(0);
+    const [cargando, setCargando] = useState(false);
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
-    const [filaPorPagina, setFilaPorPagina] = useState(7);
+    const [filaPorPagina, setFilaPorPagina] = useState(10);
     const [busqueda, setBusqueda] = useState("");
-    const [filtrotipoEvento, setFiltroTipoEvento] = useState("")
-    const [filtroFechaInicio, setFiltroFechaInicio] = useState(null)
-    const [filtroFechaFin, setFiltroFechaFin] = useState(null)
+    const [filtrotipoEvento, setFiltroTipoEvento] = useState("");
+    const [filtroFechaInicio, setFiltroFechaInicio] = useState(null);
+    const [filtroFechaFin, setFiltroFechaFin] = useState(null);
 
-    // Carga de datos
-    const cargarCargos = async () => {
-        try {
-            const respuesta = await obtenerCargos()
-            setCargos(respuesta)
-        } catch (error) {
-            toast.error("Error al traer los cargos")
-        }
-    }
+   
 
     // Exportacion
     const prepararDatosParaExportar = () => {
-        return cargosFiltrados.map(cargo => ({
-            "ID Cargo": cargo.cargo_id,
-            "Nombre Cargo": cargo.nombre,
-            "Empresa": cargo.empresa?.nombre_empresa || 'Sin Empresa',
-            "Estado": cargo.estado?.estado_id === 1 ? 'Vigente' : 'No Vigente',
-            "Fecha Creación": cargo.fecha_creacion,
-            "Fecha Actualización": cargo.fecha_actualizacion,
-            "Usuario Creador": cargo.usuario_creador
+        return eventos.map(evento => ({
+            "Usuario": evento.usuario || "-",
+            "Evento": evento.evento || "-",
+            "IP": evento.ip || "-",
+            "Tipo": evento.tipo_evento || "-",
+            "Fecha": evento.fecha ? dayjs(evento.fecha).format("DD-MM-YYYY") : "-",
+            "Hora": evento.hora || "-",
+            "S.O.": evento.sistema_operativo || "-",
+            "Browser": evento.browser || "-",
+            "Empresa": evento.empresa?.nombre_empresa || "-",
+            "Depto": evento.depto?.nombre_departamento || "-",
+            "Cenco": evento.cenco?.nombre_cenco || "-",
+            "Rut": evento.rut || "-"
         }));
     };
 
@@ -61,8 +57,8 @@ function AdminEventosSistema() {
         const data = prepararDatosParaExportar();
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Cargos");
-        XLSX.writeFile(wb, "Reporte_Cargos.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Eventos");
+        XLSX.writeFile(wb, "Reporte_Eventos.xlsx");
     };
 
     const descargarCSV = () => {
@@ -73,7 +69,7 @@ function AdminEventosSistema() {
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "Reporte_Cargos.csv");
+        link.setAttribute("download", "Reporte_Eventos.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -93,9 +89,9 @@ function AdminEventosSistema() {
     const imprimirDatos = () => {
         const data = prepararDatosParaExportar();
         const ventanaImpresion = window.open('', '', 'height=600,width=800');
-        let html = '<html><head><title>Imprimir Cargos</title>';
-        html += '<style>table {width: 100%; border-collapse: collapse; font-family: Arial;} th, td {border: 1px solid black; padding: 8px; text-align: left;} th {background-color: #f2f2f2;}</style>';
-        html += '</head><body><h1>Reporte de Cargos</h1><table>';
+        let html = '<html><head><title>Imprimir Eventos</title>';
+        html += '<style>table {width: 100%; border-collapse: collapse; font-family: Arial; font-size: 10px;} th, td {border: 1px solid black; padding: 4px; text-align: left;} th {background-color: #f2f2f2;}</style>';
+        html += '</head><body><h1>Reporte de Eventos de Sistema</h1><table>';
 
         if (data.length > 0) {
             html += '<thead><tr>';
@@ -119,15 +115,6 @@ function AdminEventosSistema() {
         }, 500);
     };
 
-    // Filtrado y paginacion
-    const cargosFiltrados = cargos.filter((car) => {
-        const nombreCargo = `${car.nombre || ''}`.toLowerCase();
-        const term = busqueda.toLowerCase();
-        const coincideTexto = nombreCargo.includes(term);
-        const coincideEstado = filtrotipoEvento ? car.estado?.estado_id === filtrotipoEvento : true;
-        return coincideTexto && coincideEstado;
-    });
-
     const handleChangePage = (event, newPage) => {
         setPagina(newPage);
     };
@@ -137,14 +124,10 @@ function AdminEventosSistema() {
         setPagina(0);
     };
 
-    // Effects
-    useEffect(() => {
-        cargarCargos()
-    }, [])
-
+    
     useEffect(() => {
         setPagina(0);
-    }, [busqueda, filtrotipoEvento,]);
+    }, [busqueda, filtrotipoEvento, filtroFechaInicio, filtroFechaFin]);
 
     return (
         <>
@@ -157,7 +140,7 @@ function AdminEventosSistema() {
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Barra de busqueda y botones */}
@@ -284,56 +267,52 @@ function AdminEventosSistema() {
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell width="10%"><strong>Usuario</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Evento</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Ip</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Tipo Evento</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Fecha/hora</strong></TableCell>
-                                    <TableCell width="5%" align="center"><strong>S.O</strong></TableCell>
-                                    <TableCell width="5%" align="center"><strong>Browser</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Empresa</strong></TableCell>
-                                    <TableCell width="5%" align="center"><strong>Depto</strong></TableCell>
-                                    <TableCell width="5%" align="center"><strong>Cenco</strong></TableCell>
-                                    <TableCell width="10%" align="center"><strong>Rut</strong></TableCell>
+                                    <TableCell width={100}><strong>Usuario</strong></TableCell>
+                                    <TableCell width={200} align="center"><strong>Evento</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Ip</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Tipo Evento</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Fecha/hora</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>S.O</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Browser</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Empresa</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Depto</strong></TableCell>
+                                    <TableCell width={200} align="center"><strong>Cenco</strong></TableCell>
+                                    <TableCell width={100} align="center"><strong>Rut</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
-                                <TableRow>
-                                    <TableCell>
-                                        17997287-5
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Inserta notificacion: usuario [17997287-5], mailFrom [notificacionfmc@femase.cl], subject [Sistema de Gestion-Ingreso de Solicitud de Vacaciones], empresaId [emp01], cencoId [95], rutEmpleado [17997287-5], comentario [Ingreso de Solicitud de Vacaciones], latitud [null], longitud [null]
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        198.41.230.234
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Notificacion
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        2026-02-06 17:24:17
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Mac
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Safari-18.1.1
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        Fundacion Mi Casa
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        X- Los Lagos
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        RLP PER RESIDENCIA OSORNO
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        17997287-5
-                                    </TableCell>
-                                </TableRow>
+                                {cargando ? (
+                                    <TableRow>
+                                        <TableCell colSpan={11} align="center">
+                                            <CircularProgress />
+                                        </TableCell>
+                                    </TableRow>
+                                ) : eventos.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={11} align="center">
+                                            No hay registros para mostrar
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    eventos.map((evento) => (
+                                        <TableRow key={evento.id}>
+                                            <TableCell>{evento.usuario || "-"}</TableCell>
+                                            <TableCell align="center">{evento.evento || "-"}</TableCell>
+                                            <TableCell align="center">{evento.ip || "-"}</TableCell>
+                                            <TableCell align="center">{evento.tipo_evento || "-"}</TableCell>
+                                            <TableCell align="center">
+                                                {evento.fecha ? dayjs(evento.fecha).format("DD-MM-YYYY") : "-"} {evento.hora || ""}
+                                            </TableCell>
+                                            <TableCell align="center">{evento.sistema_operativo || "-"}</TableCell>
+                                            <TableCell align="center">{evento.browser || "-"}</TableCell>
+                                            <TableCell align="center">{evento.empresa?.nombre_empresa || "-"}</TableCell>
+                                            <TableCell align="center">{evento.depto?.nombre_departamento || "-"}</TableCell>
+                                            <TableCell align="center">{evento.cenco?.nombre_cenco || "-"}</TableCell>
+                                            <TableCell align="center">{evento.rut || "-"}</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -343,7 +322,7 @@ function AdminEventosSistema() {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={cargosFiltrados.length}
+                    count={totalEventos}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}

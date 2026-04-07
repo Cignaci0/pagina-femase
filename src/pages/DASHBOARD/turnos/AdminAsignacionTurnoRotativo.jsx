@@ -413,7 +413,7 @@ function AdminAsignacionCiclica() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 3, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", display: 'flex', flexDirection: 'column',
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Filtros */}

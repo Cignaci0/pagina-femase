@@ -131,8 +131,10 @@ function AdminPerfilUsuarios() {
 
 
             {/* Contenedor principal */}
-            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh" }}>
-
+            <Paper elevation={2} sx={{
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                boxSizing: "border-box"
+            }}>
                 {/* Barra de busqueda */}
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 2 }}>
                     <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", sm: "400px" }, height: "50px" }}>

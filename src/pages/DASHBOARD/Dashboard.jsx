@@ -72,6 +72,7 @@ import ReporteVacaciones from "./reportes informes/ReporteVacaciones";
 import AdminVacaciones from "../DASHBOARD/vacaciones/AdminVacaciones";
 import AdminIngresarSolicitudVacaciones from "../DASHBOARD/vacaciones/IngresarSolicitudVacaciones";
 import AdminAusencia from "../DASHBOARD/ausencias/AdminAusencias";
+import AdminVacacionesProgresivas from "../DASHBOARD/vacaciones/VacacionesProgresivas";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -136,6 +137,7 @@ const COMPONENTES_VISTA = {
   // VACACIONES
   "Admin Vacaciones": <AdminVacaciones />,
   "Ingresar Solicitud Vacaciones": <AdminIngresarSolicitudVacaciones />,
+  "Vacaciones Progresivas": <AdminVacacionesProgresivas />,
 }
 
 

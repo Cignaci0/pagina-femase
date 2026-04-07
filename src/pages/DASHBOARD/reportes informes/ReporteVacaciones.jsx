@@ -186,7 +186,7 @@ function ReporteVacacion() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 <Box sx={{ mb: 3, borderBottom: "1px solid #e0e0e0", pb: 2 }}>

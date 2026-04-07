@@ -9,15 +9,7 @@ function cargaEmpleado() {
     // Estados de datos
     const [file, setFile] = useState(null);
 
-    // Estados de paginacion y filtrado
-    // (No definidos en este archivo)
-
-    // Estados crear
-    // (No definidos en este archivo)
-
-    // Estados editar
-    // (No definidos en este archivo)
-
+ 
     // Carga de datos
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -122,21 +114,6 @@ function cargaEmpleado() {
         reader.readAsText(file, "UTF-8");
     };
 
-    // Exportacion
-    // (No definida en este archivo)
-
-    // Manejo de dialogs
-    // (No definidos en este archivo)
-
-    // Filtrado y paginacion
-    // (No definidos en este archivo)
-
-    // Effects
-    // (No definidos en este archivo)
-
-    // Renderizado condicional
-    // (No definido en este archivo)
-
     return (
         <>
             {/* Titulo */}
@@ -148,7 +125,7 @@ function cargaEmpleado() {
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "70vh", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Titulo de seccion */}
