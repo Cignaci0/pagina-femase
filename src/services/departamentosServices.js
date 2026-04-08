@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../config/config";
+
 
 //Obtener departamentos
 export const obtenerDepartamentos = async () => {

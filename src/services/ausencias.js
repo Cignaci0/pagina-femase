@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../config/config";
+
 
 export const crearAusencia = async (datos) => {
     const response = await fetch(`${API_URL}/ausencias`, {
