@@ -114,3 +114,23 @@ export const eliminarMarca = async (idMarca) => {
         return [];
     }
 }
+
+export const buscarPorHash = async (hash) => {
+    try {
+        const response = await fetch(`${API_URL}/marcas/${hash}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+        const datos = await response.json();
+        return datos || [];
+    } catch (error) {
+        return [];
+    }
+}

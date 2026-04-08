@@ -74,6 +74,9 @@ import AdminIngresarSolicitudVacaciones from "../DASHBOARD/vacaciones/IngresarSo
 import AdminAusencia from "../DASHBOARD/ausencias/AdminAusencias";
 import AdminVacacionesProgresivas from "../DASHBOARD/vacaciones/VacacionesProgresivas";
 
+// FISCALIZADOR
+import BusquedaMarcas from "../DASHBOARD/Fiscalizador/BusquedaMarcas";
+
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
 
@@ -138,6 +141,9 @@ const COMPONENTES_VISTA = {
   "Admin Vacaciones": <AdminVacaciones />,
   "Ingresar Solicitud Vacaciones": <AdminIngresarSolicitudVacaciones />,
   "Vacaciones Progresivas": <AdminVacacionesProgresivas />,
+
+  // FISCALIZADOR
+  "Busqueda De Marcas": <BusquedaMarcas />,
 }
 
 
