@@ -113,4 +113,25 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
   return datos;
 }
 
+export const obtenerPorRun = async (run) => {
+  try {
+    const response = await fetch(`${API_URL}/empleado/${run}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data || null;
+  } catch (error) {
+    return null;
+  }
+}
+
 
