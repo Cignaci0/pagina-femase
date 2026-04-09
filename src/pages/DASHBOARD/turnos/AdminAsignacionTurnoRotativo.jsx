@@ -413,12 +413,12 @@ function AdminAsignacionCiclica() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "auto",
                 boxSizing: "border-box"
             }}>
                 {/* Filtros */}
-                <Box sx={{ mb: 3, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
-                    <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{ mb: 2, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Empresa</InputLabel>
                             <Select label="Empresa" value={filtroEmpresa} onChange={(e) => handleCambioEmpresa(e.target.value)}>
@@ -430,7 +430,7 @@ function AdminAsignacionCiclica() {
                         </FormControl>
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Departamento</InputLabel>
-                            <Select label="Departamento" value={filtroDepartamento} onChange={(e) => handleCambioDepartamento(e.target.value)}>
+                            <Select label="Departamento" value={filtroDepartamento} onChange={(e) => handleCambioDepartamento(e.target.value)} disabled={!filtroEmpresa}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
                                 {departamentosFiltrados.map((dep) => (
                                     <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
@@ -439,7 +439,7 @@ function AdminAsignacionCiclica() {
                         </FormControl>
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Cenco</InputLabel>
-                            <Select label="Cenco" value={filtroCenco} onChange={(e) => handleCambioCenco(e.target.value)}>
+                            <Select label="Cenco" value={filtroCenco} onChange={(e) => handleCambioCenco(e.target.value)} disabled={!filtroDepartamento}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
                                 {cencosFiltrados.map((c) => (
                                     <MenuItem key={c.cenco_id} value={c.cenco_id}>{c.nombre_cenco}</MenuItem>
@@ -450,17 +450,17 @@ function AdminAsignacionCiclica() {
                 </Box>
 
                 {/* Transfer list empleados */}
-                <Box sx={{ display: 'flex', flex: 1, gap: 2, minHeight: "250px" }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flexShrink: 0 }}>
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados disponibles</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, height: "200px", overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosDisponibles.map((emp) => (
                                     <ListItem
                                         key={emp.empleado_id}
                                         dense
-                                        button
                                         onClick={() => handleToggleIzq(emp.empleado_id)}
+                                        sx={{ py: 0 }}
                                     >
                                         <ListItemIcon sx={{ minWidth: 36 }}>
                                             <Checkbox
@@ -470,7 +470,7 @@ function AdminAsignacionCiclica() {
                                             />
                                         </ListItemIcon>
                                         <ListItemText
-                                            primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno}`}
+                                            primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno}`}
                                         />
                                     </ListItem>
                                 ))}
@@ -478,7 +478,7 @@ function AdminAsignacionCiclica() {
                         </Box>
                     </Box>
 
-                    <Stack spacing={1} justifyContent="center">
+                    <Stack spacing={1} justifyContent="center" direction={{ xs: "row", md: "column" }} sx={{ py: { xs: 1, md: 0 } }}>
                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverTodosDerecha}>&gt;&gt;</Button>
                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverDerecha}>&gt;</Button>
                         <Button variant="outlined" size="small" sx={{ minWidth: 40 }} onClick={moverIzquierda}>&lt;</Button>
@@ -487,14 +487,14 @@ function AdminAsignacionCiclica() {
 
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados seleccionados</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, height: "200px", overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosSeleccionados.map((emp) => (
                                     <ListItem
                                         key={emp.empleado_id}
                                         dense
-                                        button
                                         onClick={() => handleToggleDer(emp.empleado_id)}
+                                        sx={{ py: 0 }}
                                     >
                                         <ListItemIcon sx={{ minWidth: 36 }}>
                                             <Checkbox
@@ -504,7 +504,7 @@ function AdminAsignacionCiclica() {
                                             />
                                         </ListItemIcon>
                                         <ListItemText
-                                            primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno}`}
+                                            primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno}`}
                                         />
                                     </ListItem>
                                 ))}
@@ -530,24 +530,24 @@ function AdminAsignacionCiclica() {
                 </Box>
 
                 {tipoAsignacion === 'ciclica' && (
-                    <Box sx={{ mt: 3, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+                    <Box sx={{ mt: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
                             Inicialización de ciclo(s)
                         </Typography>
-                        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                            <Box>
-                                <Typography variant="body2" sx={{ mb: 0.5 }}>Fecha inicio</Typography>
+                        <Grid container spacing={2} alignItems="flex-end">
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Fecha inicio</Typography>
                                 <TextField
+                                    fullWidth
                                     type="date"
                                     size="small"
                                     value={fechaInicio}
                                     onChange={(e) => setFechaInicio(e.target.value)}
-                                    sx={{ minWidth: 180 }}
                                 />
-                            </Box>
-                            <Box>
-                                <Typography variant="body2" sx={{ mb: 0.5 }}>Número de ciclos</Typography>
-                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Número de ciclos</Typography>
+                                <FormControl fullWidth size="small">
                                     <Select
                                         value={numeroCiclos}
                                         onChange={(e) => setNumeroCiclos(e.target.value)}
@@ -559,10 +559,10 @@ function AdminAsignacionCiclica() {
                                         <MenuItem value={28}>4 semanas</MenuItem>
                                     </Select>
                                 </FormControl>
-                            </Box>
-                            <Box>
-                                <Typography variant="body2" sx={{ mb: 0.5 }}>Duración</Typography>
-                                <FormControl size="small" sx={{ minWidth: 130 }}>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Duración</Typography>
+                                <FormControl fullWidth size="small">
                                     <Select
                                         value={duracion}
                                         onChange={(e) => setDuracion(e.target.value)}
@@ -577,18 +577,20 @@ function AdminAsignacionCiclica() {
                                         <MenuItem value="5 Años">5 Años</MenuItem>
                                     </Select>
                                 </FormControl>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'flex-end', pt: 2.5 }}>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
                                 <Button
+                                    fullWidth
                                     variant="contained"
                                     color="primary"
                                     onClick={abrirDefinirCiclos}
                                     disabled={empleadosSeleccionados.length === 0}
+                                    sx={{ height: '40px' }}
                                 >
                                     Definir Ciclo(s)
                                 </Button>
-                            </Box>
-                        </Stack>
+                            </Grid>
+                        </Grid>
                     </Box>
                 )}
 
