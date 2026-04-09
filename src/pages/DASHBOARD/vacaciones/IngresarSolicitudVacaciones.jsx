@@ -112,7 +112,7 @@ function AdminIngresarSolicitudVacaciones() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "auto",
             }}>
                 <Typography variant="h5" fontWeight="bold" sx={{ mb: 4, color: "#333", borderBottom: '1px solid #ddd', pb: 2 }}>
                     Nueva Solicitud de Vacaciones
