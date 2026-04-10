@@ -7,7 +7,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { getTipoAusencia } from "../../../services/tiposAusencia";
 import { crearAusencia } from "../../../services/ausencias";
 
@@ -46,17 +46,15 @@ function AdminAusencias() {
         const cargarCatalogos = async () => {
             setCargando(true);
             try {
-                const [dataEmpresa, dataDepto, dataCenco, dataEmpleado, dataTipos] = await Promise.all([
+                const [dataEmpresa, dataDepto, dataCenco, dataTipos] = await Promise.all([
                     obtenerEmpresas(),
                     obtenerDepartamentos(),
                     obtenerCentroCostos(),
-                    obtenerEmpleados(),
                     getTipoAusencia()
                 ]);
                 setEmpresasGlobal(Array.isArray(dataEmpresa) ? dataEmpresa : []);
                 setDeptosGlobal(Array.isArray(dataDepto?.departamentos || dataDepto) ? (dataDepto?.departamentos || dataDepto) : []);
                 setCencosGlobal(Array.isArray(dataCenco) ? dataCenco : []);
-                setEmpleadosGlobal(Array.isArray(dataEmpleado) ? dataEmpleado : []);
                 setTiposAusenciaBack(Array.isArray(dataTipos) ? dataTipos : []);
             } catch (error) {
                 toast.error("Error cargando catálogos");
@@ -68,11 +66,24 @@ function AdminAusencias() {
     }, []);
 
     // Handlers cascada
-    const handleEmpresaChange = (e) => {
-        setFiltroEmpresa(e.target.value);
+    const handleEmpresaChange = async (e) => {
+        const val = e.target.value;
+        setFiltroEmpresa(val);
         setFiltroDepto("");
         setFiltroCenco("");
         setFiltroEmpleado("");
+        setEmpleadosGlobal([]);
+
+        if (val) {
+            const tId = toast.loading("Cargando empleados...");
+            try {
+                const results = await obtenerPorEmpresa(val);
+                setEmpleadosGlobal(results || []);
+                toast.success("Empleados cargados", { id: tId });
+            } catch (error) {
+                toast.error("Error al cargar empleados", { id: tId });
+            }
+        }
     };
 
     const handleDeptoChange = (e) => {

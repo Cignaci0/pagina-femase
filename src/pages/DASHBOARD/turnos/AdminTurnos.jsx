@@ -23,7 +23,7 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
-import { obtenerEmpleados } from "../../../services/empleadosServices"
+import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices"
 import { obtenerDepartamentos } from "../../../services/departamentosServices"
 import { obtenerCentroCostos } from "../../../services/centroCostosServices"
 import { obtenerCargos } from "../../../services/cargosServices"
@@ -31,6 +31,40 @@ import { obtenerHorarios } from "../../../services/horariosServices"
 
 
 function AdminTurnos() {
+
+    //VARIABLE IMPORTANTE
+    const horas_laborales = 44
+
+    const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        const parts = timeStr.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+    };
+
+    const calcularHorasSemanales = () => {
+        let totalMinutos = 0;
+        diasSeleccionados.forEach(dia => {
+            const hId = horariosSeleccionados[dia];
+            if (hId) {
+                const h = horarios.find(hor => hor.horario_id === hId);
+                if (h && h.hora_entrada && h.hora_salida) {
+                    const minEntrada = parseTimeToMinutes(h.hora_entrada);
+                    let minSalida = parseTimeToMinutes(h.hora_salida);
+                    if (minSalida < minEntrada) {
+                        minSalida += 24 * 60;
+                    }
+                    let diff = minSalida - minEntrada;
+                    if (h.colacion) {
+                        diff -= parseTimeToMinutes(h.colacion);
+                    }
+                    totalMinutos += diff;
+                }
+            }
+        });
+        return totalMinutos / 60;
+    };
 
     // Estados de datos
     const [turnos, setTurnos] = useState([])
@@ -581,19 +615,44 @@ function AdminTurnos() {
                                                 <TableCell align="center">
                                                     <Button
                                                         variant="contained"
-                                                        onClick={() => {
-                                                            setAsignar(true);
-                                                            setIdTurnoAsignar(tur.turno_id);
-                                                            setFiltroEmpresaAsignar(tur.empresa?.empresa_id || "");
-                                                            setFiltroDepartamentoAsignar("");
-                                                            setFiltroCencoAsignar("");
-                                                            setFiltroCargoAsignar("");
+                                                        onClick={async () => {
+                                                            const tId = toast.loading("Cargando empleados de la empresa...");
+                                                            try {
+                                                                const empresa_id = tur.empresa?.empresa_id;
+                                                                if (!empresa_id) {
+                                                                    toast.error("El turno no tiene una empresa asociada");
+                                                                    return;
+                                                                }
 
-                                                            const assigned = empleados.filter(emp => emp.turno?.turno_id === tur.turno_id);
-                                                            const available = empleados.filter(emp => !emp.turno || !emp.turno.turno_id);
-                                                            setEmpleadosAsignados(assigned);
-                                                            setEmpleadosDisponibles(available);
-                                                            setCheckedEmpleados([]);
+                                                                const empsDeEmpresa = await obtenerPorEmpresa(empresa_id);
+                                                                if (!empsDeEmpresa) {
+                                                                    // Si es null (ej. 404), tratamos como lista vacía o informamos error
+                                                                    toast.dismiss(tId);
+                                                                    setAsignar(true);
+                                                                    setIdTurnoAsignar(tur.turno_id);
+                                                                    setFiltroEmpresaAsignar(empresa_id);
+                                                                    setEmpleadosAsignados([]);
+                                                                    setEmpleadosDisponibles([]);
+                                                                    return;
+                                                                }
+
+                                                                setAsignar(true);
+                                                                setIdTurnoAsignar(tur.turno_id);
+                                                                setFiltroEmpresaAsignar(empresa_id);
+                                                                setFiltroDepartamentoAsignar("");
+                                                                setFiltroCencoAsignar("");
+                                                                setFiltroCargoAsignar("");
+
+                                                                const assigned = empsDeEmpresa.filter(emp => emp.turno?.turno_id === tur.turno_id);
+                                                                const available = empsDeEmpresa.filter(emp => !emp.turno || !emp.turno.turno_id);
+                                                                
+                                                                setEmpleadosAsignados(assigned);
+                                                                setEmpleadosDisponibles(available.filter(a => !assigned.some(as => as.empleado_id === a.empleado_id)));
+                                                                setCheckedEmpleados([]);
+                                                                toast.success("Empleados cargados", { id: tId });
+                                                            } catch (error) {
+                                                                toast.error("Error al cargar empleados", { id: tId });
+                                                            }
                                                         }}
                                                         sx={{
                                                             fontSize: "0.7rem", lineHeight: 1, color: "black", p: 0.9, bgcolor: "rgb(241, 241, 241)"
@@ -1049,6 +1108,15 @@ function AdminTurnos() {
                     <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 2 }}>
                         Seleccione los días laborales y asigne un horario a cada uno.
                     </Typography>
+                    
+                    <Typography variant="body2" display="block" textAlign="center" color={calcularHorasSemanales() > horas_laborales ? "error" : "text.primary"} sx={{ mt: 1, fontWeight: 'bold' }}>
+                        Horas semanales: {calcularHorasSemanales().toFixed(1)} / {horas_laborales}
+                    </Typography>
+                    {calcularHorasSemanales() > horas_laborales && (
+                        <Typography variant="caption" display="block" textAlign="center" color="error" sx={{ mt: 0.5 }}>
+                            Las horas asignadas superan el límite permitido.
+                        </Typography>
+                    )}
 
                 </DialogContent>
 
@@ -1056,7 +1124,7 @@ function AdminTurnos() {
                     <Button onClick={cerrarDetalle} color="error" sx={{ minWidth: 100 }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} onClick={clickGuardarDias}>
+                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} disabled={calcularHorasSemanales() > horas_laborales} onClick={clickGuardarDias}>
                         Guardar
                     </Button>
                 </DialogActions>

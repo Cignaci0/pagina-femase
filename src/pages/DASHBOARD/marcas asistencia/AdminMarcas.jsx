@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
-import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
 import { getMarcas, crearMarca, actualizarMarcas, historialMarcas, eliminarMarca } from "../../../services/marcasServices";
 
@@ -131,11 +131,9 @@ function AdminMarcas() {
             setCargando(true);
             try {
                 const cencos = await obtenerCentroCostos();
-                const emps = await obtenerEmpleados();
                 const tipos = await obtenerTiposMarcas();
 
                 setCencosGlobal(cencos || []);
-                setEmpleadosGlobal(emps || []);
                 setTiposMarcas(tipos || []);
 
                 // Extraer empresas únicas
@@ -158,20 +156,34 @@ function AdminMarcas() {
 
     // Cascada: Empresa -> Deptos
     useEffect(() => {
-        if (filtroEmpresa !== "") {
-            const deptosMap = new Map();
-            cencosGlobal.forEach(c => {
-                if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
-                    if (!deptosMap.has(c.departamento.departamento_id)) {
-                        deptosMap.set(c.departamento.departamento_id, c.departamento);
+        const actualizarDatosEmpresa = async () => {
+            if (filtroEmpresa !== "") {
+                const deptosMap = new Map();
+                cencosGlobal.forEach(c => {
+                    if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
+                        if (!deptosMap.has(c.departamento.departamento_id)) {
+                            deptosMap.set(c.departamento.departamento_id, c.departamento);
+                        }
                     }
+                });
+                setOpcionesDeptos(Array.from(deptosMap.values()));
+
+                const tId = toast.loading("Cargando empleados...");
+                try {
+                    const empsRes = await obtenerPorEmpresa(filtroEmpresa);
+                    setEmpleadosGlobal(empsRes || []);
+                    toast.success("Empleados cargados", { id: tId });
+                } catch (error) {
+                    toast.error("Error al cargar empleados", { id: tId });
+                    setEmpleadosGlobal([]);
                 }
-            });
-            setOpcionesDeptos(Array.from(deptosMap.values()));
-        } else {
-            setOpcionesDeptos([]);
-        }
-        setFiltroDepto("");
+            } else {
+                setOpcionesDeptos([]);
+                setEmpleadosGlobal([]);
+            }
+            setFiltroDepto("");
+        };
+        actualizarDatosEmpresa();
     }, [filtroEmpresa, cencosGlobal]);
 
     // Cascada: Depto -> Cencos
@@ -430,7 +442,7 @@ function AdminMarcas() {
 
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
-                        <Select sx={{ width: "16vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco}>
+                        <Select sx={{ width: "16vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco || opcionesEmpleados.length === 0}>
                             {opcionesEmpleados.map(emp => (
                                 // Dependiendo del mapeo, usar run o empleado_id
                                 <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>

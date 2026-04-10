@@ -16,7 +16,7 @@ import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { getTurnosRotativos, actualizarTurnoRotativo, asignarTurnosRotativos } from "../../../services/turnosRotativoService";
-import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { Grid } from "@mui/material";
 
@@ -84,21 +84,15 @@ function AdminTurnosRotativosAsignacion() {
     const cargarDatos = async () => {
         setCargando(true)
         try {
-            const [dataEmpresas, dataDeptos, dataCencos, dataEmpleados, dataHorarios] = await Promise.all([
+            const [dataEmpresas, dataDeptos, dataCencos, dataHorarios] = await Promise.all([
                 obtenerEmpresas(),
                 obtenerDepartamentos(),
                 obtenerCentroCostos(),
-                obtenerEmpleados(),
                 obtenerHorarios()
             ]);
 
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
             setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
-
-            // Filtrar empleados que permiten turnos rotativos
-            const empleadosLista = Array.isArray(dataEmpleados) ? dataEmpleados : [];
-            const filtradosPermiteRotativo = empleadosLista.filter(emp => emp.permite_rotativo === true);
-            setEmpleados(filtradosPermiteRotativo);
 
             const deptos = dataDeptos?.departamentos || dataDeptos;
             setDepartamentos(Array.isArray(deptos) ? deptos : [deptos]);
@@ -178,9 +172,10 @@ function AdminTurnosRotativosAsignacion() {
                 toast.success("Turno asignado exitosamente");
             }
             if (empleadoSeleccionado) {
-                const updatedData = await getTurnosRotativos(empleadoSeleccionado.empleado_id, historialPage);
-                setAsignacionesEmpleado(updatedData.data ? updatedData.data : []);
-                setHistorialTotalPages(updatedData.lastPage || 1);
+                const result = await getTurnosRotativos(empleadoSeleccionado.empleado_id, historialPage);
+                const dataArray = Array.isArray(result) ? result : (result.data || []);
+                setAsignacionesEmpleado(dataArray);
+                setHistorialTotalPages(result.lastPage || (result.totalPages) || 1);
             }
             setDialogAsignar(false);
             setAsignacionSeleccionada(null);
@@ -221,8 +216,9 @@ function AdminTurnosRotativosAsignacion() {
         setHistorialPage(1);
         try {
             const result = await getTurnosRotativos(emp.empleado_id, 1);
-            setAsignacionesEmpleado(result.data ? result.data : []);
-            setHistorialTotalPages(result.lastPage || 1);
+            const dataArray = Array.isArray(result) ? result : (result.data || []);
+            setAsignacionesEmpleado(dataArray);
+            setHistorialTotalPages(result.lastPage || (result.totalPages) || 1);
         } catch (error) {
             toast.error("Error al cargar el historial del empleado");
             setAsignacionesEmpleado([]);
@@ -236,8 +232,9 @@ function AdminTurnosRotativosAsignacion() {
         setCargandoHistorial(true);
         try {
             const result = await getTurnosRotativos(empleadoSeleccionado.empleado_id, newPage);
-            setAsignacionesEmpleado(result.data ? result.data : []);
-            setHistorialTotalPages(result.lastPage || 1);
+            const dataArray = Array.isArray(result) ? result : (result.data || []);
+            setAsignacionesEmpleado(dataArray);
+            setHistorialTotalPages(result.lastPage || (result.totalPages) || 1);
         } catch (error) {
             toast.error("Error al cargar la página del historial");
             setAsignacionesEmpleado([]);
@@ -297,15 +294,30 @@ function AdminTurnosRotativosAsignacion() {
                     </Paper>
 
                     {/* Filtro de empresa */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 150 }}>
+                    <FormControl size="small" variant="standard" sx={{ width: 150 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select
                             label="Empresa"
                             value={empresasFiltro}
-                            onChange={(e) => {
-                                setEmpresasFiltro(e.target.value);
+                            onChange={async (e) => {
+                                const idEmp = e.target.value;
+                                setEmpresasFiltro(idEmp);
                                 setFiltroDepto("");
                                 setFiltroCenco("");
+                                if (idEmp) {
+                                    const tId = toast.loading("Cargando empleados...");
+                                    try {
+                                        const res = await obtenerPorEmpresa(idEmp);
+                                        const filtrados = (res || []).filter(emp => emp.permite_rotativo === true);
+                                        setEmpleados(filtrados);
+                                        toast.success("Empleados cargados", { id: tId });
+                                    } catch (error) {
+                                        toast.error("Error al cargar empleados", { id: tId });
+                                        setEmpleados([]);
+                                    }
+                                } else {
+                                    setEmpleados([]);
+                                }
                             }}
                         >
                             <MenuItem value=""><em>Todas</em></MenuItem>
@@ -318,7 +330,7 @@ function AdminTurnosRotativosAsignacion() {
                     </FormControl>
 
                     {/* Filtro de departamento */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 150 }}>
+                    <FormControl size="small" variant="standard" sx={{ width: 150 }}>
                         <InputLabel>Departamento</InputLabel>
                         <Select
                             label="Departamento"
@@ -339,7 +351,7 @@ function AdminTurnosRotativosAsignacion() {
                     </FormControl>
 
                     {/* Filtro de cenco */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 150 }}>
+                    <FormControl size="small" variant="standard" sx={{ width: 150 }}>
                         <InputLabel>Cenco</InputLabel>
                         <Select
                             label="Cenco"

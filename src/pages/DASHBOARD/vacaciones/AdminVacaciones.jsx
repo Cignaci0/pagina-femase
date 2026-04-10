@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../services/empresasServices";
 import { regiones, comunas } from "../../../utils/dataGeografica";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerVacaciones, crearSolicitudVacaciones, aprobarRechazar, generarreporte } from "../../../services/vacaciones";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -109,10 +109,8 @@ function AdminVacaciones() {
         const fetchCatalogos = async () => {
             try {
                 const cencos = await obtenerCentroCostos();
-                const emps = await obtenerEmpleados();
 
                 setCencosGlobal(cencos || []);
-                setEmpleadosGlobal(emps || []);
 
                 const empresasMap = new Map();
                 (cencos || []).forEach(c => {
@@ -131,20 +129,34 @@ function AdminVacaciones() {
 
     // Cascada: Empresa -> Deptos
     useEffect(() => {
-        if (filtroEmpresa !== "") {
-            const deptosMap = new Map();
-            cencosGlobal.forEach(c => {
-                if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
-                    if (!deptosMap.has(c.departamento.departamento_id)) {
-                        deptosMap.set(c.departamento.departamento_id, c.departamento);
+        const actualizarDatosEmpresa = async () => {
+            if (filtroEmpresa !== "") {
+                const deptosMap = new Map();
+                cencosGlobal.forEach(c => {
+                    if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
+                        if (!deptosMap.has(c.departamento.departamento_id)) {
+                            deptosMap.set(c.departamento.departamento_id, c.departamento);
+                        }
                     }
+                });
+                setOpcionesDeptos(Array.from(deptosMap.values()));
+
+                const tId = toast.loading("Cargando empleados...");
+                try {
+                    const empsRes = await obtenerPorEmpresa(filtroEmpresa);
+                    setEmpleadosGlobal(empsRes || []);
+                    toast.success("Empleados cargados", { id: tId });
+                } catch (error) {
+                    toast.error("Error al cargar empleados", { id: tId });
+                    setEmpleadosGlobal([]);
                 }
-            });
-            setOpcionesDeptos(Array.from(deptosMap.values()));
-        } else {
-            setOpcionesDeptos([]);
-        }
-        setFiltroDepto("");
+            } else {
+                setOpcionesDeptos([]);
+                setEmpleadosGlobal([]);
+            }
+            setFiltroDepto("");
+        };
+        actualizarDatosEmpresa();
     }, [filtroEmpresa, cencosGlobal]);
 
     // Cascada: Depto -> Cencos

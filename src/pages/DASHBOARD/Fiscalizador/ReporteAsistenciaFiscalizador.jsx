@@ -101,9 +101,6 @@ function ReporteAsistenciaFiscaliza() {
             }
             setFiltroCargo("");
             setFiltroTurno("");
-            // Limpiamos búsquedas laterales al cambiar empresa
-            setSearchNombre("");
-            setSearchRun("");
             setEmpleadosSeleccionados([]);
         };
 
@@ -201,17 +198,15 @@ function ReporteAsistenciaFiscaliza() {
         const tId = toast.loading("Buscando empleado...");
         try {
             const res = await obtenerPorRun(searchRun);
-            // El backend ahora retorna un array según cambios recientes
             const results = Array.isArray(res) ? res : (res ? [res] : []);
 
             if (results.length > 0) {
                 toast.success("Empleado(s) encontrado(s)", { id: tId });
-                // Sincronizamos empleadosGlobal con los resultados de la búsqueda
                 setEmpleadosGlobal(results);
-                // Limpiamos filtros superiores y búsqueda por nombre al buscar por RUN
                 setFiltroEmpresa("");
+                setFiltroCargo("");
+                setFiltroTurno("");
                 setSearchNombre("");
-                // Mostramos los resultados encontrados (globales)
                 setEmpleadosDisponibles(results);
             } else {
                 toast.error("Empleado no encontrado", { id: tId });
@@ -238,6 +233,8 @@ function ReporteAsistenciaFiscaliza() {
                 setEmpleadosGlobal(results);
                 // Limpiamos filtros superiores y búsqueda por RUN al buscar por nombre
                 setFiltroEmpresa("");
+                setFiltroCargo("");
+                setFiltroTurno("");
                 setSearchRun("");
                 setEmpleadosDisponibles(results);
             } else {
@@ -324,7 +321,11 @@ function ReporteAsistenciaFiscaliza() {
                             <Select 
                                 label="Empresa" 
                                 value={filtroEmpresa} 
-                                onChange={(e) => setFiltroEmpresa(e.target.value)}
+                                onChange={(e) => {
+                                    setFiltroEmpresa(e.target.value);
+                                    setSearchNombre("");
+                                    setSearchRun("");
+                                }}
                             >
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
                                 {empresasGlobal.map((emp) => (

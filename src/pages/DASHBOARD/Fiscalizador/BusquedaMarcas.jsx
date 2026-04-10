@@ -157,11 +157,13 @@ function BusquedaPorMarcas() {
             setCargando(true);
             try {
                 const cencos = await obtenerCentroCostos();
-                const emps = await obtenerEmpleados();
+                const empsResponse = await obtenerEmpleados();
                 const tipos = await obtenerTiposMarcas();
 
+                const listaEmpleados = empsResponse?.data || (Array.isArray(empsResponse) ? empsResponse : []);
+
                 setCencosGlobal(cencos || []);
-                setEmpleadosGlobal(emps || []);
+                setEmpleadosGlobal(listaEmpleados);
                 setTiposMarcas(tipos || []);
 
                 // Extraer empresas únicas
@@ -426,7 +428,7 @@ function BusquedaPorMarcas() {
                 {/* Controles y Filtros Inferiores */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 3 }}>
 
-                   
+
 
                     <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", ml: 2, alignItems: "center", width: { xs: "100%", md: "260px" }, height: "40px", }}>
                         <TextField
@@ -521,7 +523,7 @@ function BusquedaPorMarcas() {
                                                     {row.id_marca !== null && (() => {
                                                         const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
                                                         const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
-                                                        
+
                                                         const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
                                                         const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
 

@@ -15,11 +15,10 @@ import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { asignarTurnosRotativos } from "../../../services/turnosRotativoService";
 
 function AdminAsignacionCiclica() {
-
     // Datos cargados
     const [empresas, setEmpresas] = useState([])
     const [horarios, setHorarios] = useState([])
@@ -162,19 +161,17 @@ function AdminAsignacionCiclica() {
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const [dataEmpresas, dataHorarios, dataDepartamentos, dataCencos, dataEmpleados] = await Promise.all([
+                const [dataEmpresas, dataHorarios, dataDepartamentos, dataCencos] = await Promise.all([
                     obtenerEmpresas(),
                     obtenerHorarios(),
                     obtenerDepartamentos(),
-                    obtenerCentroCostos(),
-                    obtenerEmpleados()
+                    obtenerCentroCostos()
                 ]);
                 setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
                 setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
                 const deptos = dataDepartamentos?.departamentos || dataDepartamentos;
                 setDepartamentos(Array.isArray(deptos) ? deptos : [deptos]);
                 setCencos(Array.isArray(dataCencos) ? dataCencos : [dataCencos]);
-                setEmpleados(Array.isArray(dataEmpleados) ? dataEmpleados : [dataEmpleados]);
             } catch (err) {
                 toast.error(err.message);
             }
@@ -193,7 +190,7 @@ function AdminAsignacionCiclica() {
         : [];
 
     // Cuando cambia empresa, resetear departamento y cenco
-    const handleCambioEmpresa = (valor) => {
+    const handleCambioEmpresa = async (valor) => {
         setFiltroEmpresa(valor);
         setFiltroDepartamento("");
         setFiltroCenco("");
@@ -201,6 +198,20 @@ function AdminAsignacionCiclica() {
         setEmpleadosSeleccionados([]);
         setCheckedIzq([]);
         setCheckedDer([]);
+
+        if (valor) {
+            const tId = toast.loading("Cargando empleados...");
+            try {
+                const results = await obtenerPorEmpresa(valor);
+                setEmpleados(results || []);
+                toast.success("Empleados cargados", { id: tId });
+            } catch (error) {
+                toast.error("Error al cargar empleados de la empresa", { id: tId });
+                setEmpleados([]);
+            }
+        } else {
+            setEmpleados([]);
+        }
     }
 
     // Cuando cambia departamento, resetear cenco
@@ -419,7 +430,7 @@ function AdminAsignacionCiclica() {
                 {/* Filtros */}
                 <Box sx={{ mb: 2, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
                     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                        <FormControl size="small" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" sx={{ width: 250 }}>
                             <InputLabel>Empresa</InputLabel>
                             <Select label="Empresa" value={filtroEmpresa} onChange={(e) => handleCambioEmpresa(e.target.value)}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
@@ -428,7 +439,7 @@ function AdminAsignacionCiclica() {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl size="small" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" sx={{ width: 250 }}>
                             <InputLabel>Departamento</InputLabel>
                             <Select label="Departamento" value={filtroDepartamento} onChange={(e) => handleCambioDepartamento(e.target.value)} disabled={!filtroEmpresa}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
@@ -437,7 +448,7 @@ function AdminAsignacionCiclica() {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl size="small" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" sx={{ width: 250 }}>
                             <InputLabel>Cenco</InputLabel>
                             <Select label="Cenco" value={filtroCenco} onChange={(e) => handleCambioCenco(e.target.value)} disabled={!filtroDepartamento}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
