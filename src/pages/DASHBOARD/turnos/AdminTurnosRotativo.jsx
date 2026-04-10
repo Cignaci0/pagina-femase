@@ -396,10 +396,16 @@ function AdminTurnosRotativosAsignacion() {
                                             <CircularProgress size={24} />
                                         </TableCell>
                                     </TableRow>
+                                ) : !empresasFiltro ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} align="center">
+                                            Seleccione una empresa para comenzar
+                                        </TableCell>
+                                    </TableRow>
                                 ) : empleadosFiltrados.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={4} align="center">
-                                            No se encontraron empleados
+                                            No se encontraron resultados
                                         </TableCell>
                                     </TableRow>
                                 ) : (
