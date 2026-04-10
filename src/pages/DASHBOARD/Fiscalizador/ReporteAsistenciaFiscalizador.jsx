@@ -8,10 +8,10 @@ import { toast } from "react-hot-toast";
 import SearchIcon from '@mui/icons-material/Search';
 import dayjs from "dayjs";
 
-import { obtenerEmpleados, obtenerPorRun } from "../../../services/empleadosServices";
+import { obtenerPorRun, obtenerPorNombre, obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { reporteAsistencia } from "../../../services/reportes";
 import { obtenerCargos } from "../../../services/cargosServices";
-import { obtenerTurnos } from "../../../services/turnosServices";
+import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerEmpresas } from "../../../services/empresasServices";
 
 function ReporteAsistenciaFiscaliza() {
@@ -24,7 +24,7 @@ function ReporteAsistenciaFiscaliza() {
 
     // Opciones filtradas por empresa seleccionado
     const [opcionesCargos, setOpcionesCargos] = useState([]);
-    const [opcionesTurnos, setOpcionesTurnos] = useState([]);
+    const [opcionesHorarios, setOpcionesHorarios] = useState([]);
 
     // Filtros superiores
     const [filtroEmpresa, setFiltroEmpresa] = useState("");
@@ -33,7 +33,6 @@ function ReporteAsistenciaFiscaliza() {
 
     // Filtros laterales
     const [searchNombre, setSearchNombre] = useState("");
-    const [searchApellido, setSearchApellido] = useState("");
     const [searchRun, setSearchRun] = useState("");
 
     // Empleados
@@ -49,16 +48,14 @@ function ReporteAsistenciaFiscaliza() {
     useEffect(() => {
         const fetchCatalogos = async () => {
             try {
-                const [emps, cargos, turnos, empresas] = await Promise.all([
-                    obtenerEmpleados(),
+                const [cargos, horarios, empresas] = await Promise.all([
                     obtenerCargos(),
-                    obtenerTurnos(),
+                    obtenerHorarios(),
                     obtenerEmpresas()
                 ]);
 
-                setEmpleadosGlobal(emps || []);
                 setCargosGlobal(cargos || []);
-                setTurnosGlobal(turnos || []);
+                setTurnosGlobal(horarios || []); // Usamos turnosGlobal para guardar horarios por ahora para minimizar cambios
                 setEmpresasGlobal(empresas || []);
 
             } catch (error) {
@@ -68,50 +65,65 @@ function ReporteAsistenciaFiscaliza() {
         fetchCatalogos();
     }, []);
 
-    // Cascada: Empresa -> Cargos y Turnos
+    // Cascada: Empresa -> Cargos, Horarios y Empleados
     useEffect(() => {
-        if (filtroEmpresa !== "") {
-            // Filtrar cargos por empresa
-            const cargosEmp = cargosGlobal.filter(c => {
-                const idEmp = c.empresa?.empresa_id || c.empresa_id || c.id_empresa;
-                return String(idEmp) === String(filtroEmpresa);
-            });
-            cargosEmp.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
-            setOpcionesCargos(cargosEmp);
+        const handleCambioEmpresa = async () => {
+            if (filtroEmpresa !== "") {
+                // 1. Filtrar cargos por empresa
+                const cargosEmp = cargosGlobal.filter(c => {
+                    const idEmp = c.empresa?.empresa_id || c.empresa_id || c.id_empresa;
+                    return String(idEmp) === String(filtroEmpresa);
+                });
+                cargosEmp.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
+                setOpcionesCargos(cargosEmp);
 
-            // Filtrar turnos por empresa
-            const turnosEmp = turnosGlobal.filter(t => {
-                const idEmp = t.empresa?.empresa_id || t.empresa_id || t.id_empresa;
-                return String(idEmp) === String(filtroEmpresa);
-            });
-            turnosEmp.sort((a, b) => (a.nombre || a.nombre_turno || "").localeCompare(b.nombre || b.nombre_turno || ""));
-            setOpcionesTurnos(turnosEmp);
+                // 2. Filtrar horarios por empresa
+                const horariosEmp = turnosGlobal.filter(h => {
+                    const idEmp = h.empresa?.empresa_id || h.empresa_id || h.id_empresa;
+                    return String(idEmp) === String(filtroEmpresa);
+                });
+                horariosEmp.sort((a, b) => (a.hora_entrada || "").localeCompare(b.hora_entrada || ""));
+                setOpcionesHorarios(horariosEmp);
+                try {
+                    const emps = await obtenerPorEmpresa(filtroEmpresa);
+                    setEmpleadosGlobal(emps || []);
+                } catch (error) {
+                    toast.error("Error al cargar empleados", { id: tId });
+                    setEmpleadosGlobal([]);
+                }
 
-        } else {
-            setOpcionesCargos([]);
-            setOpcionesTurnos([]);
-        }
-        setFiltroCargo("");
-        setFiltroTurno("");
-        // Limpiamos búsquedas laterales al cambiar empresa
-        setSearchNombre("");
-        setSearchApellido("");
-        setSearchRun("");
-        setEmpleadosSeleccionados([]);
+            } else {
+                setOpcionesCargos([]);
+                setOpcionesHorarios([]);
+                if (!searchNombre && !searchRun) {
+                    setEmpleadosGlobal([]);
+                }
+            }
+            setFiltroCargo("");
+            setFiltroTurno("");
+            // Limpiamos búsquedas laterales al cambiar empresa
+            setSearchNombre("");
+            setSearchRun("");
+            setEmpleadosSeleccionados([]);
+        };
+
+        handleCambioEmpresa();
     }, [filtroEmpresa, cargosGlobal, turnosGlobal]);
 
-    // Lógica de filtrado en tiempo real (LOCAL)
     useEffect(() => {
-        if (filtroEmpresa === "") {
+        if (filtroEmpresa === "" && !searchNombre && !searchRun) {
             setEmpleadosDisponibles([]);
             return;
         }
 
-        // Filtramos sobre empleadosGlobal (que es nuestro cache de todos los empleados del sistema o de la carga inicial)
-        let filtrados = empleadosGlobal.filter(e => {
-            const idEmp = e.empresa?.empresa_id || e.id_empresa || e.empresa;
-            return String(idEmp) === String(filtroEmpresa);
-        });
+        let filtrados = [...empleadosGlobal];
+
+        if (filtroEmpresa !== "") {
+            filtrados = filtrados.filter(e => {
+                const idEmp = e.empresa?.empresa_id || e.id_empresa || e.empresa;
+                return String(idEmp) === String(filtroEmpresa);
+            });
+        }
 
         if (filtroCargo) {
             filtrados = filtrados.filter(e => {
@@ -120,20 +132,43 @@ function ReporteAsistenciaFiscaliza() {
             });
         }
         if (filtroTurno) {
-            filtrados = filtrados.filter(e => {
-                const tId = e.turno?.turno_id || e.turno?.id || e.turno;
-                return String(tId) === String(filtroTurno);
-            });
+            const hSel = turnosGlobal.find(h => String(h.horario_id) === String(filtroTurno));
+            if (hSel) {
+                filtrados = filtrados.filter(e => {
+                    const detalles = e.turno?.detalle_turno || [];
+                    if (!Array.isArray(detalles)) return false;
+
+                    return detalles.some(dt => {
+                        const hObj = dt.horario;
+                        if (!hObj) return false;
+
+                        // Caso 1: dt.horario es un ID
+                        if (typeof hObj === 'number' || typeof hObj === 'string') {
+                            return String(hObj) === String(hSel.horario_id);
+                        }
+
+                        // Caso 2: dt.horario es un objeto (comparamos horas o ID)
+                        if (hObj.horario_id && String(hObj.horario_id) === String(hSel.horario_id)) {
+                            return true;
+                        }
+
+                        const hEntrada = (hObj.hora_entrada || "").trim();
+                        const hSalida = (hObj.hora_salida || "").trim();
+                        const sEntrada = (hSel.hora_entrada || "").trim();
+                        const sSalida = (hSel.hora_salida || "").trim();
+
+                        return (hEntrada !== "" && hEntrada.startsWith(sEntrada)) && 
+                               (hSalida !== "" && hSalida.startsWith(sSalida));
+                    });
+                });
+            }
         }
 
         if (searchNombre) {
-            filtrados = filtrados.filter(e => (e.nombres || "").toLowerCase().includes(searchNombre.toLowerCase()));
-        }
-        if (searchApellido) {
-            filtrados = filtrados.filter(e => 
-                ((e.apellido_paterno || "").toLowerCase().includes(searchApellido.toLowerCase())) || 
-                ((e.apellido_materno || "").toLowerCase().includes(searchApellido.toLowerCase()))
-            );
+            filtrados = filtrados.filter(e => {
+                const nombreCompleto = `${e.nombres || ""} ${e.apellido_paterno || ""} ${e.apellido_materno || ""}`.toLowerCase();
+                return nombreCompleto.includes(searchNombre.toLowerCase());
+            });
         }
         if (searchRun) {
             filtrados = filtrados.filter(e => (e.run || "").includes(searchRun));
@@ -141,7 +176,7 @@ function ReporteAsistenciaFiscaliza() {
 
         filtrados.sort((a, b) => (a.nombres || "").localeCompare(b.nombres || ""));
         setEmpleadosDisponibles(filtrados);
-    }, [filtroEmpresa, filtroCargo, filtroTurno, searchNombre, searchApellido, searchRun, empleadosGlobal]);
+    }, [filtroEmpresa, filtroCargo, filtroTurno, searchNombre, searchRun, empleadosGlobal, turnosGlobal]);
 
 
     // Handler selección de empleados
@@ -157,7 +192,6 @@ function ReporteAsistenciaFiscaliza() {
         });
     }
 
-    // BUSQUEDA GLOBAL POR RUN (Al presionar la lupa)
     const handleBusquedaGlobalRun = async () => {
         if (!searchRun.trim()) {
             toast.error("Ingrese un RUN para buscar");
@@ -166,24 +200,19 @@ function ReporteAsistenciaFiscaliza() {
 
         const tId = toast.loading("Buscando empleado...");
         try {
-            const emp = await obtenerPorRun(searchRun);
-            if (emp) {
-                toast.success("Empleado encontrado", { id: tId });
-                // Mostramos solo este empleado
-                setEmpleadosDisponibles([emp]);
-                
-                // Si el empleado pertenece a una empresa distinta a la seleccionada, 
-                // podríamos opcionalmente cambiar los filtros, pero por ahora solo lo mostramos en la lista.
-                // Sin embargo, si el usuario tiene seleccionada una empresa, el useEffect de arriba podría pisar esto.
-                // Para evitar que el useEffect pise el resultado global, podríamos usar un flag o simplemente 
-                // asegurarnos de que el empleado encontrado se mantenga en pantalla.
-                
-                // Sincronizamos filtros con la info del empleado encontrado para que el useEffect no lo borre
-                if (emp.empresa?.empresa_id) setFiltroEmpresa(emp.empresa.empresa_id);
-                if (emp.cargo?.cargo_id) setFiltroCargo(emp.cargo.cargo_id);
-                if (emp.turno?.turno_id) setFiltroTurno(emp.turno.turno_id);
-                
-                // El useEffect se disparará por los cambios de state y el filtro de searchRun coincidirá.
+            const res = await obtenerPorRun(searchRun);
+            // El backend ahora retorna un array según cambios recientes
+            const results = Array.isArray(res) ? res : (res ? [res] : []);
+
+            if (results.length > 0) {
+                toast.success("Empleado(s) encontrado(s)", { id: tId });
+                // Sincronizamos empleadosGlobal con los resultados de la búsqueda
+                setEmpleadosGlobal(results);
+                // Limpiamos filtros superiores y búsqueda por nombre al buscar por RUN
+                setFiltroEmpresa("");
+                setSearchNombre("");
+                // Mostramos los resultados encontrados (globales)
+                setEmpleadosDisponibles(results);
             } else {
                 toast.error("Empleado no encontrado", { id: tId });
             }
@@ -191,6 +220,35 @@ function ReporteAsistenciaFiscaliza() {
             toast.error("Error al buscar empleado", { id: tId });
         }
     }
+
+    const handleBusquedaGlobalNombre = async () => {
+        if (!searchNombre.trim()) {
+            toast.error("Ingrese un nombre o apellido para buscar");
+            return;
+        }
+
+        const tId = toast.loading("Buscando empleado...");
+        try {
+            const res = await obtenerPorNombre(searchNombre);
+            const results = Array.isArray(res) ? res : (res ? [res] : []);
+
+            if (results.length > 0) {
+                toast.success("Empleado(s) encontrado(s)", { id: tId });
+                // Sincronizamos empleadosGlobal con los resultados de la búsqueda
+                setEmpleadosGlobal(results);
+                // Limpiamos filtros superiores y búsqueda por RUN al buscar por nombre
+                setFiltroEmpresa("");
+                setSearchRun("");
+                setEmpleadosDisponibles(results);
+            } else {
+                toast.error("Empleado no encontrado", { id: tId });
+            }
+        } catch (error) {
+            toast.error("Error al buscar empleado", { id: tId });
+        }
+    }
+
+
 
     // Logica periodos rápidos
     const handleCambioPeriodo = (valor) => {
@@ -292,17 +350,19 @@ function ReporteAsistenciaFiscaliza() {
                         </FormControl>
 
                         <FormControl size="small" variant="outlined" sx={{ minWidth: 250 }}>
-                            <InputLabel>Turno</InputLabel>
+                            <InputLabel>Horario</InputLabel>
                             <Select 
                                 value={filtroTurno} 
                                 onChange={(e) => setFiltroTurno(e.target.value)} 
-                                label="Turno"
+                                label="Horario"
                                 disabled={!filtroEmpresa}
                                 sx={{ bgcolor: !filtroEmpresa ? '#f5f5f5' : '#fff' }}
                             >
-                                <MenuItem value=""><em>Todos los turnos</em></MenuItem>
-                                {opcionesTurnos.map((turno) => (
-                                    <MenuItem key={turno.turno_id} value={turno.turno_id}>{turno.nombre || turno.nombre_turno}</MenuItem>
+                                <MenuItem value=""><em>Todos los horarios</em></MenuItem>
+                                {opcionesHorarios.map((h) => (
+                                    <MenuItem key={h.horario_id} value={h.horario_id}>
+                                        {h.hora_entrada} - {h.hora_salida}
+                                    </MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
@@ -316,37 +376,23 @@ function ReporteAsistenciaFiscaliza() {
                     <Box sx={{ width: "300px", display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', pr: 1 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Búsqueda de Empleados</Typography>
                         
-                        {/* Filtro Nombre */}
+                        {/* Filtro Nombre o Apellido */}
                         <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>Nombres</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>Nombre o Apellido</Typography>
                             <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: "100%", height: "40px", mt: 0.5 }}>
                                 <TextField 
-                                    placeholder="Buscar por nombre..." 
+                                    placeholder="Buscar por nombre o apellido..." 
                                     variant="standard" 
                                     InputProps={{ disableUnderline: true }} 
                                     sx={{ ml: 1, flex: 1, px: 1 }} 
                                     value={searchNombre} 
                                     onChange={(e) => setSearchNombre(e.target.value)} 
                                 />
-                                <IconButton sx={{ p: '10px' }} aria-label="search">
-                                    <SearchIcon />
-                                </IconButton>
-                            </Paper>
-                        </Box>
-
-                        {/* Filtro Apellido */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>Apellidos</Typography>
-                            <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: "100%", height: "40px", mt: 0.5 }}>
-                                <TextField 
-                                    placeholder="Buscar por apellido..." 
-                                    variant="standard" 
-                                    InputProps={{ disableUnderline: true }} 
-                                    sx={{ ml: 1, flex: 1, px: 1 }} 
-                                    value={searchApellido} 
-                                    onChange={(e) => setSearchApellido(e.target.value)} 
-                                />
-                                <IconButton sx={{ p: '10px' }} aria-label="search">
+                                <IconButton 
+                                    sx={{ p: '10px' }} 
+                                    aria-label="search"
+                                    onClick={handleBusquedaGlobalNombre}
+                                >
                                     <SearchIcon />
                                 </IconButton>
                             </Paper>
@@ -400,7 +446,7 @@ function ReporteAsistenciaFiscaliza() {
                                                 />
                                             </ListItemIcon>
                                             <ListItemText
-                                                primary={`(${emp.run || emp.num_ficha || "-"}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""}`}
+                                                primary={`(${emp.run || emp.num_ficha || "-"}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""} (${emp.empresa?.nombre_empresa || "Sin Empresa"} / cargo: ${emp.cargo?.nombre || "Sin Cargo"} / cenco: ${emp.cenco?.nombre_cenco || "Sin Cenco"} / turno: ${emp.turno?.nombre || "Sin Turno"})`}
                                             />
                                         </ListItem>
                                     );

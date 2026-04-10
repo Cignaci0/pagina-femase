@@ -2,9 +2,14 @@ import { API_URL } from "../config/config";
 
 
 //Obtener empleados
-export const obtenerEmpleados = async () => {
+export const obtenerEmpleados = async (page = 1, limit = 10, empresaId = null, estadoId = null) => {
   try {
-    const response = await fetch(`${API_URL}/empleado`, {
+    let url = `${API_URL}/empleado?page=${page}&limit=${limit}`;
+
+    if (empresaId) url += `&empresa_id=${empresaId}`;
+    if (estadoId) url += `&estado_id=${estadoId}`;
+
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -13,15 +18,18 @@ export const obtenerEmpleados = async () => {
     });
 
     if (!response.ok) {
-      return [];
+      return { data: [], total: 0, page, limit, totalPages: 0 };
     }
 
     const data = await response.json();
-    return data || [];
+    return data;
   } catch (error) {
-    return [];
+    console.error("Error al obtener empleados:", error);
+    return { data: [], total: 0, page, limit, totalPages: 0 };
   }
 };
+
+
 
 //crear empleado
 export const crearEmpleado = async (datosEmpleado) => {
@@ -57,7 +65,7 @@ export const crearEmpleado = async (datosEmpleado) => {
       num_ficha: datosEmpleado.num_ficha,
       cenco: datosEmpleado.cenco_id,
       permite_rotativo: datosEmpleado.permite_rotativo,
-      email_noti:datosEmpleado.email_noti,
+      email_noti: datosEmpleado.email_noti,
     }),
   });
 
@@ -103,7 +111,7 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
       num_ficha: datosEmpleado.num_ficha,
       cenco: datosEmpleado.cenco_id,
       permite_rotativo: datosEmpleado.permite_rotativo,
-      email_noti:datosEmpleado.email_noti,
+      email_noti: datosEmpleado.email_noti,
     }),
   });
   const datos = await peticion.json();
@@ -115,7 +123,7 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
 
 export const obtenerPorRun = async (run) => {
   try {
-    const response = await fetch(`${API_URL}/empleado/${run}`, {
+    const response = await fetch(`${API_URL}/empleado/run/${run}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -133,5 +141,49 @@ export const obtenerPorRun = async (run) => {
     return null;
   }
 }
+
+export const obtenerPorNombre = async (nombre) => {
+  try {
+    const response = await fetch(`${API_URL}/empleado/nombre/${nombre}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+export const obtenerPorEmpresa = async (empresa_id) => {
+  try {
+    const response = await fetch(`${API_URL}/empleado/empresa/${empresa_id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+
 
 

@@ -128,7 +128,8 @@ function AdminEmpleados() {
     const [filtroEstado, setFiltroEstado] = useState("")
     const [busqueda, setBusqueda] = useState("");
     const [pagina, setPagina] = useState(0);
-    const [filaPorPagina, setFilaPorPagina] = useState(8);
+    const [filaPorPagina, setFilaPorPagina] = useState(10);
+    const [totalEmpleados, setTotalEmpleados] = useState(0);
 
     // Estados crear
     const [open, setOpen] = useState(false);
@@ -259,12 +260,14 @@ function AdminEmpleados() {
         }
     }
 
-    const llamarEmpleados = async () => {
+    const llamarEmpleados = async (p = pagina, l = filaPorPagina, emp = filtroEmpresa, est = filtroEstado) => {
         try {
-            const respuesta = await obtenerEmpleados()
-            setEmpleados(respuesta)
+            // Pasamos los filtros adicionales al servicio
+            const respuesta = await obtenerEmpleados(p + 1, l, emp, est);
+            setEmpleados(respuesta.data || []);
+            setTotalEmpleados(respuesta.total || 0);
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message);
         }
     }
 
@@ -573,10 +576,12 @@ function AdminEmpleados() {
     }, [])
 
     useEffect(() => {
-        llamarEmpleados()
-    }, [])
+        llamarEmpleados(pagina, filaPorPagina, filtroEmpresa, filtroEstado);
+    }, [pagina, filaPorPagina, filtroEmpresa, filtroEstado]);
 
-    useEffect(() => { setPagina(0); }, [busqueda, filtroEmpresa, filtroEstado]);
+    useEffect(() => { setPagina(0); }, [filtroEmpresa, filtroEstado]);
+
+    const empleadosAMostrar = empleados;
 
 
     // Renderizado condicional
@@ -655,8 +660,8 @@ function AdminEmpleados() {
 
 
                             <TableBody>
-                                {empleadosFiltrados.length > 0 ? (
-                                    empleadosFiltrados.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((e) => (
+                                {empleadosAMostrar.length > 0 ? (
+                                    empleadosAMostrar.map((e) => (
                                         <TableRow key={e.empleado_id} >
                                             <TableCell align="center">
                                                 {e.num_ficha} {e.letra_ficha}
@@ -836,7 +841,17 @@ function AdminEmpleados() {
                 </Box>
 
                 {/* Paginacion */}
-                <TablePagination rowsPerPageOptions={[5, 10, 25]} component="div" count={empleadosFiltrados.length} rowsPerPage={filaPorPagina} page={pagina} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} labelRowsPerPage="Paginas" labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`} />
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25, 50]}
+                    component="div"
+                    count={totalEmpleados}
+                    rowsPerPage={filaPorPagina}
+                    page={pagina}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelRowsPerPage="Filas por página"
+                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+                />
             </Paper >
 
             {/* Dialog email laboral */}
