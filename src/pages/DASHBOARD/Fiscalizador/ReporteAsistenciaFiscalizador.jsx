@@ -128,7 +128,9 @@ function ReporteAsistenciaFiscaliza() {
                 return String(cId) === String(filtroCargo);
             });
         }
-        if (filtroTurno) {
+        if (filtroTurno === "rotativo") {
+            filtrados = filtrados.filter(e => e.permite_rotativo === true);
+        } else if (filtroTurno) {
             const hSel = turnosGlobal.find(h => String(h.horario_id) === String(filtroTurno));
             if (hSel) {
                 filtrados = filtrados.filter(e => {
@@ -360,6 +362,7 @@ function ReporteAsistenciaFiscaliza() {
                                 sx={{ bgcolor: !filtroEmpresa ? '#f5f5f5' : '#fff' }}
                             >
                                 <MenuItem value=""><em>Todos los horarios</em></MenuItem>
+                                <MenuItem value="rotativo">Rotativo</MenuItem>
                                 {opcionesHorarios.map((h) => (
                                     <MenuItem key={h.horario_id} value={h.horario_id}>
                                         {h.hora_entrada} - {h.hora_salida}
