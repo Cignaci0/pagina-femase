@@ -64,3 +64,21 @@ export const editarAusencia = async (id, datos) =>{
     return data;
 }
 
+export const reporteAusencia = async (numFicha, fechaFin, fechaInicio) => {
+    try {
+        const response = await fetch(`${API_URL}/reportes/ausencias/pdf?numFicha=${numFicha}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
+            }
+        })
+        if (!response.ok) {
+            throw new Error('Error al descargar el reporte');
+        }
+        const blob = await response.blob();
+        return blob;
+    } catch (error) {
+        return [];
+    }
+}

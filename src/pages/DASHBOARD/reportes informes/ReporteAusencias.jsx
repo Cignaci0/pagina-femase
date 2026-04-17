@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { reporteAsistencia } from "../../../services/reportes";
+import { reporteAusencia } from "../../../services/reportes";
 
 function ReporteAusencia() {
 
@@ -169,7 +169,7 @@ function ReporteAusencia() {
                 const numFicha = emp.num_ficha;
                 if (!numFicha) continue;
 
-                const blob = await reporteAsistencia(numFicha, fechaInicio, fechaFin);
+                const blob = await reporteAusencia(numFicha, fechaFin, fechaInicio);
                 if (!blob || blob.length === 0) {
                     toast.error(`Error al generar reporte de ${emp.nombres}`);
                     continue;
@@ -179,7 +179,7 @@ function ReporteAusencia() {
                 const a = document.createElement("a");
                 a.style.display = "none";
                 a.href = url;
-                a.download = `Reporte_Asistencia_${emp.nombres}.pdf`;
+                a.download = `Reporte_Ausencia_${emp.nombres}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 await new Promise(resolve => setTimeout(resolve, 600));

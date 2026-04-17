@@ -9,12 +9,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import dayjs from "dayjs";
 
 import { obtenerPorRun, obtenerPorNombre, obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { reporteAsistencia } from "../../../services/reportes";
+import { reporteAsistencia, domingoFestivos, jornadaDiaria } from "../../../services/reportes";
 import { obtenerCargos } from "../../../services/cargosServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerEmpresas } from "../../../services/empresasServices";
 
-function ReporteAsistenciaFiscaliza() {
+function ReportesFiscaliza() {
 
     // Estados base (catalogos)
     const [empresasGlobal, setEmpresasGlobal] = useState([]);
@@ -43,6 +43,7 @@ function ReporteAsistenciaFiscaliza() {
     const [fechaInicio, setFechaInicio] = useState(dayjs().format('YYYY-MM-DD'));
     const [fechaFin, setFechaFin] = useState(dayjs().format('YYYY-MM-DD'));
     const [filtroPeriodo, setFiltroPeriodo] = useState("");
+    const [tipoReporte, setTipoReporte] = useState("");
 
     // Carga inicial
     useEffect(() => {
@@ -156,8 +157,8 @@ function ReporteAsistenciaFiscaliza() {
                         const sEntrada = (hSel.hora_entrada || "").trim();
                         const sSalida = (hSel.hora_salida || "").trim();
 
-                        return (hEntrada !== "" && hEntrada.startsWith(sEntrada)) && 
-                               (hSalida !== "" && hSalida.startsWith(sSalida));
+                        return (hEntrada !== "" && hEntrada.startsWith(sEntrada)) &&
+                            (hSalida !== "" && hSalida.startsWith(sSalida));
                     });
                 });
             }
@@ -270,6 +271,22 @@ function ReporteAsistenciaFiscaliza() {
             toast.error("Seleccione al menos un empleado");
             return;
         }
+        if (!tipoReporte) {
+            toast.error("Seleccione un tipo de reporte");
+            return;
+        }
+
+        const reporteFnMap = {
+            "1": { fn: reporteAsistencia, nombre: "Asistencia" },
+            "2": { fn: domingoFestivos,   nombre: "Domingo_y_Festivos" },
+            "3": { fn: jornadaDiaria,      nombre: "Jornada_Diaria" },
+        };
+
+        const { fn: reporteFn, nombre: tipoNombre } = reporteFnMap[tipoReporte] || {};
+        if (!reporteFn) {
+            toast.error("Tipo de reporte no soportado aún");
+            return;
+        }
 
         const toastId = toast.loading("Generando reportes...");
 
@@ -278,7 +295,7 @@ function ReporteAsistenciaFiscaliza() {
                 const numFicha = emp.num_ficha;
                 if (!numFicha) continue;
 
-                const blob = await reporteAsistencia(numFicha, fechaInicio, fechaFin);
+                const blob = await reporteFn(numFicha, fechaInicio, fechaFin);
                 if (!blob || blob.length === 0) {
                     toast.error(`Error al generar reporte de ${emp.nombres}`);
                     continue;
@@ -288,7 +305,7 @@ function ReporteAsistenciaFiscaliza() {
                 const a = document.createElement("a");
                 a.style.display = "none";
                 a.href = url;
-                a.download = `Reporte_Asistencia_${emp.nombres}.pdf`;
+                a.download = `Reporte_${tipoNombre}_${emp.nombres}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 await new Promise(resolve => setTimeout(resolve, 600));
@@ -307,7 +324,7 @@ function ReporteAsistenciaFiscaliza() {
         <>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4" color="text.secondary">
-                    Reporte Asistencia
+                    Reportes Fiscalizador
                 </Typography>
             </Box>
 
@@ -318,11 +335,29 @@ function ReporteAsistenciaFiscaliza() {
                 {/* Filtros Superiores */}
                 <Box sx={{ mb: 3, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
+
+                        <FormControl size="small" sx={{ minWidth: 250 }}>
+                            <InputLabel>Tipo de reporte</InputLabel>
+                            <Select
+                                label="Tipo de reporte"
+                                value={tipoReporte}
+                                onChange={(e) => setTipoReporte(e.target.value)}
+                            >
+                                <MenuItem value=""><em>Seleccionar</em></MenuItem>
+                                <MenuItem value="1"><em>Asistencia</em></MenuItem>
+                                <MenuItem value="2"><em>Domingo y Festivos</em></MenuItem>
+                                <MenuItem value="3"><em>Jornada Diaria</em></MenuItem>
+                                <MenuItem value="4"><em>Turno</em></MenuItem>
+                                
+                            </Select>
+                        </FormControl>
+
+
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Empresa</InputLabel>
-                            <Select 
-                                label="Empresa" 
-                                value={filtroEmpresa} 
+                            <Select
+                                label="Empresa"
+                                value={filtroEmpresa}
                                 onChange={(e) => {
                                     setFiltroEmpresa(e.target.value);
                                     setSearchNombre("");
@@ -333,14 +368,14 @@ function ReporteAsistenciaFiscaliza() {
                                 {empresasGlobal.map((emp) => (
                                     <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
                                 ))}
-                            </Select>   
+                            </Select>
                         </FormControl>
-                        
+
                         <FormControl size="small" variant="outlined" sx={{ minWidth: 250 }}>
                             <InputLabel>Cargo</InputLabel>
-                            <Select 
-                                value={filtroCargo} 
-                                onChange={(e) => setFiltroCargo(e.target.value)} 
+                            <Select
+                                value={filtroCargo}
+                                onChange={(e) => setFiltroCargo(e.target.value)}
                                 label="Cargo"
                                 disabled={!filtroEmpresa}
                                 sx={{ bgcolor: !filtroEmpresa ? '#f5f5f5' : '#fff' }}
@@ -354,9 +389,9 @@ function ReporteAsistenciaFiscaliza() {
 
                         <FormControl size="small" variant="outlined" sx={{ minWidth: 250 }}>
                             <InputLabel>Horario</InputLabel>
-                            <Select 
-                                value={filtroTurno} 
-                                onChange={(e) => setFiltroTurno(e.target.value)} 
+                            <Select
+                                value={filtroTurno}
+                                onChange={(e) => setFiltroTurno(e.target.value)}
                                 label="Horario"
                                 disabled={!filtroEmpresa}
                                 sx={{ bgcolor: !filtroEmpresa ? '#f5f5f5' : '#fff' }}
@@ -375,25 +410,25 @@ function ReporteAsistenciaFiscaliza() {
 
                 {/* Contenido Central */}
                 <Box sx={{ flex: 1, display: 'flex', gap: 4, minHeight: "250px" }}>
-                    
+
                     {/* Filtros Laterales (Izquierda) */}
                     <Box sx={{ width: "300px", display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', pr: 1 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Búsqueda de Empleados</Typography>
-                        
+
                         {/* Filtro Nombre o Apellido */}
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>Nombre o Apellido</Typography>
                             <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: "100%", height: "40px", mt: 0.5 }}>
-                                <TextField 
-                                    placeholder="Buscar por nombre o apellido..." 
-                                    variant="standard" 
-                                    InputProps={{ disableUnderline: true }} 
-                                    sx={{ ml: 1, flex: 1, px: 1 }} 
-                                    value={searchNombre} 
-                                    onChange={(e) => setSearchNombre(e.target.value)} 
+                                <TextField
+                                    placeholder="Buscar por nombre o apellido..."
+                                    variant="standard"
+                                    InputProps={{ disableUnderline: true }}
+                                    sx={{ ml: 1, flex: 1, px: 1 }}
+                                    value={searchNombre}
+                                    onChange={(e) => setSearchNombre(e.target.value)}
                                 />
-                                <IconButton 
-                                    sx={{ p: '10px' }} 
+                                <IconButton
+                                    sx={{ p: '10px' }}
                                     aria-label="search"
                                     onClick={handleBusquedaGlobalNombre}
                                 >
@@ -406,17 +441,17 @@ function ReporteAsistenciaFiscaliza() {
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>Run</Typography>
                             <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: "100%", height: "40px", mt: 0.5 }}>
-                                <TextField 
-                                    placeholder="Buscar por run..." 
-                                    variant="standard" 
-                                    InputProps={{ disableUnderline: true }} 
-                                    sx={{ ml: 1, flex: 1, px: 1 }} 
-                                    value={searchRun} 
-                                    onChange={(e) => setSearchRun(e.target.value)} 
+                                <TextField
+                                    placeholder="Buscar por run..."
+                                    variant="standard"
+                                    InputProps={{ disableUnderline: true }}
+                                    sx={{ ml: 1, flex: 1, px: 1 }}
+                                    value={searchRun}
+                                    onChange={(e) => setSearchRun(e.target.value)}
                                 />
-                                <IconButton 
+                                <IconButton
                                     onClick={handleBusquedaGlobalRun}
-                                    sx={{ p: '10px' }} 
+                                    sx={{ p: '10px' }}
                                     aria-label="search"
                                 >
                                     <SearchIcon />
@@ -521,4 +556,4 @@ function ReporteAsistenciaFiscaliza() {
     );
 }
 
-export default ReporteAsistenciaFiscaliza;
+export default ReportesFiscaliza;

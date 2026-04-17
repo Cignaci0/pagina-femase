@@ -9,8 +9,7 @@ import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { generarreporte } from "../../../services/vacaciones";
-import { obtenerAusencias, editarAusencia } from "../../../services/ausencias";
+import { obtenerAusencias, editarAusencia, reporteAusencia } from "../../../services/ausencias";
 import { getTipoAusencia } from "../../../services/tiposAusencia";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -167,6 +166,11 @@ function AdminAusencia() {
             return;
         }
 
+        if (!desdeFecha || !hastaFecha) {
+            toast.error("Debe seleccionar un rango de fechas");
+            return;
+        }
+
         const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
         const numFicha = empSel?.num_ficha;
 
@@ -177,8 +181,11 @@ function AdminAusencia() {
 
         const toastId = toast.loading("Generando reporte...");
         try {
-            const blob = await generarreporte(numFicha);
-            if (!blob) {
+            const fi = desdeFecha.format("YYYY-MM-DD");
+            const ff = hastaFecha.format("YYYY-MM-DD");
+            
+            const blob = await reporteAusencia(numFicha, ff, fi);
+            if (!blob || Array.isArray(blob)) {
                 toast.error("Error al generar el reporte", { id: toastId });
                 return;
             }
@@ -427,7 +434,7 @@ function AdminAusencia() {
                         startIcon={<AssessmentIcon />}
                         sx={{ height: "40px", mb: 2, ml: 1 }}
                         onClick={handleReporteIndividual}
-                        disabled={!filtroEmpleado}
+                        disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}
                     >
                         Reporte
                     </Button>

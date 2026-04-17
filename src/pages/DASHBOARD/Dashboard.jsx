@@ -76,7 +76,7 @@ import AdminVacacionesProgresivas from "../DASHBOARD/vacaciones/VacacionesProgre
 
 // FISCALIZADOR
 import BusquedaMarcas from "../DASHBOARD/Fiscalizador/BusquedaMarcas";
-import ReporteAsistenciaFiscaliza from "../DASHBOARD/Fiscalizador/ReporteAsistenciaFiscalizador";
+import ReportesFiscaliza from "../DASHBOARD/Fiscalizador/ReportesFiscalizador";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -145,7 +145,7 @@ const COMPONENTES_VISTA = {
 
   // FISCALIZADOR
   "Busqueda De Marcas": <BusquedaMarcas />,
-  "Reporte Asistencia Fiscalizador": <ReporteAsistenciaFiscaliza />,
+  "Reportes Fiscalizador": <ReportesFiscaliza />,
 }
 
 
