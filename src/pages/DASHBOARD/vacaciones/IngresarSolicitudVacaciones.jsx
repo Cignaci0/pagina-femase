@@ -124,8 +124,13 @@ function AdminIngresarSolicitudVacaciones() {
                     </Box>
                 ) : (
                     <Box sx={{
-                        p: 3, borderRadius: 3, bgcolor: '#f8f9fa', border: '1px solid #eaeaea',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)', maxWidth: 420, mx: 'auto'
+                        p: 4, borderRadius: 3, bgcolor: '#f8f9fa', border: '1px solid #eaeaea',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)', 
+                        width: { xs: '90%', md: '50%' }, 
+                        height: '50%', 
+                        minHeight: 350,
+                        mx: 'auto', my: 'auto',
+                        display: 'flex', flexDirection: 'column', justifyContent: 'center'
                     }}>
                         {/* Saldos */}
                         <Stack spacing={2} sx={{ mb: 3 }}>
@@ -145,8 +150,8 @@ function AdminIngresarSolicitudVacaciones() {
                         <Typography variant="subtitle1" fontWeight="bold" mb={2}>
                             Periodo
                         </Typography>
-                        <Stack spacing={3}>
-                            <Box>
+                        <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
+                            <Box sx={{ flex: 1 }}>
                                 <Typography variant="body2" color="text.secondary" mb={1}>Fecha de Inicio</Typography>
                                 <TextField
                                     type="date"
@@ -157,7 +162,7 @@ function AdminIngresarSolicitudVacaciones() {
                                     sx={{ bgcolor: "#fff" }}
                                 />
                             </Box>
-                            <Box>
+                            <Box sx={{ flex: 1 }}>
                                 <Typography variant="body2" color="text.secondary" mb={1}>Fecha de Término</Typography>
                                 <TextField
                                     type="date"
