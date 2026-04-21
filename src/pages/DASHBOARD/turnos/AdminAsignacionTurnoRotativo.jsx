@@ -461,10 +461,10 @@ function AdminAsignacionCiclica() {
                 </Box>
 
                 {/* Transfer list empleados */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flex: 1, minHeight: 0, mb: 2 }}>
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados disponibles</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, height: "200px", overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, minHeight: "35vh", overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosDisponibles.map((emp) => (
                                     <ListItem
@@ -498,7 +498,7 @@ function AdminAsignacionCiclica() {
 
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados seleccionados</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, height: "200px", overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, minHeight: "35vh", overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosSeleccionados.map((emp) => (
                                     <ListItem

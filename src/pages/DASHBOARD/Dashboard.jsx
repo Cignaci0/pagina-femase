@@ -78,6 +78,10 @@ import AdminVacacionesProgresivas from "../DASHBOARD/vacaciones/VacacionesProgre
 import BusquedaMarcas from "../DASHBOARD/Fiscalizador/BusquedaMarcas";
 import ReportesFiscaliza from "../DASHBOARD/Fiscalizador/ReportesFiscalizador";
 
+// TELETRABAJO
+import MarcaTeletrabajo from "../DASHBOARD/teletrabajo/marcaTeletrabajo";
+import AsignacionTeletrabajos from "../DASHBOARD/teletrabajo/AsignacionTeletrabajo";
+
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
 
@@ -146,6 +150,10 @@ const COMPONENTES_VISTA = {
   // FISCALIZADOR
   "Busqueda De Marcas": <BusquedaMarcas />,
   "Reportes Fiscalizador": <ReportesFiscaliza />,
+
+  // TELETRABAJO
+  "Marca Teletrabajo": <MarcaTeletrabajo />,
+  "Asignacion Teletrabajo": <AsignacionTeletrabajos />,
 }
 
 

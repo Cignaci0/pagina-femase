@@ -109,3 +109,24 @@ export const asignarCencosAEmpleados = async (runUsuario, cencoIds) => {
   }
   return datos;
 };
+
+export const asignarTeletrabajo = async (idEmpleado, fecha_inicio, fecha_fin) => {
+  const peticion = await fetch(`${API_URL}/teletrabajo/asignar/${idEmpleado}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      fecha_inicio,
+      fecha_fin
+    }),
+  });
+
+  const datos = await peticion.json();
+
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al asignar teletrabajo");
+  }
+  return datos;
+};
