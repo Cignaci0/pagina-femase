@@ -216,8 +216,11 @@ function AdminCentroCosto() {
         const asignados = cenco.dispositivos || [];
         setRight(asignados);
 
+        // Obtenemos todos los dispositivos asignados a TODOS los cencos
+        const todosAsignados = cencos.flatMap(c => c.dispositivos || []);
+
         const disponibles = todosDispositivos.filter(dispoGlobal =>
-            !asignados.some(dispoAsignado => dispoAsignado.dispositivo_id === dispoGlobal.dispositivo_id)
+            !todosAsignados.some(asignado => asignado.dispositivo_id === dispoGlobal.dispositivo_id)
         );
         setLeft(disponibles);
 

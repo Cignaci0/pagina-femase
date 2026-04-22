@@ -11,7 +11,8 @@ import {
     FormControlLabel,
     FormGroup,
     Tab,
-    Menu
+    Menu,
+    Switch
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
@@ -32,8 +33,17 @@ import { obtenerHorarios } from "../../../services/horariosServices"
 
 function AdminTurnos() {
 
-    //VARIABLE IMPORTANTE
-    const horas_laborales = 44
+    //VARIABLE IMPORTANTE (Ahorra dinamica)
+    const [usarHorarioEmpresa, setUsarHorarioEmpresa] = useState(false);
+    const [empresaActual, setEmpresaActual] = useState(null);
+
+    const getHorasLímite = () => {
+        if (!empresaActual) return 44;
+        if (usarHorarioEmpresa && empresaActual.horario) {
+            return empresaActual.horario;
+        }
+        return empresaActual.horario_legal || 44;
+    };
 
     const parseTimeToMinutes = (timeStr) => {
         if (!timeStr) return 0;
@@ -307,6 +317,10 @@ function AdminTurnos() {
         setCargando(true)
         setHorarioGlobal("")
         try {
+            const emp = empresas.find(e => e.empresa_id === tur.empresa?.empresa_id);
+            setEmpresaActual(emp);
+            setUsarHorarioEmpresa(false); // Por defecto usar legal al abrir
+            
             setDetalle(true)
             setIdTurnoDias(tur.turno_id)
             setEmpresaIdHorarios(tur.empresa?.empresa_id)
@@ -624,9 +638,8 @@ function AdminTurnos() {
                                                                     return;
                                                                 }
 
-                                                                const empsDeEmpresa = await obtenerPorEmpresa(empresa_id);
-                                                                if (!empsDeEmpresa) {
-                                                                    // Si es null (ej. 404), tratamos como lista vacía o informamos error
+                                                                const empsDeEmpresaRaw = await obtenerPorEmpresa(empresa_id);
+                                                                if (!empsDeEmpresaRaw) {
                                                                     toast.dismiss(tId);
                                                                     setAsignar(true);
                                                                     setIdTurnoAsignar(tur.turno_id);
@@ -635,6 +648,9 @@ function AdminTurnos() {
                                                                     setEmpleadosDisponibles([]);
                                                                     return;
                                                                 }
+
+                                                                // Filtrar solo los que NO permiten turno rotativo
+                                                                const empsDeEmpresa = empsDeEmpresaRaw.filter(emp => emp.permite_rotativo === false);
 
                                                                 setAsignar(true);
                                                                 setIdTurnoAsignar(tur.turno_id);
@@ -1008,6 +1024,16 @@ function AdminTurnos() {
                 <DialogTitle sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pb: 0, pt: 3, px: 3 }}>
                     <Typography variant="h6" fontWeight="bold">Asignar Horarios</Typography>
 
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                        <Typography variant="body2" color="text.secondary">Usar horas empresa</Typography>
+                        <Switch 
+                            checked={usarHorarioEmpresa} 
+                            onChange={(e) => setUsarHorarioEmpresa(e.target.checked)} 
+                            disabled={!empresaActual?.horario}
+                            size="small"
+                        />
+                    </Box>
+
                     <FormControl size="small" sx={{ minWidth: 280, mt: 2 }}>
                         <InputLabel>Asignación semana</InputLabel>
                         <Select
@@ -1109,10 +1135,10 @@ function AdminTurnos() {
                         Seleccione los días laborales y asigne un horario a cada uno.
                     </Typography>
                     
-                    <Typography variant="body2" display="block" textAlign="center" color={calcularHorasSemanales() > horas_laborales ? "error" : "text.primary"} sx={{ mt: 1, fontWeight: 'bold' }}>
-                        Horas semanales: {calcularHorasSemanales().toFixed(1)} / {horas_laborales}
+                    <Typography variant="body2" display="block" textAlign="center" color={calcularHorasSemanales() > getHorasLímite() ? "error" : "text.primary"} sx={{ mt: 1, fontWeight: 'bold' }}>
+                        Horas semanales: {calcularHorasSemanales().toFixed(1)} / {getHorasLímite()}
                     </Typography>
-                    {calcularHorasSemanales() > horas_laborales && (
+                    {calcularHorasSemanales() > getHorasLímite() && (
                         <Typography variant="caption" display="block" textAlign="center" color="error" sx={{ mt: 0.5 }}>
                             Las horas asignadas superan el límite permitido.
                         </Typography>
@@ -1124,7 +1150,7 @@ function AdminTurnos() {
                     <Button onClick={cerrarDetalle} color="error" sx={{ minWidth: 100 }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} disabled={calcularHorasSemanales() > horas_laborales} onClick={clickGuardarDias}>
+                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} disabled={calcularHorasSemanales() > getHorasLímite()} onClick={clickGuardarDias}>
                         Guardar
                     </Button>
                 </DialogActions>

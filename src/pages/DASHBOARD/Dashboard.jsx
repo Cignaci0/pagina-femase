@@ -81,6 +81,10 @@ import ReportesFiscaliza from "../DASHBOARD/Fiscalizador/ReportesFiscalizador";
 // TELETRABAJO
 import MarcaTeletrabajo from "../DASHBOARD/teletrabajo/marcaTeletrabajo";
 import AsignacionTeletrabajos from "../DASHBOARD/teletrabajo/AsignacionTeletrabajo";
+import AdminTeletrabajos from "../DASHBOARD/teletrabajo/AdminTeletrabajo";
+
+// CONFIGURACION SISTEMA
+import HorasLaboral from "../DASHBOARD/ConfgSistema/HorasLaborales";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -154,6 +158,11 @@ const COMPONENTES_VISTA = {
   // TELETRABAJO
   "Marca Teletrabajo": <MarcaTeletrabajo />,
   "Asignacion Teletrabajo": <AsignacionTeletrabajos />,
+  "Admin Teletrabajo": <AdminTeletrabajos />,
+
+  // CONFIGURACION SISTEMA
+  "Horas Laborales": <HorasLaboral />,
+
 }
 
 

@@ -9,7 +9,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 
-import { obtenerDispositivo } from "../../../services/dispositivosServices";
+import { obtenerDispositivosPorEmpleado } from "../../../services/dispositivosServices";
 import { crearMarca } from "../../../services/marcasServices";
 import { tieneteletrabajo } from "../../../services/teletrabajo";
 dayjs.locale("es");
@@ -76,14 +76,20 @@ function MarcaTeletrabajo() {
             }
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                // Asumiendo que el username es el RUN del empleado
-                const run = payload.run || payload.username;
+                const run = payload.rut;
+                
+                if (!run) {
+                    console.error("No se encontró el RUN en el token:", payload);
+                    setTienePermiso(false);
+                    return;
+                }
+
                 const result = await tieneteletrabajo(run);
                 
                 if (result && !Array.isArray(result)) {
                     setTienePermiso(result);
-                    // Solo si tiene permiso cargamos dispositivos
-                    const devData = await obtenerDispositivo();
+                    // Solo si tiene permiso cargamos dispositivos por empleado
+                    const devData = await obtenerDispositivosPorEmpleado(run);
                     setDispositivos(devData);
                     if (devData.length > 0) {
                         setDevice(devData[0].dispositivo_id);
@@ -92,6 +98,7 @@ function MarcaTeletrabajo() {
                     setTienePermiso(false);
                 }
             } catch (error) {
+                console.error("Error al verificar permisos:", error);
                 setTienePermiso(false);
             }
         }
@@ -225,9 +232,22 @@ function MarcaTeletrabajo() {
                     <Box sx={{ width: '85%', maxWidth: 500, height: 16, background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.06) 0%, transparent 60%)', mb: 2, opacity: 0.8 }} />
 
                     {/* Date */}
-                    <Typography variant="h6" sx={{ mb: 3, color: '#111', fontWeight: 400, fontSize: '1.2rem' }}>
+                    <Typography variant="h6" sx={{ mb: 1, color: '#111', fontWeight: 400, fontSize: '1.2rem' }}>
                         {formatoFecha}
                     </Typography>
+
+                    {/* Horario Asignado */}
+                    {tienePermiso && (tienePermiso.horario_id || tienePermiso.horario) && (
+                        <Box sx={{ mb: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                                Horario asignado: {
+                                    (tienePermiso.horario_id?.hora_entrada || tienePermiso.horario?.hora_entrada || "").slice(0, 5)
+                                } - {
+                                    (tienePermiso.horario_id?.hora_salida || tienePermiso.horario?.hora_salida || "").slice(0, 5)
+                                }
+                            </Typography>
+                        </Box>
+                    )}
 
                     {/* Analog Clock */}
                     <Box sx={{

@@ -205,7 +205,7 @@ function AsignacionTeletrabajos() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "auto",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 180px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Filtros */}
@@ -242,10 +242,10 @@ function AsignacionTeletrabajos() {
                 </Box>
 
                 {/* Transfer list empleados */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flex: 1, minHeight: 0, mb: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flex: 1, minHeight: 0, mb: 2, overflow: 'hidden' }}>
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados disponibles</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, minHeight: "35vh", overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosDisponibles.map((emp) => (
                                     <ListItem
@@ -279,7 +279,7 @@ function AsignacionTeletrabajos() {
 
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados seleccionados</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, minHeight: "35vh", overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosSeleccionados.map((emp) => (
                                     <ListItem
@@ -305,35 +305,36 @@ function AsignacionTeletrabajos() {
                     </Box>
                 </Box>
 
-                <Box sx={{ mt: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+                <Box sx={{ mt: 'auto', border: '1px solid #e0e0e0', borderRadius: 1, p: 2, bgcolor: '#f9f9f9' }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
                         Inicialización de ciclo(s)
                     </Typography>
-                    <Grid container spacing={2} alignItems="flex-end">
+                    <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} sm={6} md={3}>
-                            <Typography variant="caption" color="text.secondary" fontWeight="bold">Fecha inicio</Typography>
                             <TextField
                                 fullWidth
+                                label="Fecha inicio"
                                 type="date"
                                 size="small"
                                 value={fechaInicio}
                                 onChange={(e) => setFechaInicio(e.target.value)}
-
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
 
                         <Grid item xs={12} sm={6} md={3}>
-                            <Typography variant="caption" color="text.secondary" fontWeight="bold">Fecha fin</Typography>
                             <TextField
                                 fullWidth
+                                label="Fecha fin"
                                 type="date"
                                 size="small"
                                 value={fechaFin}
                                 onChange={(e) => setFechaFin(e.target.value)}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid item xs={12} md={3}>
                             <Button
                                 fullWidth
                                 variant="contained"

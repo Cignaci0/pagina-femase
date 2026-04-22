@@ -96,3 +96,35 @@ export const actualizarEmpresa = async (
   }
   return datos;
 };
+
+export const actualizarHorarioLegal = async (horario) => {
+  const peticion = await fetch(`${API_URL}/empresas/actualizarHorarioLegal/${horario}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al actualizar el horario legal");
+  }
+  return datos;
+};
+
+export const actualizarHorarioEmpresa = async (id, horario) => {
+  const peticion = await fetch(`${API_URL}/empresas/actualizarHorario/${id}/${horario}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al actualizar el horario");
+  }
+  return datos;
+};

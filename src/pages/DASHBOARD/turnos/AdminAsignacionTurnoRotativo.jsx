@@ -424,7 +424,7 @@ function AdminAsignacionCiclica() {
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "auto",
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 180px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
                 boxSizing: "border-box"
             }}>
                 {/* Filtros */}
@@ -461,30 +461,30 @@ function AdminAsignacionCiclica() {
                 </Box>
 
                 {/* Transfer list empleados */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flex: 1, minHeight: 0, mb: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flex: 1, minHeight: 0, mb: 2, overflow: 'hidden' }}>
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados disponibles</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, minHeight: "35vh", overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosDisponibles.map((emp) => (
-                                    <ListItem
-                                        key={emp.empleado_id}
-                                        dense
-                                        onClick={() => handleToggleIzq(emp.empleado_id)}
-                                        sx={{ py: 0 }}
-                                    >
-                                        <ListItemIcon sx={{ minWidth: 36 }}>
-                                            <Checkbox
-                                                edge="start"
-                                                checked={checkedIzq.includes(emp.empleado_id)}
-                                                size="small"
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno}`}
-                                        />
-                                    </ListItem>
-                                ))}
+                                     <ListItem
+                                         key={emp.empleado_id}
+                                         dense
+                                         onClick={() => handleToggleIzq(emp.empleado_id)}
+                                         sx={{ py: 0 }}
+                                     >
+                                         <ListItemIcon sx={{ minWidth: 36 }}>
+                                             <Checkbox
+                                                 edge="start"
+                                                 checked={checkedIzq.includes(emp.empleado_id)}
+                                                 size="small"
+                                             />
+                                         </ListItemIcon>
+                                         <ListItemText
+                                             primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno}`}
+                                         />
+                                     </ListItem>
+                                 ))}
                             </List>
                         </Box>
                     </Box>
@@ -498,7 +498,7 @@ function AdminAsignacionCiclica() {
 
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Empleados seleccionados</Typography>
-                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, minHeight: "35vh", overflowY: 'auto', bgcolor: '#fff' }}>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosSeleccionados.map((emp) => (
                                     <ListItem
@@ -523,7 +523,7 @@ function AdminAsignacionCiclica() {
                         </Box>
                     </Box>
                 </Box>
-                <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+                <Box sx={{ mt: 1, display: 'flex', gap: 2 }}>
                     <Button
                         variant={tipoAsignacion === 'ciclica' ? "contained" : "outlined"}
                         size="small"
@@ -541,27 +541,30 @@ function AdminAsignacionCiclica() {
                 </Box>
 
                 {tipoAsignacion === 'ciclica' && (
-                    <Box sx={{ mt: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+                    <Box sx={{ mt: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 2, bgcolor: '#f9f9f9' }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
                             Inicialización de ciclo(s)
                         </Typography>
-                        <Grid container spacing={2} alignItems="flex-end">
+                        <Grid container spacing={2} alignItems="center">
                             <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Fecha inicio</Typography>
                                 <TextField
                                     fullWidth
+                                    label="Fecha inicio"
                                     type="date"
                                     size="small"
                                     value={fechaInicio}
                                     onChange={(e) => setFechaInicio(e.target.value)}
+                                    InputLabelProps={{ shrink: true }}
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Número de ciclos</Typography>
                                 <FormControl fullWidth size="small">
+                                    <InputLabel shrink>Número de ciclos</InputLabel>
                                     <Select
                                         value={numeroCiclos}
+                                        label="Número de ciclos"
                                         onChange={(e) => setNumeroCiclos(e.target.value)}
+                                        notched
                                     >
                                         <MenuItem value={7}>1 Semana</MenuItem>
                                         <MenuItem value={8}>8 dias</MenuItem>
@@ -572,11 +575,13 @@ function AdminAsignacionCiclica() {
                                 </FormControl>
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Duración</Typography>
                                 <FormControl fullWidth size="small">
+                                    <InputLabel shrink>Duración</InputLabel>
                                     <Select
                                         value={duracion}
+                                        label="Duración"
                                         onChange={(e) => setDuracion(e.target.value)}
+                                        notched
                                     >
                                         <MenuItem value="1 Mes">1 Mes</MenuItem>
                                         <MenuItem value="3 Meses">3 Meses</MenuItem>
@@ -606,41 +611,44 @@ function AdminAsignacionCiclica() {
                 )}
 
                 {tipoAsignacion === 'rotativa' && (
-                    <Box sx={{ mt: 3, border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+                    <Box sx={{ mt: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 2, bgcolor: '#f9f9f9' }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                            Asignación Rotativa
+                            Asignación Personalizada
                         </Typography>
-                        <Grid container spacing={3}>
-
+                        <Grid container spacing={2} alignItems="center">
                             <Grid item xs={12} md={3}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de inicio</Typography>
                                 <TextField
                                     fullWidth
+                                    label="Fecha de inicio"
                                     type="date"
                                     size="small"
                                     value={fechaInicio}
                                     onChange={(e) => handleCambioFechaInicioRotativa(e.target.value)}
+                                    InputLabelProps={{ shrink: true }}
                                     sx={{ bgcolor: '#fff' }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Fecha de término</Typography>
                                 <TextField
                                     fullWidth
+                                    label="Fecha de término"
                                     type="date"
                                     size="small"
                                     value={fechaFinRotativa}
                                     onChange={(e) => setFechaFinRotativa(e.target.value)}
+                                    InputLabelProps={{ shrink: true }}
                                     sx={{ bgcolor: '#fff' }}
                                 />
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={12} md={3}>
                                 <FormControl fullWidth size="small">
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 0.5 }}>Horario</Typography>
+                                    <InputLabel shrink>Horario</InputLabel>
                                     <Select
                                         value={horarioIdRotativa}
+                                        label="Horario"
                                         onChange={(e) => setHorarioIdRotativa(e.target.value)}
                                         sx={{ bgcolor: '#fff' }}
+                                        notched
                                     >
                                         <MenuItem value=""><em>Seleccionar horario</em></MenuItem>
                                         <MenuItem value="descanso"><em>Descanso</em></MenuItem>
@@ -650,26 +658,22 @@ function AdminAsignacionCiclica() {
                                             </MenuItem>
                                         ))}
                                     </Select>
-
-
                                 </FormControl>
-
                             </Grid>
-                            <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                            <Grid item xs={12} md={3}>
                                 <Button
+                                    fullWidth
                                     color="primary"
                                     variant="contained"
                                     onClick={handleGuardarRotativa}
+                                    sx={{ height: '40px' }}
                                     disabled={cargandoEnvio || horarioIdRotativa === "" || empleadosSeleccionados.length === 0}
                                     startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}
                                 >
                                     {cargandoEnvio ? "Guardando..." : "Guardar Asignación"}
                                 </Button>
                             </Grid>
-
-
                         </Grid>
-
                     </Box>
                 )}
             </Paper>
