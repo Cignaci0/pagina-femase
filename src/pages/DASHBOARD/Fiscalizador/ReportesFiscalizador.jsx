@@ -9,7 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import dayjs from "dayjs";
 
 import { obtenerPorRun, obtenerPorNombre, obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { reporteAsistencia, domingoFestivos, jornadaDiaria } from "../../../services/reportes";
+import { reporteAsistencia, domingoFestivos, jornadaDiaria, reporteTurnos } from "../../../services/reportes";
 import { obtenerCargos } from "../../../services/cargosServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerEmpresas } from "../../../services/empresasServices";
@@ -280,6 +280,7 @@ function ReportesFiscaliza() {
             "1": { fn: reporteAsistencia, nombre: "Asistencia" },
             "2": { fn: domingoFestivos,   nombre: "Domingo_y_Festivos" },
             "3": { fn: jornadaDiaria,      nombre: "Jornada_Diaria" },
+            "4": { fn: reporteTurnos,      nombre: "Turno" },
         };
 
         const { fn: reporteFn, nombre: tipoNombre } = reporteFnMap[tipoReporte] || {};
@@ -485,7 +486,7 @@ function ReportesFiscaliza() {
                                                 />
                                             </ListItemIcon>
                                             <ListItemText
-                                                primary={`(${emp.run || emp.num_ficha || "-"}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""} (${emp.empresa?.nombre_empresa || "Sin Empresa"} / cargo: ${emp.cargo?.nombre || "Sin Cargo"} / cenco: ${emp.cenco?.nombre_cenco || "Sin Cenco"} / turno: ${emp.turno?.nombre || "Sin Turno"})`}
+                                                primary={`(${emp.run || emp.num_ficha || "-"}) ${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""} (${emp.empresa?.nombre_empresa || "Sin Empresa"} / cargo: ${emp.cargo?.nombre || "Sin Cargo"} / cenco: ${emp.cenco?.nombre_cenco || "Sin Cenco"} / turno: ${emp.turno?.nombre ? emp.turno.nombre : (emp.permite_rotativo ? "Turno Rotativo" : "Sin Turno")})`}
                                             />
                                         </ListItem>
                                     );

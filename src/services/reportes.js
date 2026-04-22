@@ -76,3 +76,22 @@ export const jornadaDiaria = async (numFicha, fechaInicio, fechaFin) => {
         return [];
     }
 }
+
+export const reporteTurnos = async (numFicha, fechaInicio, fechaFin) => {
+    try {
+        const response = await fetch(`${API_URL}/reportes/auditoria-turno/pdf?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&numFicha=${numFicha}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
+            }
+        })
+        if (!response.ok) {
+            throw new Error('Error al descargar el reporte');
+        }
+        const blob = await response.blob();
+        return blob;
+    } catch (error) {
+        return [];
+    }
+}
