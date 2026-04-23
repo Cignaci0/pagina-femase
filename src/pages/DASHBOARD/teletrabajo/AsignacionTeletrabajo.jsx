@@ -182,10 +182,10 @@ function AsignacionTeletrabajos() {
         setCargando(true);
         const tId = toast.loading("Asignando teletrabajo...");
 
-        try {
-            let totalSuccess = 0;
-            let allErrors = [];
+        let totalSuccess = 0;
+        let allErrors = [];
 
+        try {
             for (const emp of empleadosSeleccionados) {
                 const response = await asignarTeletrabajo(emp.empleado_id, fechaInicio, fechaFin);
                 if (response && response.detalles) {
@@ -203,7 +203,7 @@ function AsignacionTeletrabajos() {
                 toast.dismiss(tId);
             }
 
-            if (allErrors.length > 0) {
+            if (allErrors.length > 0 && totalSuccess === 0) {
                 const filteredErrors = allErrors.filter(e => 
                     e.message.includes("No tiene turno rotativo asignado") || 
                     e.message.includes("No tiene horario asignado")
@@ -231,9 +231,14 @@ function AsignacionTeletrabajos() {
             setCheckedDer([]);
         } catch (error) {
             const errorMessage = error.response?.message || error.message || "Error al asignar teletrabajo";
-            toast.error(errorMessage, { id: tId });
             
-            if (error.response?.detalles) {
+            if (totalSuccess > 0) {
+                toast.success("Teletrabajo asignado correctamente", { id: tId });
+            } else {
+                toast.error(errorMessage, { id: tId });
+            }
+            
+            if (error.response?.detalles && totalSuccess === 0) {
                 const filteredErrors = error.response.detalles.filter(e => 
                     e.message.includes("No tiene turno rotativo asignado") || 
                     e.message.includes("No tiene horario asignado")
