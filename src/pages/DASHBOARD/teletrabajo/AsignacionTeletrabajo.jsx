@@ -183,14 +183,79 @@ function AsignacionTeletrabajos() {
         const tId = toast.loading("Asignando teletrabajo...");
 
         try {
+            let totalSuccess = 0;
+            let allErrors = [];
+
             for (const emp of empleadosSeleccionados) {
-                await asignarTeletrabajo(emp.empleado_id, fechaInicio, fechaFin);
+                const response = await asignarTeletrabajo(emp.empleado_id, fechaInicio, fechaFin);
+                if (response && response.detalles) {
+                    const successes = response.detalles.filter(d => d.status === 'success');
+                    const errors = response.detalles.filter(d => d.status === 'error');
+
+                    totalSuccess += successes.length;
+                    allErrors.push(...errors);
+                }
             }
-            toast.success("Teletrabajo asignado correctamente para todos los empleados", { id: tId });
+
+            if (totalSuccess > 0) {
+                toast.success("Teletrabajo asignado correctamente", { id: tId });
+            } else {
+                toast.dismiss(tId);
+            }
+
+            if (allErrors.length > 0) {
+                const filteredErrors = allErrors.filter(e => 
+                    e.message.includes("No tiene turno rotativo asignado") || 
+                    e.message.includes("No tiene horario asignado")
+                );
+
+                if (filteredErrors.length > 0) {
+                    const errorDates = [...new Set(filteredErrors.map(e => e.fecha))].sort();
+                    toast.error(
+                        <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                Existen {filteredErrors.length} errores, no existe horario para:
+                            </Typography>
+                            {errorDates.map(f => (
+                                <Typography key={f} variant="caption" display="block">
+                                    - {f}
+                                </Typography>
+                            ))}
+                        </Box>,
+                        { duration: 6000 }
+                    );
+                }
+            }
+
             setEmpleadosSeleccionados([]);
             setCheckedDer([]);
         } catch (error) {
-            toast.error(error.message || "Error al asignar teletrabajo", { id: tId });
+            const errorMessage = error.response?.message || error.message || "Error al asignar teletrabajo";
+            toast.error(errorMessage, { id: tId });
+            
+            if (error.response?.detalles) {
+                const filteredErrors = error.response.detalles.filter(e => 
+                    e.message.includes("No tiene turno rotativo asignado") || 
+                    e.message.includes("No tiene horario asignado")
+                );
+
+                if (filteredErrors.length > 0) {
+                    const errorDates = [...new Set(filteredErrors.map(e => e.fecha))].sort();
+                    toast.error(
+                        <Box>
+                            <Typography variant="body2">
+                                No existe horario para:
+                            </Typography>
+                            {errorDates.map(f => (
+                                <Typography key={f} variant="caption" display="block">
+                                    - {f}
+                                </Typography>
+                            ))}
+                        </Box>,
+                        { duration: 6000 }
+                    );
+                }
+            }
         } finally {
             setCargando(false);
         }

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
-import { obtenerEmpresas } from "../../../services/empresasServices";
+import { obtenerEmpresas, obtenerHorarioLegal } from "../../../services/empresasServices";
 import { obtenerTurnos, crearTurno, actualizarTurno, asignarEmpleados, asignarTurnoACenco, asignarHorario, obtenerHorariosTurno } from "../../../services/turnosServices";
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -36,13 +36,13 @@ function AdminTurnos() {
     //VARIABLE IMPORTANTE (Ahorra dinamica)
     const [usarHorarioEmpresa, setUsarHorarioEmpresa] = useState(false);
     const [empresaActual, setEmpresaActual] = useState(null);
+    const [horarioLegalGlobal, setHorarioLegalGlobal] = useState(44);
 
     const getHorasLímite = () => {
-        if (!empresaActual) return 44;
-        if (usarHorarioEmpresa && empresaActual.horario) {
+        if (usarHorarioEmpresa && empresaActual?.horario) {
             return empresaActual.horario;
         }
-        return empresaActual.horario_legal || 44;
+        return horarioLegalGlobal;
     };
 
     const parseTimeToMinutes = (timeStr) => {
@@ -290,6 +290,10 @@ function AdminTurnos() {
         try {
             const diasValidos = diasSeleccionados.filter(d => typeof d === 'number' && d >= 1 && d <= 7).sort((a, b) => a - b);
 
+            if (diasValidos.length >= 7) {
+                throw new Error("Debe quedar al menos un día sin marcar (día de descanso)");
+            }
+
             const idsDiasPayload = [];
             const idsHorariosPayload = [];
 
@@ -452,8 +456,14 @@ function AdminTurnos() {
     const handleToggleDia = (valorDia) => {
         if (diasSeleccionados.includes(valorDia)) {
             setDiasSeleccionados(diasSeleccionados.filter(d => d !== valorDia));
+            return true;
         } else {
+            if (diasSeleccionados.length >= 6) {
+                toast.error("Al menos un día debe quedar sin marcar.");
+                return false;
+            }
             setDiasSeleccionados([...diasSeleccionados, valorDia]);
+            return true;
         }
     }
 
@@ -479,6 +489,20 @@ function AdminTurnos() {
     };
 
     // Effects
+    useEffect(() => {
+        const fetchLegal = async () => {
+            try {
+                const data = await obtenerHorarioLegal();
+                if (data && Array.isArray(data) && data.length > 0) {
+                    setHorarioLegalGlobal(data[0].hora);
+                }
+            } catch (error) {
+                console.error("Error fetching legal hours", error);
+            }
+        };
+        fetchLegal();
+    }, []);
+
     useEffect(() => {
         cargarTurnos();
     }, []);
@@ -1078,7 +1102,9 @@ function AdminTurnos() {
                                                 size="small"
                                                 checked={isChecked}
                                                 onChange={() => {
-                                                    handleToggleDia(valorDia);
+                                                    const success = handleToggleDia(valorDia);
+                                                    if (!success) return;
+
                                                     if (isChecked) {
                                                         const nuevosHorarios = { ...horariosSeleccionados };
                                                         delete nuevosHorarios[valorDia];
@@ -1150,7 +1176,7 @@ function AdminTurnos() {
                     <Button onClick={cerrarDetalle} color="error" sx={{ minWidth: 100 }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} disabled={calcularHorasSemanales() > getHorasLímite()} onClick={clickGuardarDias}>
+                    <Button variant="contained" color="primary" sx={{ minWidth: 100 }} disabled={calcularHorasSemanales() > getHorasLímite() || diasSeleccionados.length >= 7} onClick={clickGuardarDias}>
                         Guardar
                     </Button>
                 </DialogActions>

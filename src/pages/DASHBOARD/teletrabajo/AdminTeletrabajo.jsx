@@ -64,6 +64,24 @@ function AdminTeletrabajos() {
         cargarDatosBase();
     }, []);
 
+    const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        const parts = timeStr.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+    };
+
+    const getDuracionHorario = (h) => {
+        if (!h || !h.hora_entrada || !h.hora_salida) return 0;
+        const minEntrada = parseTimeToMinutes(h.hora_entrada);
+        let minSalida = parseTimeToMinutes(h.hora_salida);
+        if (minSalida < minEntrada) {
+            minSalida += 24 * 60;
+        }
+        return minSalida - minEntrada;
+    };
+
     // Manejo de cambio de empresa
     const handleCambioEmpresa = async (idEmpresa) => {
         setEmpresaSeleccionada(idEmpresa);
@@ -147,11 +165,34 @@ function AdminTeletrabajos() {
         setDialogAsignar(true);
     };
 
+    const formatMinutesToTime = (totalMinutes) => {
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    };
+
     const handleGuardarEdicion = async () => {
         if (!horarioIdEdicion) {
             toast.error("Seleccione un horario");
             return;
         }
+
+        // Validación de duración
+        const horarioAnterior = asignacionSeleccionada.horario;
+        const horarioNuevo = horarios.find(h => h.horario_id === horarioIdEdicion);
+
+        if (horarioAnterior && horarioNuevo) {
+            const duracionAnterior = getDuracionHorario(horarioAnterior);
+            const duracionNueva = getDuracionHorario(horarioNuevo);
+
+            if (duracionAnterior !== duracionNueva) {
+                const timeAnt = formatMinutesToTime(duracionAnterior);
+                const timeNue = formatMinutesToTime(duracionNueva);
+                toast.error(`El nuevo horario debe tener la misma duración que el anterior (${timeAnt}h vs ${timeNue}h)`);
+                return;
+            }
+        }
+
         setCargandoEnvio(true);
         const tId = toast.loading("Actualizando registro...");
         try {

@@ -5,7 +5,7 @@ import {
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
-import { obtenerEmpresas, actualizarHorarioLegal, actualizarHorarioEmpresa } from "../../../services/empresasServices";
+import { obtenerEmpresas, actualizarHorarioLegal, actualizarHorarioEmpresa, obtenerHorarioLegal } from "../../../services/empresasServices";
 
 function HorasLaboral() {
     const [empresas, setEmpresas] = useState([]);
@@ -14,40 +14,48 @@ function HorasLaboral() {
     const [horas, setHoras] = useState("");
     const [cargando, setCargando] = useState(false);
     const [guardando, setGuardando] = useState(false);
+    const [horarioLegalData, setHorarioLegalData] = useState(null);
 
-    const fetchEmpresas = async () => {
+    const fetchData = async () => {
         setCargando(true);
         try {
-            const data = await obtenerEmpresas();
-            const list = Array.isArray(data) ? data : [data];
-            setEmpresas(list);
+            const [dataEmpresas, dataLegal] = await Promise.all([
+                obtenerEmpresas(),
+                obtenerHorarioLegal()
+            ]);
             
-            // Si está en legales por defecto, cargar el valor del primer registro
-            if (list.length > 0 && tipoHoras === 'legales') {
-                setHoras(String(list[0].horario_legal || ""));
+            const listEmpresas = Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas];
+            setEmpresas(listEmpresas);
+
+            const legal = Array.isArray(dataLegal) ? dataLegal[0] : dataLegal;
+            setHorarioLegalData(legal);
+            
+            // Si está en legales por defecto, cargar el valor legal
+            if (tipoHoras === 'legales') {
+                setHoras(String(legal?.hora || ""));
             }
         } catch (err) {
-            toast.error("Error al cargar empresas");
+            toast.error("Error al cargar los datos");
         } finally {
             setCargando(false);
         }
     };
 
     useEffect(() => {
-        fetchEmpresas();
+        fetchData();
     }, []);
 
     // Efecto para cambiar el valor según la selección
     useEffect(() => {
-        if (tipoHoras === "legales" && empresas.length > 0) {
-            setHoras(String(empresas[0].horario_legal || ""));
+        if (tipoHoras === "legales") {
+            setHoras(String(horarioLegalData?.hora || ""));
         } else if (tipoHoras === "empresa" && empresaSeleccionada) {
             const emp = empresas.find(e => e.empresa_id === empresaSeleccionada);
             setHoras(emp?.horario ? String(emp.horario) : "");
         } else if (tipoHoras === "empresa" && !empresaSeleccionada) {
             setHoras("");
         }
-    }, [tipoHoras, empresaSeleccionada, empresas]);
+    }, [tipoHoras, empresaSeleccionada, empresas, horarioLegalData]);
 
     const handleHorasChange = (e) => {
         const value = e.target.value;
@@ -68,7 +76,7 @@ function HorasLaboral() {
         try {
             if (tipoHoras === "legales") {
                 await actualizarHorarioLegal(parseInt(horas));
-                toast.success("Horario legal actualizado para todas las empresas", { id: tId });
+                toast.success("Horario legal actualizado con éxito", { id: tId });
             } else {
                 if (!empresaSeleccionada) {
                     toast.error("Seleccione una empresa", { id: tId });
@@ -79,7 +87,7 @@ function HorasLaboral() {
                 toast.success("Horario de empresa actualizado con éxito", { id: tId });
             }
             // Refrescar datos
-            await fetchEmpresas();
+            await fetchData();
         } catch (error) {
             toast.error("Error al guardar: " + error.message, { id: tId });
         } finally {

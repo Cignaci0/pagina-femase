@@ -143,11 +143,53 @@ function AdminTurnosRotativosAsignacion() {
         setFechaFin(date.toISOString().split('T')[0]);
     }
 
+    const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        const parts = timeStr.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+    };
+
+    const getDuracionHorario = (h) => {
+        if (!h || !h.hora_entrada || !h.hora_salida) return 0;
+        const minEntrada = parseTimeToMinutes(h.hora_entrada);
+        let minSalida = parseTimeToMinutes(h.hora_salida);
+        if (minSalida < minEntrada) {
+            minSalida += 24 * 60;
+        }
+        return minSalida - minEntrada;
+    };
+
+    const formatMinutesToTime = (totalMinutes) => {
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    };
+
     const handleGuardar = async () => {
+        const horarioEnviar = horarioId === "descanso" ? null : horarioId;
+
+        // Validación de duración al editar
+        if (asignacionSeleccionada) {
+            const horarioAnterior = asignacionSeleccionada.horario;
+            const horarioNuevo = horarios.find(h => h.horario_id === horarioEnviar) || null;
+
+            if (horarioAnterior || horarioNuevo) {
+                const durAnterior = getDuracionHorario(horarioAnterior);
+                const durNuevo = getDuracionHorario(horarioNuevo);
+
+                if (durAnterior !== durNuevo) {
+                    const timeAnt = formatMinutesToTime(durAnterior);
+                    const timeNue = formatMinutesToTime(durNuevo);
+                    toast.error(`El nuevo horario debe tener la misma duración que el anterior (${timeAnt}h vs ${timeNue}h)`);
+                    return;
+                }
+            }
+        }
+
         setCargandoEnvio(true);
         try {
-            const horarioEnviar = horarioId === "descanso" ? null : horarioId;
-
             // Calcular siempre la fecha fin basada en el horario seleccionado
             const horarioSel = horarios.find(h => h.horario_id === horarioId);
             let fechaFinEnviar = fechaInicio; // Por defecto es el mismo día
