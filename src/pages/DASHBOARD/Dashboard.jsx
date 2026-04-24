@@ -4,6 +4,8 @@ import {
   ListItemText, Toolbar, Collapse, Typography, IconButton
 } from "@mui/material";
 import { toast } from "react-hot-toast";
+import { API_URL } from "../../config/config";
+import { obtenerLogoEmpresa } from "../../services/empresasServices";
 
 import { useNavigate } from "react-router-dom";
 
@@ -85,6 +87,7 @@ import AdminTeletrabajos from "../DASHBOARD/teletrabajo/AdminTeletrabajo";
 
 // CONFIGURACION SISTEMA
 import HorasLaboral from "../DASHBOARD/ConfgSistema/HorasLaborales";
+import ImgEmpresas from "../DASHBOARD/ConfgSistema/ImagenesEmpresas";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -162,6 +165,7 @@ const COMPONENTES_VISTA = {
 
   // CONFIGURACION SISTEMA
   "Horas Laborales": <HorasLaboral />,
+  "Img Empresas": <ImgEmpresas />,
 
 }
 
@@ -217,6 +221,7 @@ function Dashboard(props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [vistaActual, setVistaActual] = useState("inicio");
   const [menuItems, setMenuItems] = useState([]);
+  const [logoDinamico, setLogoDinamico] = useState(logoFundacion);
 
   const InteruptorDrawer = () => setMobileOpen(!mobileOpen);
 
@@ -250,6 +255,33 @@ function Dashboard(props) {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/", { replace: true });
+    } else {
+      // Cargar logo dinámico si existe token
+      const cargarLogo = async () => {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          console.log("Token payload decodificado:", payload);
+          const idEmpresa = payload.empresa_id;
+
+          if (idEmpresa) {
+            let nombreLogo = await obtenerLogoEmpresa(idEmpresa);
+            console.log("Respuesta cruda de obtenerLogoEmpresa:", nombreLogo);
+            if (nombreLogo) {
+              // Limpiar posibles comillas devueltas por el backend
+              nombreLogo = nombreLogo.replace(/["']/g, "").trim();
+              const baseUrl = API_URL.replace('/api', ''); 
+              const urlFinal = `${baseUrl}/logos/${nombreLogo}`;
+              console.log("Estableciendo logoDinamico a:", urlFinal);
+              setLogoDinamico(urlFinal);
+            }
+          } else {
+            console.log("No se encontró empresa_id en el payload del token.");
+          }
+        } catch (error) {
+          console.error("Error al cargar el logo corporativo:", error);
+        }
+      };
+      cargarLogo();
     }
   }, [navigate]);
 
@@ -316,7 +348,7 @@ function Dashboard(props) {
             <MenuIcon />
           </IconButton>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1, alignItems: 'center' }}>
-            <img src={logoFundacion} alt="Logo" style={{ maxHeight: '60px' }} />
+            <img src={logoDinamico} alt="Logo Empresa" style={{ maxHeight: '60px' }} />
             <img src={logoFemase} alt="Logo" style={{ maxHeight: '60px' }} />
           </Box>
         </Toolbar>

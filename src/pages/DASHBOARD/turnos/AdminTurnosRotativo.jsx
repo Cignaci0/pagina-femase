@@ -563,37 +563,35 @@ function AdminTurnosRotativosAsignacion() {
                                     </Box>
                                 )}
 
-                                <Box display={"flex"} gap={2} mt={2}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}
-                                        onClick={() => {
-                                            if (asignacionSeleccionada) {
-                                                const hid = asignacionSeleccionada.horario ? asignacionSeleccionada.horario.horario_id : "descanso";
-                                                setHorarioId(hid);
-                                                setDuracion("Personalizado");
-                                                setFechaInicio(asignacionSeleccionada.fecha_inicio_turno?.split('T')[0]);
-                                                setFechaFin(asignacionSeleccionada.fecha_fin_turno?.split('T')[0]);
-                                            } else {
-                                                setHorarioId("");
-                                                setDuracion("Personalizado");
-                                                setFechaInicio(new Date().toISOString().split('T')[0]);
-                                                actualizarFechaFin(new Date().toISOString().split('T')[0], "Personalizado");
-                                            }
-                                            setDialogAsignar(true);
-                                        }}
-                                    >
-                                        Editar Turno Rotativo
-                                    </Button>
-                                    <Button variant="outlined" color="error" sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}>Eliminar Seleccionado(S)</Button>
-                                </Box>
+                                {/* Botones movidos a DialogActions */}
                             </Paper>
                         </Box>
                     </Box>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={cerrarEditar} color="error" >Salir</Button>
+                <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}
+                            onClick={() => {
+                                if (asignacionSeleccionada) {
+                                    const hid = asignacionSeleccionada.horario ? asignacionSeleccionada.horario.horario_id : "descanso";
+                                    setHorarioId(hid);
+                                    setDuracion("Personalizado");
+                                    setFechaInicio(asignacionSeleccionada.fecha_inicio_turno?.split('T')[0]);
+                                    setFechaFin(asignacionSeleccionada.fecha_fin_turno?.split('T')[0]);
+                                    setDialogAsignar(true);
+                                } else {
+                                    toast.error("Porvafor seleccione un registro del historial");
+                                }
+                            }}
+                        >
+                            Editar Turno Rotativo
+                        </Button>
+                        <Button variant="outlined" color="error" sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}>Eliminar Seleccionado(S)</Button>
+                    </Box>
+                    <Button onClick={cerrarEditar} color="error" variant="outlined">Salir</Button>
                 </DialogActions>
             </Dialog>
 

@@ -467,24 +467,24 @@ function AdminAsignacionCiclica() {
                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
                             <List dense>
                                 {empleadosDisponibles.map((emp) => (
-                                     <ListItem
-                                         key={emp.empleado_id}
-                                         dense
-                                         onClick={() => handleToggleIzq(emp.empleado_id)}
-                                         sx={{ py: 0 }}
-                                     >
-                                         <ListItemIcon sx={{ minWidth: 36 }}>
-                                             <Checkbox
-                                                 edge="start"
-                                                 checked={checkedIzq.includes(emp.empleado_id)}
-                                                 size="small"
-                                             />
-                                         </ListItemIcon>
-                                         <ListItemText
-                                             primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno}`}
-                                         />
-                                     </ListItem>
-                                 ))}
+                                    <ListItem
+                                        key={emp.empleado_id}
+                                        dense
+                                        onClick={() => handleToggleIzq(emp.empleado_id)}
+                                        sx={{ py: 0 }}
+                                    >
+                                        <ListItemIcon sx={{ minWidth: 36 }}>
+                                            <Checkbox
+                                                edge="start"
+                                                checked={checkedIzq.includes(emp.empleado_id)}
+                                                size="small"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={`(${emp.run}) ${emp.nombres} ${emp.apellido_paterno}`}
+                                        />
+                                    </ListItem>
+                                ))}
                             </List>
                         </Box>
                     </Box>
@@ -707,9 +707,11 @@ function AdminAsignacionCiclica() {
                                             [dia.index]: e.target.value
                                         })}
                                     >
+                                        <MenuItem value="">Sin Horario </MenuItem>
                                         {horariosFiltrados.map((h) => {
                                             const colMins = h.colacion ? parseInt(h.colacion.split(':')[1], 10) : 0;
                                             return (
+
                                                 <MenuItem key={h.horario_id} value={h.horario_id}>
                                                     {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins}
                                                 </MenuItem>

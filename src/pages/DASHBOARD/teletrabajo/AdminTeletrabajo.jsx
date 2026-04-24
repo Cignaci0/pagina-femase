@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 import SearchIcon from '@mui/icons-material/Search';
 
 import { obtenerEmpresas } from "../../../services/empresasServices";
-import { obtenerTeletrabajos, editarTeletrabajo, eliminarTeletrabajo } from "../../../services/teletrabajo";
+import { obtenerEmpleadosPorTeletrabajo, obtenerTeletrabajosPorEmpleado, editarTeletrabajo, eliminarTeletrabajo } from "../../../services/teletrabajo";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
@@ -40,6 +40,10 @@ function AdminTeletrabajos() {
     const [dialogAsignar, setDialogAsignar] = useState(false);
     const [dialogEliminar, setDialogEliminar] = useState(false);
     const [horarioIdEdicion, setHorarioIdEdicion] = useState("");
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [historialPage, setHistorialPage] = useState(1);
+    const [historialTotalPages, setHistorialTotalPages] = useState(1);
+    const [cargandoHistorial, setCargandoHistorial] = useState(false);
     const [cargandoEnvio, setCargandoEnvio] = useState(false);
 
     // Carga inicial de datos base
@@ -83,25 +87,30 @@ function AdminTeletrabajos() {
     };
 
     // Manejo de cambio de empresa
-    const handleCambioEmpresa = async (idEmpresa) => {
-        setEmpresaSeleccionada(idEmpresa);
-        setFiltroDepto("");
-        setFiltroCenco("");
-        setPagina(0);
-        if (!idEmpresa) {
+    const handleCambioEmpresa = async (idEmpresa, customPage, customRows) => {
+        const idEmp = idEmpresa || empresaSeleccionada;
+        if (!idEmp) {
             setEmpleados([]);
+            setTotalRecords(0);
             return;
         }
+
+        const p = customPage !== undefined ? customPage : pagina;
+        const r = customRows !== undefined ? customRows : filaPorPagina;
 
         setCargando(true);
         const tId = toast.loading("Cargando registros de teletrabajo...");
         try {
-            const data = await obtenerTeletrabajos(idEmpresa);
-            setEmpleados(data || []);
+            const res = await obtenerEmpleadosPorTeletrabajo(idEmp, p + 1, r);
+            const data = res.data || [];
+            setEmpleados(data);
+            setTotalRecords(res.total || 0);
+            if (idEmpresa) setEmpresaSeleccionada(idEmpresa);
             toast.success("Datos cargados", { id: tId });
         } catch (error) {
             toast.error("Error al obtener teletrabajos", { id: tId });
             setEmpleados([]);
+            setTotalRecords(0);
         } finally {
             setCargando(false);
         }
@@ -124,6 +133,8 @@ function AdminTeletrabajos() {
         const nombre = `${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""}`.toLowerCase();
         
         const coincideBusqueda = run.includes(term) || ficha.includes(term) || nombre.includes(term);
+        // Nota: El filtrado por depto y cenco ahora debería ser manejado idealmente por el servidor,
+        // pero mantenemos el filtrado local sobre la página actual por ahora.
         const coincideDepto = filtroDepto ? emp.cenco?.departamento_id === filtroDepto : true;
         const coincideCenco = filtroCenco ? emp.cenco?.cenco_id === filtroCenco : true;
 
@@ -131,24 +142,35 @@ function AdminTeletrabajos() {
     });
 
     // Handlers para Dialogs (Solo visuales por ahora)
-    const handleAbrirAsignacion = (emp) => {
+    const handleAbrirAsignacion = async (emp) => {
         setEmpleadoSeleccionado(emp);
-        const normales = (emp.teletrabajo_normal || []).map(t => ({
-            id: t.id,
-            horario: t.horario_id,
-            fecha_inicio_turno: t.fecha_actual,
-            fecha_fin_turno: t.fecha_actual,
-            tipo: 'Normal'
-        }));
-        const rotativos = (emp.teletrabajo_rotativo || []).map(t => ({
-            id: t.id,
-            horario: t.horario,
-            fecha_inicio_turno: t.fecha_inicio_turno,
-            fecha_fin_turno: t.fecha_fin_turno,
-            tipo: 'Rotativo'
-        }));
-        setAsignacionesEmpleado([...normales, ...rotativos]);
+        setHistorialPage(1);
+        setCargandoHistorial(true);
         setEditar(true);
+        try {
+            const res = await obtenerTeletrabajosPorEmpleado(emp.empleado_id, 1, 5);
+            setAsignacionesEmpleado(res.data || []);
+            setHistorialTotalPages(res.lastPage || 1);
+        } catch (error) {
+            toast.error("Error al cargar historial");
+            setAsignacionesEmpleado([]);
+        } finally {
+            setCargandoHistorial(false);
+        }
+    };
+
+    const handleChangeHistorialPage = async (event, newPage) => {
+        setHistorialPage(newPage);
+        setCargandoHistorial(true);
+        try {
+            const res = await obtenerTeletrabajosPorEmpleado(empleadoSeleccionado.empleado_id, newPage, 5);
+            setAsignacionesEmpleado(res.data || []);
+            setHistorialTotalPages(res.lastPage || 1);
+        } catch (error) {
+            toast.error("Error al cambiar página de historial");
+        } finally {
+            setCargandoHistorial(false);
+        }
     };
 
     const cerrarEditar = () => {
@@ -158,7 +180,7 @@ function AdminTeletrabajos() {
 
     const handleAbrirEdicion = () => {
         if (!asignacionSeleccionada) {
-            toast.error("Por favor seleccione un registro del historial");
+            toast.error("Porvafor seleccione un registro del historial");
             return;
         }
         setHorarioIdEdicion(asignacionSeleccionada.horario?.horario_id || "");
@@ -214,7 +236,7 @@ function AdminTeletrabajos() {
 
     const handleEliminar = async () => {
         if (!asignacionSeleccionada) {
-            toast.error("Seleccione un registro para eliminar");
+            toast.error("Porvafor seleccione un registro del historial");
             return;
         }
         setDialogEliminar(true);
@@ -246,10 +268,16 @@ function AdminTeletrabajos() {
         return `${entrada} - ${salida}`;
     };
 
-    const handleChangePage = (event, newPage) => setPagina(newPage);
+    const handleChangePage = (event, newPage) => {
+        setPagina(newPage);
+        handleCambioEmpresa(empresaSeleccionada, newPage, filaPorPagina);
+    };
+
     const handleChangeRowsPerPage = (event) => {
-        setFilaPorPagina(parseInt(event.target.value, 10));
+        const newRows = parseInt(event.target.value, 10);
+        setFilaPorPagina(newRows);
         setPagina(0);
+        handleCambioEmpresa(empresaSeleccionada, 0, newRows);
     };
 
     return (
@@ -347,7 +375,6 @@ function AdminTeletrabajos() {
                                     <TableRow><TableCell colSpan={4} align="center">No se encontraron empleados con teletrabajo</TableCell></TableRow>
                                 ) : (
                                     empleadosFiltrados
-                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
                                         .map((emp) => (
                                             <TableRow key={emp.empleado_id} hover>
                                                 <TableCell align="center">{emp.num_ficha || '-'}</TableCell>
@@ -374,7 +401,7 @@ function AdminTeletrabajos() {
                 <TablePagination
                     rowsPerPageOptions={[10, 25, 50]}
                     component="div"
-                    count={empleadosFiltrados.length}
+                    count={totalRecords}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
@@ -387,38 +414,76 @@ function AdminTeletrabajos() {
             <Dialog open={editar} onClose={cerrarEditar} maxWidth="lg" fullWidth>
                 <DialogTitle sx={{ textAlign: 'center' }}>Historial de Teletrabajo - {empleadoSeleccionado?.nombres}</DialogTitle>
                 <DialogContent>
-                    <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 400 }}>
-                        <Table stickyHeader size="small">
-                            <TableHead>
+                    <TableContainer component={Paper} variant="outlined" sx={{ flex: 1, minHeight: '366px', width: '100%', overflow: 'auto' }}>
+                        <Table stickyHeader>
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell align="center">Seleccionar</TableCell>
-                                    <TableCell align="center">Horario</TableCell>
-                                    <TableCell align="center">Fecha</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Seleccionar</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Horario</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {asignacionesEmpleado.map((asig) => (
-                                    <TableRow key={asig.id} hover onClick={() => setAsignacionSeleccionada(asig)}>
-                                        <TableCell align="center">
-                                            <Radio checked={asignacionSeleccionada?.id === asig.id} onChange={() => setAsignacionSeleccionada(asig)} size="small" />
+                                {cargandoHistorial ? (
+                                    <TableRow>
+                                        <TableCell colSpan={3} align="center">
+                                            <CircularProgress size={24} sx={{ my: 2 }} />
                                         </TableCell>
-                                        <TableCell align="center">{formatHorarioInfo(asig.horario)}</TableCell>
-                                        <TableCell align="center">{asig.fecha_inicio_turno?.split('T')[0]}</TableCell>
                                     </TableRow>
-                                ))}
-                                {asignacionesEmpleado.length === 0 && (
-                                    <TableRow><TableCell colSpan={5} align="center">Sin registros</TableCell></TableRow>
+                                ) : (
+                                    <>
+                                        {asignacionesEmpleado.map((asig) => (
+                                            <TableRow key={asig.id} hover onClick={() => setAsignacionSeleccionada(asig)} sx={{ cursor: 'pointer' }}>
+                                                <TableCell align="center">
+                                                    <Radio checked={asignacionSeleccionada?.id === asig.id} onChange={() => setAsignacionSeleccionada(asig)} size="small" />
+                                                </TableCell>
+                                                <TableCell align="center">{formatHorarioInfo(asig.horario)}</TableCell>
+                                                <TableCell align="center">{asig.fecha_inicio_turno?.split('T')[0] || asig.fecha_actual?.split('T')[0]}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {asignacionesEmpleado.length === 0 && (
+                                            <TableRow><TableCell colSpan={3} align="center">Sin registros</TableCell></TableRow>
+                                        )}
+                                    </>
                                 )}
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                        <Button variant="contained" size="small" onClick={handleAbrirEdicion}>Editar Seleccionado</Button>
-                        <Button variant="outlined" color="error" size="small" onClick={handleEliminar}>Eliminar Seleccionado</Button>
-                    </Box>
+
+                    {historialTotalPages > 1 && (
+                        <Box display="flex" justifyContent="center" mt={2}>
+                            <Pagination
+                                count={historialTotalPages}
+                                page={historialPage}
+                                onChange={handleChangeHistorialPage}
+                                color="primary"
+                                size="small"
+                            />
+                        </Box>
+                    )}
+
+                    {/* Botones movidos a DialogActions */}
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={cerrarEditar} color="primary">Cerrar</Button>
+                <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleAbrirEdicion}
+                            sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}
+                        >
+                            Editar Seleccionado
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={handleEliminar}
+                            sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}
+                        >
+                            Eliminar Seleccionado
+                        </Button>
+                    </Box>
+                    <Button onClick={cerrarEditar} color="error" variant="outlined" sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}>Cerrar</Button>
                 </DialogActions>
             </Dialog>
 

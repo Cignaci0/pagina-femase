@@ -146,3 +146,37 @@ export const obtenerHorarioLegal = async() => {
   }
   return datos;
 };
+
+export const subirLogoEmpresa = async (id, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const peticion = await fetch(`${API_URL}/empresas/${id}/logo`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: formData
+  });
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al subir el logo");
+  }
+  return datos;
+};
+
+export const obtenerLogoEmpresa = async (id) => {
+  const peticion = await fetch(`${API_URL}/empresas/${id}/logo`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+  });
+  
+  if (!peticion.ok) {
+    throw new Error("Error al obtener el logo");
+  }
+  
+  const datos = await peticion.text();
+  return datos;
+};

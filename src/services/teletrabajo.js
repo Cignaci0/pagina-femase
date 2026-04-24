@@ -20,9 +20,9 @@ export const tieneteletrabajo = async (runEmpleado) => {
     }
 }
 
-export const obtenerTeletrabajos = async (idEmpresa) => {
+export const obtenerEmpleadosPorTeletrabajo = async (idEmpresa, pagina, limite) => {
     try {
-        const response = await fetch(`${API_URL}/teletrabajo/obtenerTeletrabajos/${idEmpresa}`, {
+        const response = await fetch(`${API_URL}/teletrabajo/obtenerTeletrabajos/${idEmpresa}?page=${pagina}&limit=${limite}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -39,6 +39,27 @@ export const obtenerTeletrabajos = async (idEmpresa) => {
         return [];
     }
 }
+
+export const obtenerTeletrabajosPorEmpleado = async (idEmpleado, pagina) => {
+    try {
+        const response = await fetch(`${API_URL}/teletrabajo/obtenerTeleEmpleado/${idEmpleado}?page=${pagina}&limit=50`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+        const datos = await response.json();
+        return datos || [];
+    } catch (error) {
+        return [];
+    }
+}
+
 
 export const editarTeletrabajo = async (idEmpleado, id, horarioId) => {
     try {
