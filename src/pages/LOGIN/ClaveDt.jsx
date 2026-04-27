@@ -38,14 +38,6 @@ function ClaveDt() {
         <AuthLayout>
             {/* Logo */}
             <AuthLogo />
-
-            {/* Titulo */}
-            <Grid item xs={12}>
-                <Typography variant="h5" component="h1" textAlign="center" fontWeight="400">
-                    Recuperar contraseña
-                </Typography>
-            </Grid>
-
             {/* Formulario de recuperacion */}
             <Grid item xs={12}>
                 <Box display="flex" flexDirection="column" gap={2} alignItems="center">
