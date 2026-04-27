@@ -76,6 +76,8 @@ function cargaEmpleado() {
                         email_laboral: columns[21]?.trim(),
                         num_ficha: columns[22]?.trim(),
                         cenco_id: columns[23]?.trim() ? parseInt(columns[23].trim()) : null,
+                        permite_rotativo: parseBoolean(columns[24]),
+                        email_noti: columns[25]?.trim(),
                     };
                 }).filter(emp => emp.run); // Filtrar filas vacías
 

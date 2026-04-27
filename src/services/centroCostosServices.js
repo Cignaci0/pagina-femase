@@ -34,7 +34,7 @@ export const crearCentroCosto = async (
   zona_extrema,
   estado,
   depto,
-  permite_turno_rpermite_turno_r
+  permite_turno_r
 ) => {
   const peticion = await fetch(`${API_URL}/cencos`, {
     method: "POST",

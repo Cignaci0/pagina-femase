@@ -865,7 +865,7 @@ function AdminCentroCosto() {
                                     </Select>
                                 </FormControl>
                             </Box>
-                            <FormControl size="small" fullWidth >
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Zona Extrema?</InputLabel>
                                 <Select label="Zona Extrema?" value={nuevoZonaExtrema} onChange={(e) => setNuevoZonaExtrema(e.target.value)}>
                                     <MenuItem value={true}>SI</MenuItem>
