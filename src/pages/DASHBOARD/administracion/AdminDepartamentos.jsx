@@ -17,7 +17,7 @@ import { FaFileCsv } from "react-icons/fa";
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
-import { obtenerDepartamentos } from "../../../services/departamentosServices"
+import { obtenerDepartamentos, obtenerDeptoPorEmpresa } from "../../../services/departamentosServices"
 import { crearDepto } from "../../../services/departamentosServices"
 import { actualizarDepto } from "../../../services/departamentosServices"
 import * as XLSX from 'xlsx';
@@ -64,9 +64,13 @@ function AdminDepartamentos() {
     }
 
     const cargarDepto = async () => {
+        if (!filtroEmpresa) {
+            setDepartamentos([]);
+            return;
+        }
         setCargando(true);
         try {
-            const data = await obtenerDepartamentos();
+            const data = await obtenerDeptoPorEmpresa(filtroEmpresa);
             setDepartamentos(data);
         } catch (err) {
             setDepartamentos([]);
@@ -282,7 +286,7 @@ function AdminDepartamentos() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "26vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} label="Empresa">
-                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            <MenuItem value="" disabled><em>Seleccione Empresa</em></MenuItem>
                             {empresas.map((empresa) => (
                                 <MenuItem key={empresa.empresa_id} value={empresa.empresa_id}>{empresa.nombre_empresa}</MenuItem>
                             ))}
@@ -365,7 +369,15 @@ function AdminDepartamentos() {
                             </TableHead>
 
                             <TableBody>
-                                {departamentosFiltrados.length > 0 ? (
+                                {!filtroEmpresa ? (
+                                    <TableRow>
+                                        <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                Seleccione una empresa para ver los departamentos
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : departamentosFiltrados.length > 0 ? (
                                     departamentosFiltrados
                                         .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
                                         .map((row) => (
@@ -409,14 +421,11 @@ function AdminDepartamentos() {
                                     <TableRow>
                                         <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                                             <Typography variant="body1" color="text.secondary">
-                                                {departamentosFiltrados
-                                                    ? "Seleccione una empresa para ver los departamentos."
-                                                    : "No se encontraron departamentos. "}
+                                                No se encontraron departamentos.
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                
                             </TableBody>
                         </Table>
                     </TableContainer>

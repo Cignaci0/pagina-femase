@@ -5,6 +5,7 @@ import { Grid, TextField, Button, Typography, Box, CircularProgress, Alert, Inpu
 import AuthLayout from "../../components/AuthLayout";
 import AuthLogo from '../../components/AuthLogo';
 import AuthFooter from '../../components/AuthFooter';
+import { claveDt } from "../../services/authService";
 
 function ClaveDt() {
     const navigate = useNavigate();
@@ -21,8 +22,11 @@ function ClaveDt() {
     // Carga de datos
     const clickSolicitar = async () => {
         setCargando(true);
+        setError("");
+        setMensajeExito("");
         try {
-            setMensajeExito("Se envio el correo con exito");
+            await claveDt(usuarioCorreo);
+            setMensajeExito("Se envió el correo con éxito");
             setTimeout(() => {
                 navigate("/ingresarcodigodt", { state: { useremail: usuarioCorreo } });
             }, 2000);
@@ -52,7 +56,7 @@ function ClaveDt() {
                     {error && <Alert severity="error">{error}</Alert>}
 
                     <TextField
-                        label="Usuario"
+                        label="Correo"
                         variant="outlined"
                         fullWidth
                         value={usuarioCorreo}

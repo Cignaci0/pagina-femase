@@ -103,3 +103,24 @@ export const actualizarCentroCosto = async (
   }
   return datos;
 };
+
+export const obtenerCencosPorDepto = async (deptoId) => {
+  try {
+    const response = await fetch(`${API_URL}/cencos/por-departamento/${deptoId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data || [];
+  } catch (error) {
+    return [];
+  }
+};

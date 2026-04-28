@@ -261,6 +261,11 @@ function AdminEmpleados() {
     }
 
     const llamarEmpleados = async (p = pagina, l = filaPorPagina, emp = filtroEmpresa, est = filtroEstado) => {
+        if (!emp) {
+            setEmpleados([]);
+            setTotalEmpleados(0);
+            return;
+        }
         try {
             // Pasamos los filtros adicionales al servicio
             const respuesta = await obtenerEmpleados(p + 1, l, emp, est);
@@ -611,7 +616,7 @@ function AdminEmpleados() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 130, }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepartamento(""); setFiltroCenco("") }} label="Empresa">
-                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            <MenuItem value="" disabled><em>Seleccione Empresa</em></MenuItem>
                             {empresas.map((emp) => (
                                 <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
                                     {emp.nombre_empresa}
@@ -660,7 +665,15 @@ function AdminEmpleados() {
 
 
                             <TableBody>
-                                {empleadosAMostrar.length > 0 ? (
+                                {!filtroEmpresa ? (
+                                    <TableRow>
+                                        <TableCell colSpan={15} align="center">
+                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                                Seleccione una empresa para ver los empleados
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : empleadosAMostrar.length > 0 ? (
                                     empleadosAMostrar.map((e) => (
                                         <TableRow key={e.empleado_id} >
                                             <TableCell align="center">

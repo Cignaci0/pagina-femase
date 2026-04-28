@@ -23,6 +23,27 @@ export const obtenerDepartamentos = async () => {
   }
 };
 
+export const obtenerDeptoPorEmpresa = async (empresaId) => {
+  try {
+    const response = await fetch(`${API_URL}/departamentos/porEmpresa/${empresaId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.departamentos || [];
+  } catch (error) {
+    return [];
+  }
+};
+
 //Crear departamento
 export const crearDepto = async (nuevoNombre, nuevoEstado, nuevaEmpresa) => {
   const peticion = await fetch(`${API_URL}/departamentos/crear`, {

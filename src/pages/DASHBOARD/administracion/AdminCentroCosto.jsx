@@ -19,10 +19,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
 import FaxIcon from '@mui/icons-material/Fax';
 import DraftsIcon from '@mui/icons-material/Drafts';
-import { obtenerCentroCostos } from "../../../services/centroCostosServices"
-import { obtenerDepartamentos } from "../../../services/departamentosServices"
-import { crearCentroCosto } from "../../../services/centroCostosServices"
-import { actualizarCentroCosto } from "../../../services/centroCostosServices"
+import { obtenerCentroCostos, obtenerCencosPorDepto, crearCentroCosto, actualizarCentroCosto } from "../../../services/centroCostosServices"
+import { obtenerDepartamentos, obtenerDeptoPorEmpresa } from "../../../services/departamentosServices"
 import { obtenerDispositivo } from "../../../services/dispositivosServices"
 import { asignarDispositivo } from "../../../services/asignaciones/asignacionesServices"
 import { obtenerTurnos } from "../../../services/turnosServices"
@@ -108,11 +106,16 @@ function AdminCentroCosto() {
 
     // Carga de datos
     const cargarCencos = async () => {
+        if (!filtrodepartamento) {
+            setCencos([]);
+            return;
+        }
         try {
-            const dataCencos = await obtenerCentroCostos();
+            const dataCencos = await obtenerCencosPorDepto(filtrodepartamento);
             setCencos(dataCencos);
         } catch (err) {
             toast.error(err.message);
+            setCencos([]);
         }
     };
 
@@ -478,10 +481,26 @@ function AdminCentroCosto() {
 
 
 
-    // Filtrado de departamentos
-    const departamentosFiltrados = (departamentos.departamentos || departamentos || []).filter((dep) => {
-        return filtroEmpresa ? dep.empresa?.empresa_id == filtroEmpresa : true;
-    });
+    const [deptosFiltradosSelect, setDeptosFiltradosSelect] = useState([]);
+
+    useEffect(() => {
+        const fetchDeptos = async () => {
+            if (!filtroEmpresa) {
+                setDeptosFiltradosSelect([]);
+                return;
+            }
+            try {
+                const res = await obtenerDeptoPorEmpresa(filtroEmpresa);
+                setDeptosFiltradosSelect(res || []);
+            } catch (e) {
+                console.error(e);
+                setDeptosFiltradosSelect([]);
+            }
+        };
+        fetchDeptos();
+    }, [filtroEmpresa]);
+
+    const departamentosFiltrados = deptosFiltradosSelect;
 
     const departamentosFiltradosCrear = (departamentos.departamentos || departamentos || []).filter((dep) => {
         return nuevoEmpresa ? dep.empresa?.empresa_id == nuevoEmpresa : true;
@@ -508,77 +527,34 @@ function AdminCentroCosto() {
         setPagina(0);
     };
 
-    // Effects
     useEffect(() => {
-        const cargarDatosIniciales = async () => {
+        const cargarEmpresas = async () => {
             try {
-                const [dataCencos, dataEmpresas] = await Promise.all([
-                    obtenerCentroCostos(),
-                    obtenerEmpresas()
-                ]);
-                setCencos(dataCencos);
-                setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
-
-                try {
-                    const dataDispo = await obtenerDispositivo();
-                    setTodosDispositivos(dataDispo || []);
-                } catch (e) {
-                    console.error("Error loading devices", e);
-                }
-
-            } catch (err) {
-                toast.error(err.message);
-            } finally {
-                setCargando(false);
-            }
-        };
-        cargarDatosIniciales();
-    }, [])
-
-    useEffect(() => {
-        const fetchDeptos = async () => {
-            try {
-                const res = await obtenerDepartamentos();
-                setDepartamentos(res || []);
-            } catch (e) { console.error(e) }
-        }
-        fetchDeptos();
-    }, [filtroEmpresa]);
-
-    useEffect(() => { setPagina(0); }, [busqueda, filtroEmpresa, filtroEstado]);
-
-    useEffect(() => {
-        const cargarDatosIniciales = async () => {
-            try {
-                setCargando(true);
-
-                await cargarCencos();
-
                 const dataEmpresas = await obtenerEmpresas();
                 setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
-                try {
-                    const dataDispo = await obtenerDispositivo();
-                    setTodosDispositivos(dataDispo || []);
-                } catch (e) {
-                    console.error("Error cargando dispositivos", e);
-                }
-
             } catch (err) {
                 toast.error(err.message);
-            } finally {
-                setCargando(false);
             }
         };
-        cargarDatosIniciales();
-    }, [])
+        cargarEmpresas();
+        llamarTurnos();
+        llamarProveedorCorreo();
+        
+        const cargarDispositivos = async () => {
+            try {
+                const dataDispo = await obtenerDispositivo();
+                setTodosDispositivos(dataDispo || []);
+            } catch (e) {
+                console.error("Error loading devices", e);
+            }
+        };
+        cargarDispositivos();
+        setCargando(false);
+    }, []);
 
     useEffect(() => {
-        llamarTurnos()
-    }, [])
-
-    useEffect(() => {
-        llamarProveedorCorreo()
-    }, [])
+        cargarCencos();
+    }, [filtrodepartamento]);
 
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
@@ -603,7 +579,7 @@ function AdminCentroCosto() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 130, }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepartamento(""); }} label="Empresa">
-                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            <MenuItem value="" disabled><em>Seleccione Empresa</em></MenuItem>
                             {empresas.map((empresa) => (<MenuItem key={empresa.empresa_id} value={empresa.empresa_id}>{empresa.nombre_empresa}</MenuItem>))}
                         </Select>
                     </FormControl>
@@ -611,7 +587,7 @@ function AdminCentroCosto() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 130 }}>
                         <InputLabel>Departamento</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtrodepartamento} onChange={(e) => setFiltroDepartamento(e.target.value)}>
-                            <MenuItem value=""><em>Todos</em></MenuItem>
+                            <MenuItem value="" disabled><em>Seleccione Depto</em></MenuItem>
                             {departamentosFiltrados.map((filDept) => (<MenuItem key={filDept.departamento_id} value={filDept.departamento_id}>{filDept.nombre_departamento}</MenuItem>))}
                         </Select>
                     </FormControl>
@@ -653,7 +629,15 @@ function AdminCentroCosto() {
                             </TableHead>
 
                             <TableBody>
-                                {cencosFiltradas.length > 0 ? (
+                                {!filtrodepartamento ? (
+                                    <TableRow>
+                                        <TableCell colSpan={15} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                Seleccione una empresa y un departamento para la búsqueda
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : cencosFiltradas.length > 0 ? (
                                     cencosFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((cenco) => (
                                         <TableRow key={cenco.cenco_id} hover>
                                             <TableCell align="center">
@@ -751,7 +735,7 @@ function AdminCentroCosto() {
                                         </TableRow>
                                     ))
                                 ) : (
-                                    <TableRow><TableCell colSpan={14} align="center" sx={{ py: 3 }}><Typography variant="body1" color="text.secondary">No se encontraron registros.</Typography></TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={15} align="center" sx={{ py: 3 }}><Typography variant="body1" color="text.secondary">No se encontraron registros.</Typography></TableCell></TableRow>
                                 )}
 
                             </TableBody>

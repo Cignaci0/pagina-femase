@@ -23,6 +23,27 @@ export const obtenerCargos = async () => {
   }
 };
 
+export const obtenerCargosPorEmpresa = async (empresa_id) => {
+  try {
+    const response = await fetch(`${API_URL}/cargos/por-empresa/${empresa_id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.cargos || [];
+  } catch (error) {
+    return [];
+  }
+};
+
 // Crear cargo
 export const crearCargo = async (nombre, estado, empresa_id, tipo_cargo) => {
   const peticion = await fetch(`${API_URL}/cargos/crear`, {

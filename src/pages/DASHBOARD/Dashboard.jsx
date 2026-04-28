@@ -89,6 +89,10 @@ import AdminTeletrabajos from "../DASHBOARD/teletrabajo/AdminTeletrabajo";
 import HorasLaboral from "../DASHBOARD/ConfgSistema/HorasLaborales";
 import ImgEmpresas from "../DASHBOARD/ConfgSistema/ImagenesEmpresas";
 
+//EMPLEADOS
+import AdminMarcasAsistencia from "../DASHBOARD/Empleados/MarcasAsistencia";
+import AdminAusenciasEmpleado from "../DASHBOARD/Empleados/IngresarAusenciaEmpleado";
+
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
 
@@ -166,6 +170,11 @@ const COMPONENTES_VISTA = {
   // CONFIGURACION SISTEMA
   "Horas Laborales": <HorasLaboral />,
   "Img Empresas": <ImgEmpresas />,
+
+  // EMPLEADOS
+  "Marcas Asistencia": <AdminMarcasAsistencia />,
+  "Ingresar Ausencia": <AdminAusenciasEmpleado />,
+
 
 }
 

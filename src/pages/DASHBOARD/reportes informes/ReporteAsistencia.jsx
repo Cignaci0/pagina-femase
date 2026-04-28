@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { reporteAsistencia } from "../../../services/reportes";
+import { obtenerEmpresas } from "../../../services/empresasServices";
 
 function ReporteAsistencia() {
 
@@ -41,17 +42,10 @@ function ReporteAsistencia() {
         const fetchCatalogos = async () => {
             try {
                 const cencos = await obtenerCentroCostos();
+                const empresas = await obtenerEmpresas();
 
                 setCencosGlobal(cencos || []);
-
-                const empresasMap = new Map();
-                (cencos || []).forEach(c => {
-                    const e = c.departamento?.empresa;
-                    if (e && !empresasMap.has(e.empresa_id)) {
-                        empresasMap.set(e.empresa_id, e);
-                    }
-                });
-                setOpcionesEmpresas(Array.from(empresasMap.values()));
+                setOpcionesEmpresas(empresas || []);
             } catch (error) {
                 toast.error("Error al cargar datos base");
             }

@@ -53,3 +53,19 @@ export const resetearClave = async (run, codigo, nuevaClave) => {
   }
   return datos;
 };
+
+export const claveDt = async (email) => {
+  const peticion = await fetch(`${API_URL}/users/crear-usuario-dt/${email}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  
+  const datos = await peticion.json();
+  
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al solicitar clave DT");
+  }
+  return datos;
+};

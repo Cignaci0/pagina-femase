@@ -21,9 +21,7 @@ import { crearDepto } from "../../../services/departamentosServices"
 import CircleIcon from '@mui/icons-material/Circle';
 import { actualizarDepto } from "../../../services/departamentosServices"
 import * as XLSX from 'xlsx';
-import { obtenerCargos } from "../../../services/cargosServices"
-import { crearCargo } from "../../../services/cargosServices"
-import { actualizarCargo } from "../../../services/cargosServices"
+import { obtenerCargos, crearCargo, actualizarCargo, obtenerCargosPorEmpresa } from "../../../services/cargosServices"
 
 function AdminCargos() {
 
@@ -36,6 +34,7 @@ function AdminCargos() {
     const [filaPorPagina, setFilaPorPagina] = useState(7);
     const [busqueda, setBusqueda] = useState("");
     const [filtroestado, setFiltroEstado] = useState("")
+    const [filtroEmpresa, setFiltroEmpresa] = useState("");
 
     // Estados crear
     const [open, setOpen] = useState(false);
@@ -54,8 +53,12 @@ function AdminCargos() {
 
     // Carga de datos
     const cargarCargos = async () => {
+        if (!filtroEmpresa) {
+            setCargos([]);
+            return;
+        }
         try {
-            const respuesta = await obtenerCargos()
+            const respuesta = await obtenerCargosPorEmpresa(filtroEmpresa);
             setCargos(respuesta)
         } catch (error) {
             toast.error("Error al traer los cargos")
@@ -213,11 +216,11 @@ function AdminCargos() {
 
     useEffect(() => {
         cargarCargos()
-    }, [])
+    }, [filtroEmpresa])
 
     useEffect(() => {
         setPagina(0);
-    }, [busqueda, filtroestado,]);
+    }, [busqueda, filtroestado, filtroEmpresa]);
 
 
 
@@ -258,6 +261,19 @@ function AdminCargos() {
                             <SearchIcon />
                         </IconButton>
                     </Paper>
+
+                    {/* Filtro empresa */}
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                        <InputLabel>Empresa</InputLabel>
+                        <Select sx={{ width: "26vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} label="Empresa">
+                            <MenuItem value="" disabled><em>Seleccione Empresa</em></MenuItem>
+                            {empresas.map((emp) => (
+                                <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
+                                    {emp.nombre_empresa}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
                     {/* Filtro estado */}
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
@@ -358,7 +374,15 @@ function AdminCargos() {
                             </TableHead>
 
                             <TableBody>
-                                {cargosFiltrados.length > 0 ? (
+                                {!filtroEmpresa ? (
+                                    <TableRow>
+                                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                Seleccione una empresa para ver los cargos
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : cargosFiltrados.length > 0 ? (
                                     cargosFiltrados
                                         .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
                                         .map((row) => (
@@ -407,16 +431,13 @@ function AdminCargos() {
                                         ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
                                             <Typography variant="body1" color="text.secondary">
-                                                {cargosFiltrados
-                                                    ? "No se encontraron cargos"
-                                                    : "No se encontraron cargos. "}
+                                                No se encontraron cargos.
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
                                 )}
-
                             </TableBody>
                         </Table>
                     </TableContainer>

@@ -6,13 +6,14 @@ import {
     IconButton, Typography, CircularProgress,
     TablePagination, Stack, FormHelperText, DialogContentText
 } from "@mui/material";
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import { obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerTiposMarcas } from "../../../services/tipoMarcaService";
 import { getMarcas, crearMarca, actualizarMarcas, historialMarcas, eliminarMarca } from "../../../services/marcasServices";
+import { obtenerEmpresas } from "../../../services/empresasServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -132,19 +133,11 @@ function AdminMarcas() {
             try {
                 const cencos = await obtenerCentroCostos();
                 const tipos = await obtenerTiposMarcas();
+                const empresas = await obtenerEmpresas();
 
                 setCencosGlobal(cencos || []);
                 setTiposMarcas(tipos || []);
-
-                // Extraer empresas únicas
-                const empresasMap = new Map();
-                (cencos || []).forEach(c => {
-                    const e = c.departamento?.empresa;
-                    if (e && !empresasMap.has(e.empresa_id)) {
-                        empresasMap.set(e.empresa_id, e);
-                    }
-                });
-                setOpcionesEmpresas(Array.from(empresasMap.values()));
+                setOpcionesEmpresas(empresas || []);
             } catch (error) {
                 toast.error("Error al cargar datos base");
             } finally {
@@ -503,16 +496,28 @@ function AdminMarcas() {
                     </Paper>
 
                     {(() => {
-                        const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
+                        const normalizeRut = (rut) => String(rut || "").trim().toLowerCase();
+                        const userRut = normalizeRut(userInfo?.rut_usuario || userInfo?.rut);
+                        
+                        const loggedInEmpleado = empleadosGlobal.find(e => normalizeRut(e.run) === userRut);
                         const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
 
-                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || normalizeRut(e.run) === normalizeRut(filtroEmpleado));
                         const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
 
                         const isTipoCargo1Global = userRole === 1;
-                        const isTipoCargo1Busqueda = cargoTipoBusqueda === 1;
+                        const isSelfRestricted = (cargoTipoBusqueda === 2 && normalizeRut(empSelBusqueda?.run) === userRut);
 
-                        const isSelfRestricted = (cargoTipoBusqueda === 2 && empSelBusqueda?.num_ficha === userInfo?.num_ficha);
+                        // Debug log para ayudar al usuario
+                        console.log("Restriccion Info:", { 
+                            userRut, 
+                            foundMe: !!loggedInEmpleado, 
+                            userRole, 
+                            selRut: empSelBusqueda?.run, 
+                            cargoTipoBusqueda,
+                            isTipoCargo1Global,
+                            isSelfRestricted
+                        });
 
                         return (
                             <Button
@@ -520,7 +525,7 @@ function AdminMarcas() {
                                 startIcon={<AddIcon />}
                                 sx={{ ml: 'auto' }}
                                 onClick={openDialogCrear}
-                                disabled={!filtroDispositivo || !filtroEmpleado || isTipoCargo1Global || isTipoCargo1Busqueda || isSelfRestricted}
+                                disabled={!filtroDispositivo || !filtroEmpleado || isTipoCargo1Global || isSelfRestricted}
                             >
                                 Nuevo Registro
                             </Button>
@@ -598,13 +603,15 @@ function AdminMarcas() {
                                                 <TableCell align="center">{row.comentario}</TableCell>
                                                 <TableCell align="center">
                                                     {row.id_marca !== null && (() => {
-                                                        const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
+                                                        const normalizeRut = (rut) => String(rut || "").trim().toLowerCase();
+                                                        const userRut = normalizeRut(userInfo?.rut_usuario || userInfo?.rut);
+                                                        const loggedInEmpleado = empleadosGlobal.find(e => normalizeRut(e.run) === userRut);
                                                         const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
                                                         
-                                                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+                                                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || normalizeRut(e.run) === normalizeRut(filtroEmpleado));
                                                         const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
 
-                                                        const isRestricted = (userRole === 1) || (cargoTipoBusqueda === 1) || (cargoTipoBusqueda === 2 && empSelBusqueda?.num_ficha === userInfo?.num_ficha);
+                                                        const isRestricted = (userRole === 1) || (cargoTipoBusqueda === 2 && normalizeRut(empSelBusqueda?.run) === userRut);
 
                                                         return (
                                                             <IconButton 

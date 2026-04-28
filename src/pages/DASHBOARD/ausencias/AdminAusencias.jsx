@@ -11,6 +11,7 @@ import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerAusencias, editarAusencia, reporteAusencia } from "../../../services/ausencias";
 import { getTipoAusencia } from "../../../services/tiposAusencia";
+import { obtenerEmpresas } from "../../../services/empresasServices";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -76,18 +77,11 @@ function AdminAusencia() {
             try {
                 const cencos = await obtenerCentroCostos();
                 const tipos = await getTipoAusencia();
+                const empresas = await obtenerEmpresas();
 
                 setCencosGlobal(cencos || []);
                 setTiposAusencia(tipos || []);
-
-                const empresasMap = new Map();
-                (cencos || []).forEach(c => {
-                    const e = c.departamento?.empresa;
-                    if (e && !empresasMap.has(e.empresa_id)) {
-                        empresasMap.set(e.empresa_id, e);
-                    }
-                });
-                setOpcionesEmpresas(Array.from(empresasMap.values()));
+                setOpcionesEmpresas(empresas || []);
             } catch (error) {
                 toast.error("Error al cargar datos base");
             }
