@@ -21,7 +21,6 @@ import AdminEmpresas from "../DASHBOARD/administracion/AdminEmpresas"
 import AdminCargos from "../DASHBOARD/administracion/AdminCargos";
 import AdminAFPs from "../DASHBOARD/administracion/AdminAFPs";
 import AdminCentroCosto from "../DASHBOARD/administracion/AdminCentroCosto";
-import AdminCodErrorRechazos from "../DASHBOARD/administracion/AdminCodErrorRechazos";
 import AdmiminDepartamentos from "../DASHBOARD/administracion/AdminDepartamentos";
 import AdminDispositivos from "../DASHBOARD/administracion/AdminDispositivos";
 import AdminEmpleados from "../DASHBOARD/administracion/AdminEmpleados";
@@ -92,6 +91,10 @@ import ImgEmpresas from "../DASHBOARD/ConfgSistema/ImagenesEmpresas";
 //EMPLEADOS
 import AdminMarcasAsistencia from "../DASHBOARD/Empleados/MarcasAsistencia";
 import AdminAusenciasEmpleado from "../DASHBOARD/Empleados/IngresarAusenciaEmpleado";
+
+//CONTRASENAS
+import AdminCambiarContrasena from "../DASHBOARD/Contrasenas/CambiarContrasena";
+import AdminCambiarpinFirma from "../DASHBOARD/Contrasenas/CambiarPinFirma";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -174,6 +177,10 @@ const COMPONENTES_VISTA = {
   // EMPLEADOS
   "Marcas Asistencia": <AdminMarcasAsistencia />,
   "Ingresar Ausencia": <AdminAusenciasEmpleado />,
+
+  // CONTRASENAS
+  "Cambiar Contraseña": <AdminCambiarContrasena />,
+  "Cambiar Pin Firma": <AdminCambiarpinFirma />,
 
 
 }

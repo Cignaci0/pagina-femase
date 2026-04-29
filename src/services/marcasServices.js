@@ -36,7 +36,7 @@ export const crearMarca = async (datos) => {
                 dispositivo_id: datos.dispositivo_id,
                 num_ficha: datos.num_ficha,
                 comentario: datos.comentario,
-                id_tipo_marca: datos.tipo_marca_id,
+                id_tipo_marca: datos.tipo_marca_id || null,
             }),
         });
         if (!response.ok) {

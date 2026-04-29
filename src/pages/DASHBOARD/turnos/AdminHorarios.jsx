@@ -17,6 +17,13 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 
+const formatMinutesToTime = (minsStr) => {
+    const totalMins = parseInt(minsStr || "0", 10);
+    const h = Math.floor(totalMins / 60).toString().padStart(2, '0');
+    const m = (totalMins % 60).toString().padStart(2, '0');
+    return `${h}:${m}:00`;
+};
+
 function AdminHorarios() {
 
     // Estados de datos
@@ -42,10 +49,21 @@ function AdminHorarios() {
     const [segSalidaCrear, setSegSalidaCrear] = useState("")
     const [minutoHolguraCrear, setMinutoHolguraCrear] = useState("")
     const [minutoColacionCrear, setMinutoColacionCrear] = useState("")
+
+    // Estados colación crear
+    const [horaEntradaColacionCrear, setHoraEntradaColacionCrear] = useState("")
+    const [minutoEntradaColacionCrear, setMinutoEntradaColacionCrear] = useState("")
+    const [horaSalidaColacionCrear, setHoraSalidaColacionCrear] = useState("")
+    const [minutoSalidaColacionCrear, setMinutoSalidaColacionCrear] = useState("")
+
     const enviarHoraEntradaCrear = `${horaEntradaCrear || "00"}:${minutoEntradaCrear || "00"}:00`
     const enviarHoraSalidaCrear = `${horaSalidaCrear || "00"}:${minutoSalidaCrear || "00"}:00`
-    const enviarHolguraCrear = `00:${minutoHolguraCrear || "00"}:00`
-    const enviarColacionCrear = `00:${minutoColacionCrear || "00"}:00`
+    const enviarHolguraCrear = formatMinutesToTime(minutoHolguraCrear)
+    const enviarColacionCrear = formatMinutesToTime(minutoColacionCrear)
+
+    const enviarHoraEntradaColacionCrear = `${horaEntradaColacionCrear || "00"}:${minutoEntradaColacionCrear || "00"}:00`
+    const enviarHoraSalidaColacionCrear = `${horaSalidaColacionCrear || "00"}:${minutoSalidaColacionCrear || "00"}:00`
+
     const [nocturno, setNocturno] = useState(false)
 
     // Estados editar
@@ -60,10 +78,21 @@ function AdminHorarios() {
     const [segSalidaEdit, setSegSalidaEdit] = useState("")
     const [minutoHolguraEdit, setMinutoHolguraEdit] = useState("")
     const [minutoColacionEdit, setMinutoColacionEdit] = useState("")
+
+    // Estados colación editar
+    const [horaEntradaColacionEdit, setHoraEntradaColacionEdit] = useState("")
+    const [minutoEntradaColacionEdit, setMinutoEntradaColacionEdit] = useState("")
+    const [horaSalidaColacionEdit, setHoraSalidaColacionEdit] = useState("")
+    const [minutoSalidaColacionEdit, setMinutoSalidaColacionEdit] = useState("")
+
     const enviarHoraEntradaEdit = `${horaEntradaEdit || "00"}:${minutoEntradaEdit || "00"}:00`
     const enviarHoraSalidaEdit = `${horaSalidaEdit || "00"}:${minutoSalidaEdit || "00"}:00`
-    const enviarHolguraEdit = `00:${minutoHolguraEdit || "00"}:00`
-    const enviarColacionEdit = `00:${minutoColacionEdit || "00"}:00`
+    const enviarHolguraEdit = formatMinutesToTime(minutoHolguraEdit)
+    const enviarColacionEdit = formatMinutesToTime(minutoColacionEdit)
+
+    const enviarHoraEntradaColacionEdit = `${horaEntradaColacionEdit || "00"}:${minutoEntradaColacionEdit || "00"}:00`
+    const enviarHoraSalidaColacionEdit = `${horaSalidaColacionEdit || "00"}:${minutoSalidaColacionEdit || "00"}:00`
+
     const [eliminar, setEliminar] = useState(false)
     const [inputConfirmacion, setInputConfirmacion] = useState("");
     const [nocturnoEdit, setNocturnoEdit] = useState(false)
@@ -110,6 +139,10 @@ function AdminHorarios() {
         setSegSalidaCrear("")
         setMinutoHolguraCrear("")
         setMinutoColacionCrear("")
+        setHoraEntradaColacionCrear("")
+        setMinutoEntradaColacionCrear("")
+        setHoraSalidaColacionCrear("")
+        setMinutoSalidaColacionCrear("")
     }
 
     const cerrarDialogEdit = () => {
@@ -118,7 +151,24 @@ function AdminHorarios() {
 
     const clickCrear = async () => {
         try {
-            const respuesta = await crearHorario(enviarHoraEntradaCrear, enviarHoraSalidaCrear, idEmpresaCrear, enviarHolguraCrear, enviarColacionCrear, nocturno)
+            console.log("horario entrada: " + enviarHoraEntradaCrear)
+            console.log("horario salida: " + enviarHoraSalidaCrear)
+            console.log("empresa: " + idEmpresaCrear)
+            console.log("holgura: " + enviarHolguraCrear)
+            console.log("colacion: " + enviarColacionCrear)
+            console.log("nocturno: " + nocturno)
+            console.log("hora entrada colacion: " + enviarHoraEntradaColacionCrear)
+            console.log("hora salida colacion: " + enviarHoraSalidaColacionCrear)
+            const respuesta = await crearHorario(
+                enviarHoraEntradaCrear,
+                enviarHoraSalidaCrear,
+                idEmpresaCrear,
+                enviarHolguraCrear,
+                enviarColacionCrear,
+                nocturno,
+                enviarHoraEntradaColacionCrear,
+                enviarHoraSalidaColacionCrear
+            )
             toast.success("Se creo con exito")
             setOpen(false)
             setNuevoHorarioEntrada("")
@@ -133,7 +183,11 @@ function AdminHorarios() {
             setSegSalidaCrear("")
             setMinutoHolguraCrear("")
             setMinutoColacionCrear("")
-            setNocturno("")
+            setHoraEntradaColacionCrear("")
+            setMinutoEntradaColacionCrear("")
+            setHoraSalidaColacionCrear("")
+            setMinutoSalidaColacionCrear("")
+            setNocturno(false)
         } catch (error) {
             toast.error(error.message || "Error al crear el horarios")
         }
@@ -141,7 +195,17 @@ function AdminHorarios() {
 
     const clickEdit = async () => {
         try {
-            const respuesta = await actualizarHorario(editId, enviarHoraEntradaEdit, enviarHoraSalidaEdit, idEmpresaEdit, enviarHolguraEdit, enviarColacionEdit, nocturnoEdit)
+            const respuesta = await actualizarHorario(
+                editId,
+                enviarHoraEntradaEdit,
+                enviarHoraSalidaEdit,
+                idEmpresaEdit,
+                enviarHolguraEdit,
+                enviarColacionEdit,
+                nocturnoEdit,
+                enviarHoraEntradaColacionEdit,
+                enviarHoraSalidaColacionEdit
+            )
             setMostrarEdit(false)
             toast.success("Se edito con exito")
             cargarHorarios()
@@ -231,6 +295,47 @@ function AdminHorarios() {
         }
     }, [horaEntradaEdit, minutoEntradaEdit, horaSalidaEdit, minutoSalidaEdit]);
 
+    // Auto-calcular minutos de colación en crear
+    useEffect(() => {
+        if (horaEntradaColacionCrear !== "" && minutoEntradaColacionCrear !== "" && horaSalidaColacionCrear !== "" && minutoSalidaColacionCrear !== "") {
+            const hE = parseInt(horaEntradaColacionCrear, 10);
+            const mE = parseInt(minutoEntradaColacionCrear, 10);
+            const hS = parseInt(horaSalidaColacionCrear, 10);
+            const mS = parseInt(minutoSalidaColacionCrear, 10);
+
+            let entrada = hE * 60 + mE;
+            let salida = hS * 60 + mS;
+
+            // Si la salida es menor que la entrada, asumimos que pasó a la siguiente jornada (colación nocturna)
+            if (salida < entrada) {
+                salida += 24 * 60;
+            }
+
+            const diff = salida - entrada;
+            setMinutoColacionCrear(diff > 0 ? diff.toString() : "0");
+        }
+    }, [horaEntradaColacionCrear, minutoEntradaColacionCrear, horaSalidaColacionCrear, minutoSalidaColacionCrear]);
+
+    // Auto-calcular minutos de colación en editar
+    useEffect(() => {
+        if (horaEntradaColacionEdit !== "" && minutoEntradaColacionEdit !== "" && horaSalidaColacionEdit !== "" && minutoSalidaColacionEdit !== "") {
+            const hE = parseInt(horaEntradaColacionEdit, 10);
+            const mE = parseInt(minutoEntradaColacionEdit, 10);
+            const hS = parseInt(horaSalidaColacionEdit, 10);
+            const mS = parseInt(minutoSalidaColacionEdit, 10);
+
+            let entrada = hE * 60 + mE;
+            let salida = hS * 60 + mS;
+
+            if (salida < entrada) {
+                salida += 24 * 60;
+            }
+
+            const diff = salida - entrada;
+            setMinutoColacionEdit(diff > 0 ? diff.toString() : "0");
+        }
+    }, [horaEntradaColacionEdit, minutoEntradaColacionEdit, horaSalidaColacionEdit, minutoSalidaColacionEdit]);
+
 
 
     // Renderizado condicional
@@ -290,8 +395,8 @@ function AdminHorarios() {
                                     <TableCell width="20%" align="center"><strong>Empresa</strong></TableCell>
                                     <TableCell width="15%" align="center"><strong>Horario entrada</strong></TableCell>
                                     <TableCell width="15%" align="center"><strong>Horario salida</strong></TableCell>
-                                    <TableCell width="15%" align="center"><strong>Holgura Mins</strong></TableCell>
-                                    <TableCell width="15%" align="center"><strong>Colación Mins</strong></TableCell>
+                                    <TableCell width="15%" align="center"><strong>Holgura</strong></TableCell>
+                                    <TableCell width="15%" align="center"><strong>Colación</strong></TableCell>
                                     <TableCell width="15%" align="center"><strong>Nocturno</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
 
@@ -307,8 +412,8 @@ function AdminHorarios() {
                                                 <TableCell align="center">{row.empresa?.nombre_empresa}</TableCell>
                                                 <TableCell align="center">{row.hora_entrada}</TableCell>
                                                 <TableCell align="center">{row.hora_salida}</TableCell>
-                                                <TableCell align="center">{row.holgura_mins ? row.holgura_mins.split(':')[1] : "00"}</TableCell>
-                                                <TableCell align="center">{row.colacion ? row.colacion.split(':')[1] : "00"}</TableCell>
+                                                <TableCell align="center">{row.holgura_mins || "00:00:00"}</TableCell>
+                                                <TableCell align="center">{row.colacion || "00:00:00"}</TableCell>
                                                 <TableCell align="center">{row.nocturno ? "Si" : "No"}</TableCell>
                                                 <TableCell align="center">
                                                     <IconButton
@@ -330,6 +435,14 @@ function AdminHorarios() {
 
                                                             const [, mC] = (row.colacion || "00:00:00").split(':');
                                                             setMinutoColacionEdit(mC || "00");
+
+                                                            const [hEC, mEC] = (row.hora_inicio_colacion || "00:00:00").split(':');
+                                                            setHoraEntradaColacionEdit(hEC);
+                                                            setMinutoEntradaColacionEdit(mEC);
+
+                                                            const [hSC, mSC] = (row.hora_fin_colacion || "00:00:00").split(':');
+                                                            setHoraSalidaColacionEdit(hSC);
+                                                            setMinutoSalidaColacionEdit(mSC);
 
                                                             setNocturnoEdit(row.nocturno);
                                                             setMostrarEdit(true);
@@ -466,6 +579,58 @@ function AdminHorarios() {
                                     />
                                 </Stack>
 
+
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                                    HORARIO ENTRADA COLACIÓN
+                                </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
+
+                                    <TextField
+                                        value={horaEntradaColacionCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaColacionCrear, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraEntradaColacionCrear)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={minutoEntradaColacionCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaColacionCrear, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoEntradaColacionCrear)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                                    HORARIO SALIDA COLACIÓN
+                                </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
+                                    <TextField
+                                        value={horaSalidaColacionCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraSalidaColacionCrear, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraSalidaColacionCrear)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={minutoSalidaColacionCrear}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoSalidaColacionCrear, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoSalidaColacionCrear)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+
                                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
                                     COLACIÓN (MINS)
                                 </Typography>
@@ -476,6 +641,7 @@ function AdminHorarios() {
                                         onBlur={(e) => handleBlurTime(e.target.value, setMinutoColacionCrear)}
                                         placeholder="MM"
                                         size="small"
+                                        disabled
                                         sx={{ width: '70px' }}
                                         inputProps={{ style: { textAlign: 'center' } }}
                                     />
@@ -606,6 +772,56 @@ function AdminHorarios() {
                                 </Stack>
 
                                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                                    HORARIO ENTRADA COLACIÓN
+                                </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
+                                    <TextField
+                                        value={horaEntradaColacionEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraEntradaColacionEdit, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraEntradaColacionEdit)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={minutoEntradaColacionEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoEntradaColacionEdit, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoEntradaColacionEdit)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                                    HORARIO SALIDA COLACIÓN
+                                </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
+                                    <TextField
+                                        value={horaSalidaColacionEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setHoraSalidaColacionEdit, 23)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setHoraSalidaColacionEdit)}
+                                        placeholder="HH"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                    <Typography variant="h6">:</Typography>
+                                    <TextField
+                                        value={minutoSalidaColacionEdit}
+                                        onChange={(e) => handleChangeTime(e.target.value, setMinutoSalidaColacionEdit, 59)}
+                                        onBlur={(e) => handleBlurTime(e.target.value, setMinutoSalidaColacionEdit)}
+                                        placeholder="MM"
+                                        size="small"
+                                        sx={{ width: '70px' }}
+                                        inputProps={{ style: { textAlign: 'center' } }}
+                                    />
+                                </Stack>
+
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
                                     COLACIÓN (MINS)
                                 </Typography>
                                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={2}>
@@ -615,6 +831,7 @@ function AdminHorarios() {
                                         onBlur={(e) => handleBlurTime(e.target.value, setMinutoColacionEdit)}
                                         placeholder="MM"
                                         size="small"
+                                        disabled
                                         sx={{ width: '70px' }}
                                         inputProps={{ style: { textAlign: 'center' } }}
                                     />
@@ -629,7 +846,7 @@ function AdminHorarios() {
                                     sx={{ mb: 2, width: "40vh", mx: "auto" }}
                                 />
                                 <Box>
-                                <Button color="error" variant="contained" onClick={() => setEliminar(true)}>Eliminar</Button>
+                                    <Button color="error" variant="contained" onClick={() => setEliminar(true)}>Eliminar</Button>
                                 </Box>
 
 

@@ -28,8 +28,8 @@ function ClaveDt() {
             await claveDt(usuarioCorreo);
             setMensajeExito("Se envió el correo con éxito");
             setTimeout(() => {
-                navigate("/ingresarcodigodt", { state: { useremail: usuarioCorreo } });
-            }, 2000);
+                navigate("/");
+            }, 2000)
         } catch (error) {
             setError(error.message);
         } finally {
