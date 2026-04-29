@@ -5,9 +5,9 @@ import { API_URL } from "../config/config";
 export const obtenerUsuarios = async () => {
   const response = await fetch(`${API_URL}/users`, {
     method: 'GET',
-    headers: { 
-      'Content-Type': 'application/json', 
-      'Authorization': 'Bearer ' + window.localStorage.getItem("token") 
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + window.localStorage.getItem("token")
     }
   });
 
@@ -16,7 +16,7 @@ export const obtenerUsuarios = async () => {
   if (!response.ok) {
     throw new Error(data.mensaje || 'Error al cargar los usuarios');
   }
-  
+
   return data.usuarios || [];
 };
 
@@ -98,3 +98,23 @@ export const actualizarUsuario = async (
   }
   return datos;
 };
+
+export const cambiarPassword = async (idUser, passwordActual, passwordNueva) => {
+  const peticion = await fetch(`${API_URL}/users/cambiar-password/${idUser}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+    body: JSON.stringify({
+      contrasena_actual: passwordActual,
+      contrasena_nueva: passwordNueva
+    }),
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al cambiar la contraseña");
+  }
+  return datos;
+}

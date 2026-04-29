@@ -4,6 +4,8 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import LockResetIcon from '@mui/icons-material/LockReset';
+import { toast } from "react-hot-toast";
+import { cambiarPassword } from "../../../services/usuariosServices";
 
 function AdminCambiarContrasena() {
     const [showCurrent, setShowCurrent] = useState(false);
@@ -20,8 +22,39 @@ function AdminCambiarContrasena() {
         setPasswords({ ...passwords, [prop]: event.target.value });
     };
 
-    const handleSave = () => {
-        console.log("Saving password...", passwords);
+    const [idUser, setIdUser] = useState(null);
+
+    React.useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setIdUser(payload.usuario_id);
+            } catch (error) {
+                console.error("Error decoding token:", error);
+            }
+        }
+    }, []);
+
+    const handleSave = async () => {
+        if (passwords.new !== passwords.confirm) {
+            toast.error("La nueva contraseña y la confirmación no coinciden");
+            return;
+        }
+
+        if (!idUser) {
+            toast.error("No se pudo identificar al usuario");
+            return;
+        }
+
+        const tId = toast.loading("Cambiando contraseña...");
+        try {
+            await cambiarPassword(idUser, passwords.current, passwords.new);
+            toast.success("Contraseña actualizada con éxito", { id: tId });
+            setPasswords({ current: "", new: "", confirm: "" });
+        } catch (error) {
+            toast.error(error.message || "Error al cambiar la contraseña", { id: tId });
+        }
     };
 
     return (
@@ -58,8 +91,6 @@ function AdminCambiarContrasena() {
                         variant="outlined"
                         value={passwords.current}
                         onChange={handleChange('current')}
-                        InputLabelProps={{ sx: { width: '100%', textAlign: 'center', '&.MuiInputLabel-shrink': { transformOrigin: 'top center', left: '50%', transform: 'translate(-50%, -14px) scale(0.75)' } } }}
-                        inputProps={{ style: { textAlign: 'center' } }}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -79,8 +110,6 @@ function AdminCambiarContrasena() {
                         variant="outlined"
                         value={passwords.new}
                         onChange={handleChange('new')}
-                        InputLabelProps={{ sx: { width: '100%', textAlign: 'center', '&.MuiInputLabel-shrink': { transformOrigin: 'top center', left: '50%', transform: 'translate(-50%, -14px) scale(0.75)' } } }}
-                        inputProps={{ style: { textAlign: 'center' } }}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -100,8 +129,6 @@ function AdminCambiarContrasena() {
                         variant="outlined"
                         value={passwords.confirm}
                         onChange={handleChange('confirm')}
-                        InputLabelProps={{ sx: { width: '100%', textAlign: 'center', '&.MuiInputLabel-shrink': { transformOrigin: 'top center', left: '50%', transform: 'translate(-50%, -14px) scale(0.75)' } } }}
-                        inputProps={{ style: { textAlign: 'center' } }}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -119,6 +146,7 @@ function AdminCambiarContrasena() {
                             variant="contained"
                             size="large"
                             onClick={handleSave}
+                            disabled={!passwords.current || !passwords.new || !passwords.confirm}
                             sx={{
                                 px: 6,
                                 py: 1.5,

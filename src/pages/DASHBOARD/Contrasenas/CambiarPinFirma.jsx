@@ -4,6 +4,8 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import { toast } from "react-hot-toast";
+import { cambiarPinFirma } from "../../../services/empleadosServices";
 
 const PinRow = ({ label, value, onChange, showVisibility = false, isVisible = true, onToggleVisibility }) => {
     const inputs = useRef([]);
@@ -77,12 +79,47 @@ function AdminCambiarpinFirma() {
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
-    const handleSave = () => {
-        console.log("Saving PIN...", {
-            current: currentPin.join(""),
-            new: newPin.join(""),
-            confirm: confirmPin.join("")
-        });
+    const [idUser, setIdUser] = useState(null);
+
+    React.useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setIdUser(payload.usuario_id);
+            } catch (error) {
+                console.error("Error decoding token:", error);
+            }
+        }
+    }, []);
+
+    const handleSave = async () => {
+        const current = currentPin.join("");
+        const nuevo = newPin.join("");
+        const confirmar = confirmPin.join("");
+
+        if (nuevo !== confirmar) {
+            toast.error("El nuevo Pin y la confirmación no coinciden");
+            return;
+        }
+
+        if (!idUser) {
+            toast.error("No se pudo identificar al usuario");
+            return;
+        }
+
+        const tId = toast.loading("Cambiando Pin de firma...");
+        try {
+            await cambiarPinFirma(idUser, current, nuevo);
+            toast.success("Pin de firma cambiado con éxito", { id: tId });
+            
+            // Limpiar campos
+            setCurrentPin(["", "", "", ""]);
+            setNewPin(["", "", "", ""]);
+            setConfirmPin(["", "", "", ""]);
+        } catch (error) {
+            toast.error(error.message || "Error al cambiar el Pin", { id: tId });
+        }
     };
 
     return (
@@ -177,4 +214,4 @@ function AdminCambiarpinFirma() {
     );
 }
 
-export default AdminCambiarpinFirma;
+export default AdminCambiarpinFirma;

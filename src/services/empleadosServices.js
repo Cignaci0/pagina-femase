@@ -184,6 +184,21 @@ export const obtenerPorEmpresa = async (empresa_id) => {
   }
 }
 
+export const cambiarPinFirma = async (idUser, pinActual, pinFirma) => {
+  const peticion = await fetch(`${API_URL}/empleado/cambiar-pin/${idUser}/${pinActual}/${pinFirma}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + window.localStorage.getItem("token"),
+    },
+  });
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al cambiar el pin de firma");
+  }
+  return datos;
+}
+
 
 
 
