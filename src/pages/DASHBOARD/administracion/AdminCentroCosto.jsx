@@ -539,7 +539,7 @@ function AdminCentroCosto() {
         cargarEmpresas();
         llamarTurnos();
         llamarProveedorCorreo();
-        
+
         const cargarDispositivos = async () => {
             try {
                 const dataDispo = await obtenerDispositivo();

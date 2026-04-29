@@ -147,7 +147,7 @@ function AutorizacionHoraExtra() {
         }
         const resto = 11 - (suma % 11);
         if (resto === 11) return '0';
-        if (resto === 11) return 'K';
+        if (resto === 10) return 'K';
         return resto.toString();
     };
 

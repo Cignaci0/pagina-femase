@@ -508,6 +508,7 @@ function ReportesFiscaliza() {
                                     value={fechaInicio}
                                     onChange={(e) => setFechaInicio(e.target.value)}
                                     disabled={filtroPeriodo !== ""}
+                                    inputProps={{ min: dayjs().subtract(5, 'year').format('YYYY-MM-DD') }}
                                     sx={{ minWidth: 180, bgcolor: filtroPeriodo !== "" ? "#f0f0f0" : "#fff" }}
                                 />
                             </Box>
