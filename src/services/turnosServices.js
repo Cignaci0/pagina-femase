@@ -2,9 +2,9 @@ import { API_URL } from "../config/config";
 
 
 //Obtener turnos
-export const obtenerTurnos = async () => {
+export const obtenerTurnos = async (empresaId) => {
   try {
-    const response = await fetch(`${API_URL}/turno`, {
+    const response = await fetch(`${API_URL}/turno/${empresaId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

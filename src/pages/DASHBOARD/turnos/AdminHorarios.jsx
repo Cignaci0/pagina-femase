@@ -107,9 +107,13 @@ function AdminHorarios() {
         }
     }
 
-    const cargarHorarios = async () => {
+    const cargarHorarios = async (empresaId) => {
+        if (!empresaId) {
+            setHorarios([]);
+            return;
+        }
         try {
-            const respuesta = await obtenerHorarios()
+            const respuesta = await obtenerHorarios(empresaId)
             setHorarios(respuesta)
         } catch (error) {
             toast.error("Error al traer los horarios")
@@ -173,7 +177,7 @@ function AdminHorarios() {
             setOpen(false)
             setNuevoHorarioEntrada("")
             setIdEmpresaCrear("")
-            cargarHorarios()
+            cargarHorarios(filtroEmpresa)
             setHoraEntradaCrear("")
             setMinutoEntradaCrear("")
             setIdEmpresaCrear("")
@@ -208,7 +212,7 @@ function AdminHorarios() {
             )
             setMostrarEdit(false)
             toast.success("Se edito con exito")
-            cargarHorarios()
+            cargarHorarios(filtroEmpresa)
         } catch (error) {
             toast.error(error.message || "error al editar")
         }
@@ -266,8 +270,8 @@ function AdminHorarios() {
     }, [])
 
     useEffect(() => {
-        cargarHorarios()
-    }, [])
+        cargarHorarios(filtroEmpresa)
+    }, [filtroEmpresa])
 
     useEffect(() => {
         obtenerEmpresasFiltro()
@@ -364,7 +368,7 @@ function AdminHorarios() {
                     <FormControl size="small" variant="outlined" sx={{ minWidth: 120, ml: 2 }} >
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "26vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} label="Empresa">
-                            <MenuItem>Todos</MenuItem>
+                            <MenuItem value="">Todos</MenuItem>
                             {empresasFiltro.map((fe) => (
                                 <MenuItem key={fe.empresa_id} value={fe.empresa_id}>
                                     {fe.nombre_empresa}
@@ -458,9 +462,9 @@ function AdminHorarios() {
                                     <TableRow>
                                         <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                                             <Typography variant="body1" color="text.secondary">
-                                                {horariosFiltrados
-                                                    ? "No se encontraron horarios"
-                                                    : "No se encontraron horarios"}
+                                                {!filtroEmpresa 
+                                                    ? "Seleccione una empresa para ver los horarios disponibles" 
+                                                    : "No se encontraron horarios para esta empresa"}
                                             </Typography>
                                         </TableCell>
                                     </TableRow>

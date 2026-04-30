@@ -536,7 +536,16 @@ function AdminCentroCosto() {
                 toast.error(err.message);
             }
         };
+        const cargarDeptos = async () => {
+            try {
+                const dataDeptos = await obtenerDepartamentos();
+                setDepartamentos(dataDeptos || []);
+            } catch (err) {
+                console.error("Error cargando departamentos", err);
+            }
+        };
         cargarEmpresas();
+        cargarDeptos();
         llamarTurnos();
         llamarProveedorCorreo();
 
@@ -613,7 +622,7 @@ function AdminCentroCosto() {
                                     <TableCell width={100} align="center"><strong>Acción</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Nombre</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Estado</strong></TableCell>
-                                    <TableCell width={100} align="center"><strong>Direccion</strong></TableCell>
+                                    <TableCell width={160} align="center"><strong>Direccion</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Region</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Comuna</strong></TableCell>
                                     <TableCell width={100} align="center"><strong>Email Gnral</strong></TableCell>

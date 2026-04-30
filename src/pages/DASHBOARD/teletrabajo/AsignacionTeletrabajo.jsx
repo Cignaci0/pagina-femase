@@ -65,9 +65,9 @@ function AsignacionTeletrabajos() {
         ? departamentos.filter(d => d.empresa?.empresa_id === filtroEmpresa)
         : [];
 
-    // Cencos filtrados por departamento + permite_turno_r === true
+    // Cencos filtrados por departamento
     const cencosFiltrados = filtroDepartamento
-        ? cencos.filter(c => c.departamento_id === filtroDepartamento && c.permite_turno_r === true)
+        ? cencos.filter(c => c.departamento_id === filtroDepartamento || c.departamento?.departamento_id === filtroDepartamento)
         : [];
 
     // Cuando cambia empresa, resetear departamento y cenco

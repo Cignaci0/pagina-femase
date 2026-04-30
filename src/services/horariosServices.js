@@ -2,9 +2,9 @@ import { API_URL } from "../config/config";
 
 
 //Obtener horarios
-export const obtenerHorarios = async () => {
+export const obtenerHorarios = async (empresa_id) => {
   try {
-    const response = await fetch(`${API_URL}/horario`, {
+    const response = await fetch(`${API_URL}/horario/${empresa_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

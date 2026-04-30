@@ -109,10 +109,14 @@ function AdminTurnos() {
     const [filtroHorarioEdit, setFiltroHorarioEdit] = useState([])
 
     // Carga de datos
-    const cargarTurnos = async () => {
+    const cargarTurnos = async (empresaId) => {
+        if (!empresaId) {
+            setTurnos([]);
+            return;
+        }
         setCargando(true)
         try {
-            const respuesta = await obtenerTurnos()
+            const respuesta = await obtenerTurnos(empresaId)
             setTurnos(respuesta)
         } catch (err) {
             toast.error(err.message);
@@ -208,16 +212,14 @@ function AdminTurnos() {
 
     const cargarDatosFiltrosAsignacion = async () => {
         try {
-            const [dataDeptos, dataCencos, dataCargos, dataHorarios] = await Promise.all([
+            const [dataDeptos, dataCencos, dataCargos] = await Promise.all([
                 obtenerDepartamentos(),
                 obtenerCentroCostos(),
-                obtenerCargos(),
-                obtenerHorarios()
+                obtenerCargos()
             ]);
             setDepartamentos(Array.isArray(dataDeptos) ? dataDeptos : [dataDeptos]);
             setCencos(Array.isArray(dataCencos) ? dataCencos : [dataCencos]);
             setCargos(Array.isArray(dataCargos) ? dataCargos : [dataCargos]);
-            setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
         } catch (err) {
             toast.error(err.message);
         }
@@ -263,7 +265,7 @@ function AdminTurnos() {
             toast.success("Turno creado con exito")
             setNombreCrear("")
             setEstadoCrear("")
-            cargarTurnos()
+            cargarTurnos(empresasFiltro)
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -277,7 +279,7 @@ function AdminTurnos() {
             const respuesta = await actualizarTurno(idEdit, nombreEdit, empresaEdit, estadoEdit)
             setEditar(false)
             toast.success("Turno Actualizado con exito")
-            cargarTurnos()
+            cargarTurnos(empresasFiltro)
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -309,7 +311,7 @@ function AdminTurnos() {
             await asignarHorario(idTurnoDias, idsDiasPayload, idsHorariosPayload)
             toast.success("Días y horarios asignados correctamente")
             cerrarDetalle()
-            cargarTurnos()
+            cargarTurnos(empresasFiltro)
         } catch (err) {
             toast.error(err.message)
         } finally {
@@ -390,7 +392,7 @@ function AdminTurnos() {
             toast.success("Asignación guardada correctamente");
             cerrarAsignar();
             cargarEmpleados();
-            cargarTurnos();
+            cargarTurnos(empresasFiltro);
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -504,8 +506,21 @@ function AdminTurnos() {
     }, []);
 
     useEffect(() => {
-        cargarTurnos();
-    }, []);
+        cargarTurnos(empresasFiltro);
+        const fetchHorarios = async () => {
+            if (!empresasFiltro) {
+                setHorarios([]);
+                return;
+            }
+            try {
+                const res = await obtenerHorarios(empresasFiltro);
+                setHorarios(Array.isArray(res) ? res : []);
+            } catch (error) {
+                console.error("Error cargando horarios", error);
+            }
+        };
+        fetchHorarios();
+    }, [empresasFiltro]);
 
     useEffect(() => {
         cargarEmpleados();
@@ -571,7 +586,7 @@ function AdminTurnos() {
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "26vh" }} label="Empresa" value={empresasFiltro} onChange={(e) => setEmpresasFiltro(e.target.value)}>
-                            <MenuItem>Todos</MenuItem>
+                            <MenuItem value="">Todos</MenuItem>
                             {empresas.map((emp) => (
                                 <MenuItem key={emp.empresa_id} value={emp.empresa_id}>
                                     {emp.nombre_empresa}
@@ -718,9 +733,9 @@ function AdminTurnos() {
                                     <TableRow>
                                         <TableCell align="center" colSpan={9}>
                                             <Typography variant="body1" color="text.secondary">
-                                                {turnosFiltrados
-                                                    ? "No se encontraron turnos"
-                                                    : "No se encontraron turnos. "}
+                                                {!empresasFiltro 
+                                                    ? "Seleccione una empresa para ver los turnos disponibles" 
+                                                    : "No se encontraron turnos para esta empresa"}
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -1058,7 +1073,7 @@ function AdminTurnos() {
                         />
                     </Box>
 
-                    <FormControl size="small" sx={{ minWidth: 280, mt: 2 }}>
+                    <FormControl size="small" sx={{ width: 300, mt: 2 }}>
                         <InputLabel>Asignación semana</InputLabel>
                         <Select
                             label="Asignación semana"
@@ -1078,10 +1093,9 @@ function AdminTurnos() {
                         >
                             <MenuItem value=""><em>Ninguno</em></MenuItem>
                             {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => {
-                                const colMins = h.colacion ? parseInt(h.colacion.split(':')[1], 10) : 0;
                                 return (
                                     <MenuItem key={h.horario_id} value={h.horario_id}>
-                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins}
+                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {h.colacion || "00:00:00"}
                                     </MenuItem>
                                 );
                             })}
@@ -1132,7 +1146,7 @@ function AdminTurnos() {
                                         sx={{ margin: 0 }}
                                     />
 
-                                    <FormControl size="small" sx={{ minWidth: 200, visibility: isChecked ? 'visible' : 'hidden' }}>
+                                    <FormControl size="small" sx={{ width: 250, visibility: isChecked ? 'visible' : 'hidden' }}>
                                         <InputLabel>Horario</InputLabel>
                                         <Select
                                             label="Horario"
@@ -1143,10 +1157,9 @@ function AdminTurnos() {
                                             })}
                                         >
                                             {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => {
-                                                const colMins = h.colacion ? parseInt(h.colacion.split(':')[1], 10) : 0;
                                                 return (
                                                     <MenuItem key={h.horario_id} value={h.horario_id}>
-                                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins}
+                                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {h.colacion || "00:00:00"}
                                                     </MenuItem>
                                                 );
                                             })}

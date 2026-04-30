@@ -64,7 +64,7 @@ function ClaveDt() {
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    <Typography color="text.secondary">@gmail.com</Typography>
+                                    <Typography color="text.secondary">@gmail.com</Typography> 
                                 </InputAdornment>
                             ),
                         }}

@@ -13,6 +13,8 @@ import { reporteAsistencia, domingoFestivos, jornadaDiaria, reporteTurnos } from
 import { obtenerCargos } from "../../../services/cargosServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
 import { obtenerEmpresas } from "../../../services/empresasServices";
+import { obtenerDepartamentos } from "../../../services/departamentosServices";
+import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 
 function ReportesFiscaliza() {
 
@@ -21,13 +23,19 @@ function ReportesFiscaliza() {
     const [empleadosGlobal, setEmpleadosGlobal] = useState([]);
     const [cargosGlobal, setCargosGlobal] = useState([]);
     const [turnosGlobal, setTurnosGlobal] = useState([]);
+    const [departamentosGlobal, setDepartamentosGlobal] = useState([]);
+    const [cencosGlobal, setCencosGlobal] = useState([]);
 
     // Opciones filtradas por empresa seleccionado
     const [opcionesCargos, setOpcionesCargos] = useState([]);
     const [opcionesHorarios, setOpcionesHorarios] = useState([]);
+    const [opcionesDepartamentos, setOpcionesDepartamentos] = useState([]);
+    const [opcionesCencos, setOpcionesCencos] = useState([]);
 
     // Filtros superiores
     const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroDepartamento, setFiltroDepartamento] = useState("");
+    const [filtroCenco, setFiltroCenco] = useState("");
     const [filtroTurno, setFiltroTurno] = useState("");
     const [filtroCargo, setFiltroCargo] = useState("");
 
@@ -49,15 +57,17 @@ function ReportesFiscaliza() {
     useEffect(() => {
         const fetchCatalogos = async () => {
             try {
-                const [cargos, horarios, empresas] = await Promise.all([
+                const [cargos, empresas, departamentos, cencos] = await Promise.all([
                     obtenerCargos(),
-                    obtenerHorarios(),
-                    obtenerEmpresas()
+                    obtenerEmpresas(),
+                    obtenerDepartamentos(),
+                    obtenerCentroCostos()
                 ]);
 
                 setCargosGlobal(cargos || []);
-                setTurnosGlobal(horarios || []); // Usamos turnosGlobal para guardar horarios por ahora para minimizar cambios
                 setEmpresasGlobal(empresas || []);
+                setDepartamentosGlobal(departamentos?.departamentos || departamentos || []);
+                setCencosGlobal(cencos || []);
 
             } catch (error) {
                 toast.error("Error al cargar datos base");
@@ -66,10 +76,11 @@ function ReportesFiscaliza() {
         fetchCatalogos();
     }, []);
 
-    // Cascada: Empresa -> Cargos, Horarios y Empleados
+    // Cascada: Empresa -> Cargos, Horarios, Departamentos y Empleados
     useEffect(() => {
         const handleCambioEmpresa = async () => {
             if (filtroEmpresa !== "") {
+                const tId = toast.loading("Cargando información...");
                 // 1. Filtrar cargos por empresa
                 const cargosEmp = cargosGlobal.filter(c => {
                     const idEmp = c.empresa?.empresa_id || c.empresa_id || c.id_empresa;
@@ -78,35 +89,73 @@ function ReportesFiscaliza() {
                 cargosEmp.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
                 setOpcionesCargos(cargosEmp);
 
-                // 2. Filtrar horarios por empresa
-                const horariosEmp = turnosGlobal.filter(h => {
-                    const idEmp = h.empresa?.empresa_id || h.empresa_id || h.id_empresa;
+                // 3. Filtrar departamentos por empresa
+                const deptosEmp = departamentosGlobal.filter(d => {
+                    const idEmp = d.empresa?.empresa_id || d.empresa_id || d.id_empresa;
                     return String(idEmp) === String(filtroEmpresa);
                 });
-                horariosEmp.sort((a, b) => (a.hora_entrada || "").localeCompare(b.hora_entrada || ""));
-                setOpcionesHorarios(horariosEmp);
+                deptosEmp.sort((a, b) => (a.nombre_departamento || "").localeCompare(b.nombre_departamento || ""));
+                setOpcionesDepartamentos(deptosEmp);
+
                 try {
-                    const emps = await obtenerPorEmpresa(filtroEmpresa);
+                    const [horariosRes, emps] = await Promise.all([
+                        obtenerHorarios(filtroEmpresa),
+                        obtenerPorEmpresa(filtroEmpresa)
+                    ]);
+                    
+                    const hList = Array.isArray(horariosRes) ? horariosRes : [];
+                    setTurnosGlobal(hList);
+                    
+                    const horariosEmp = hList.filter(h => {
+                        const idEmp = h.empresa?.empresa_id || h.empresa_id || h.id_empresa;
+                        return String(idEmp) === String(filtroEmpresa);
+                    });
+                    horariosEmp.sort((a, b) => (a.hora_entrada || "").localeCompare(b.hora_entrada || ""));
+                    setOpcionesHorarios(horariosEmp);
+
                     setEmpleadosGlobal(emps || []);
+                    toast.success("Información cargada correctamente", { id: tId });
                 } catch (error) {
-                    toast.error("Error al cargar empleados", { id: tId });
+                    toast.error("Error al cargar datos de la empresa", { id: tId });
                     setEmpleadosGlobal([]);
+                    setTurnosGlobal([]);
+                    setOpcionesHorarios([]);
                 }
 
             } else {
                 setOpcionesCargos([]);
                 setOpcionesHorarios([]);
+                setTurnosGlobal([]);
+                setOpcionesDepartamentos([]);
+                setOpcionesCencos([]);
                 if (!searchNombre && !searchRun) {
                     setEmpleadosGlobal([]);
                 }
             }
             setFiltroCargo("");
             setFiltroTurno("");
+            setFiltroDepartamento("");
+            setFiltroCenco("");
             setEmpleadosSeleccionados([]);
         };
 
         handleCambioEmpresa();
-    }, [filtroEmpresa, cargosGlobal, turnosGlobal]);
+    }, [filtroEmpresa, cargosGlobal, departamentosGlobal]);
+
+    // Cascada: Departamento -> Cencos
+    useEffect(() => {
+        if (filtroDepartamento) {
+            const cencosDepto = cencosGlobal.filter(c => {
+                const idDepto = c.departamento?.departamento_id || c.departamento_id || c.id_departamento;
+                return String(idDepto) === String(filtroDepartamento);
+            });
+            cencosDepto.sort((a, b) => (a.nombre_cenco || "").localeCompare(b.nombre_cenco || ""));
+            setOpcionesCencos(cencosDepto);
+        } else {
+            setOpcionesCencos([]);
+        }
+        setFiltroCenco("");
+    }, [filtroDepartamento, cencosGlobal]);
 
     useEffect(() => {
         if (filtroEmpresa === "" && !searchNombre && !searchRun) {
@@ -127,6 +176,20 @@ function ReportesFiscaliza() {
             filtrados = filtrados.filter(e => {
                 const cId = e.cargo?.cargo_id || e.cargo?.id || e.cargo;
                 return String(cId) === String(filtroCargo);
+            });
+        }
+        if (filtroDepartamento) {
+            filtrados = filtrados.filter(e => {
+                const eCencoId = e.cenco?.cenco_id || e.cenco_id;
+                const cencoData = cencosGlobal.find(c => String(c.cenco_id) === String(eCencoId));
+                const dIdReal = cencoData?.departamento?.departamento_id || cencoData?.departamento_id;
+                return String(dIdReal) === String(filtroDepartamento);
+            });
+        }
+        if (filtroCenco) {
+            filtrados = filtrados.filter(e => {
+                const cId = e.cenco?.cenco_id || e.cenco_id || e.cenco;
+                return String(cId) === String(filtroCenco);
             });
         }
         if (filtroTurno === "rotativo") {
@@ -176,7 +239,7 @@ function ReportesFiscaliza() {
 
         filtrados.sort((a, b) => (a.nombres || "").localeCompare(b.nombres || ""));
         setEmpleadosDisponibles(filtrados);
-    }, [filtroEmpresa, filtroCargo, filtroTurno, searchNombre, searchRun, empleadosGlobal, turnosGlobal]);
+    }, [filtroEmpresa, filtroCargo, filtroDepartamento, filtroCenco, filtroTurno, searchNombre, searchRun, empleadosGlobal, turnosGlobal, cencosGlobal]);
 
 
     // Handler selección de empleados
@@ -209,6 +272,8 @@ function ReportesFiscaliza() {
                 setFiltroEmpresa("");
                 setFiltroCargo("");
                 setFiltroTurno("");
+                setFiltroDepartamento("");
+                setFiltroCenco("");
                 setSearchNombre("");
                 setEmpleadosDisponibles(results);
             } else {
@@ -238,6 +303,8 @@ function ReportesFiscaliza() {
                 setFiltroEmpresa("");
                 setFiltroCargo("");
                 setFiltroTurno("");
+                setFiltroDepartamento("");
+                setFiltroCenco("");
                 setSearchRun("");
                 setEmpleadosDisponibles(results);
             } else {
@@ -335,9 +402,9 @@ function ReportesFiscaliza() {
             }}>
                 {/* Filtros Superiores */}
                 <Box sx={{ mb: 3, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
-                    <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
 
-                        <FormControl size="small" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
                             <InputLabel>Tipo de reporte</InputLabel>
                             <Select
                                 label="Tipo de reporte"
@@ -354,7 +421,7 @@ function ReportesFiscaliza() {
                         </FormControl>
 
 
-                        <FormControl size="small" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
                             <InputLabel>Empresa</InputLabel>
                             <Select
                                 label="Empresa"
@@ -372,7 +439,39 @@ function ReportesFiscaliza() {
                             </Select>
                         </FormControl>
 
-                        <FormControl size="small" variant="outlined" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" variant="outlined" sx={{ minWidth: 200 }}>
+                            <InputLabel>Departamento</InputLabel>
+                            <Select
+                                value={filtroDepartamento}
+                                onChange={(e) => setFiltroDepartamento(e.target.value)}
+                                label="Departamento"
+                                disabled={!filtroEmpresa}
+                                sx={{ bgcolor: !filtroEmpresa ? '#f5f5f5' : '#fff' }}
+                            >
+                                <MenuItem value=""><em>Todos los departamentos</em></MenuItem>
+                                {opcionesDepartamentos.map((d) => (
+                                    <MenuItem key={d.departamento_id} value={d.departamento_id}>{d.nombre_departamento}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl size="small" variant="outlined" sx={{ minWidth: 200 }}>
+                            <InputLabel>Cenco</InputLabel>
+                            <Select
+                                value={filtroCenco}
+                                onChange={(e) => setFiltroCenco(e.target.value)}
+                                label="Cenco"
+                                disabled={!filtroDepartamento}
+                                sx={{ bgcolor: !filtroDepartamento ? '#f5f5f5' : '#fff' }}
+                            >
+                                <MenuItem value=""><em>Todos los cencos</em></MenuItem>
+                                {opcionesCencos.map((c) => (
+                                    <MenuItem key={c.cenco_id} value={c.cenco_id}>{c.nombre_cenco}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl size="small" variant="outlined" sx={{ minWidth: 200 }}>
                             <InputLabel>Cargo</InputLabel>
                             <Select
                                 value={filtroCargo}
@@ -388,7 +487,7 @@ function ReportesFiscaliza() {
                             </Select>
                         </FormControl>
 
-                        <FormControl size="small" variant="outlined" sx={{ minWidth: 250 }}>
+                        <FormControl size="small" variant="outlined" sx={{ minWidth: 200 }}>
                             <InputLabel>Horario</InputLabel>
                             <Select
                                 value={filtroTurno}
@@ -406,7 +505,7 @@ function ReportesFiscaliza() {
                                 ))}
                             </Select>
                         </FormControl>
-                    </Stack>
+                    </Box>
                 </Box>
 
                 {/* Contenido Central */}

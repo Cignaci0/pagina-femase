@@ -143,7 +143,7 @@ function MarcaTeletrabajo() {
                 evento: evento,
                 dispositivo_id: device,
                 num_ficha: numFicha,
-                comentario: "Marca realizada desde portal de teletrabajo",
+                comentario: "Marca realizada por teletrabajo",
                 tipo_marca_id: 3 // Teletrabajo por defecto CAMBIAR SI CAMBIA EL ID EN LA BASE DE DATOS
             };
 
