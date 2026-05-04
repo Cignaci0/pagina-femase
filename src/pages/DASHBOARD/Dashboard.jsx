@@ -96,6 +96,10 @@ import AdminAusenciasEmpleado from "../DASHBOARD/Empleados/IngresarAusenciaEmple
 import AdminCambiarContrasena from "../DASHBOARD/Contrasenas/CambiarContrasena";
 import AdminCambiarpinFirma from "../DASHBOARD/Contrasenas/CambiarPinFirma";
 
+// DOCUMENTOS Y FIRMAS
+import Documento from "../DASHBOARD/Documentos y Firmas/Documentos";
+import Firma from "../DASHBOARD/Documentos y Firmas/Firmas";
+
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
 
@@ -181,6 +185,10 @@ const COMPONENTES_VISTA = {
   // CONTRASENAS
   "Cambiar Contraseña": <AdminCambiarContrasena />,
   "Cambiar Pin Firma": <AdminCambiarpinFirma />,
+
+  // DOCUMENTOS Y FIRMAS
+  "Documentos": <Documento />,
+  "Firmas": <Firma />,
 
 
 }
