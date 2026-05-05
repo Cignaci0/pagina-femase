@@ -118,3 +118,18 @@ export const cambiarPassword = async (idUser, passwordActual, passwordNueva) => 
   }
   return datos;
 }
+
+export const obtenerAdminPorEmpresa = async (idEmpresa) => {
+  const peticion = await fetch(`${API_URL}/users/obtener-admin/${idEmpresa}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+  })
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al obtener administradores");
+  }
+  return datos;
+}

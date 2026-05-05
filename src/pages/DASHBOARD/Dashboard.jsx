@@ -68,6 +68,7 @@ import AdminMarcas from "../DASHBOARD/marcas asistencia/AdminMarcas";
 import ReporteAsistencia from "./reportes informes/ReporteAsistencia";
 import ReporteAusencia from "./reportes informes/ReporteAusencias";
 import ReporteVacaciones from "./reportes informes/ReporteVacaciones";
+import ReporteConexion from "../DASHBOARD/reportes informes/Reporteconexiones"
 
 // VACACIONES
 import AdminVacaciones from "../DASHBOARD/vacaciones/AdminVacaciones";
@@ -99,6 +100,7 @@ import AdminCambiarpinFirma from "../DASHBOARD/Contrasenas/CambiarPinFirma";
 // DOCUMENTOS Y FIRMAS
 import Documento from "../DASHBOARD/Documentos y Firmas/Documentos";
 import Firma from "../DASHBOARD/Documentos y Firmas/Firmas";
+import Solicitud from "../DASHBOARD/Documentos y Firmas/Solicitudes"
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -159,6 +161,7 @@ const COMPONENTES_VISTA = {
   "Reporte Asistencia": <ReporteAsistencia />,
   "Reporte Ausencias": <ReporteAusencia />,
   "Reporte Vacaciones": <ReporteVacaciones />,
+  "Reporte Conexiones": <ReporteConexion></ReporteConexion>,
 
   // VACACIONES
   "Admin Vacaciones": <AdminVacaciones />,
@@ -189,6 +192,7 @@ const COMPONENTES_VISTA = {
   // DOCUMENTOS Y FIRMAS
   "Documentos": <Documento />,
   "Firmas": <Firma />,
+  "Solicitudes":<Solicitud></Solicitud>
 
 
 }
