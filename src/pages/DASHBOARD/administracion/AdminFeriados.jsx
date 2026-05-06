@@ -189,6 +189,9 @@ function AdminFeriados() {
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
 
+    const formularioValido = nuevoFecha && nuevoTipoFeriado && nuevoNombre.trim() !== "" && nuevoIrrenunciable !== "" && nuevoTipo !== "" && nuevoRespaldoLegal !== "" && nuevoRegion !== "" && nuevoComuna !== "";
+    const editFormularioValido = editFecha && editTipoFeriado && editNombre.trim() !== "" && editIrrenunciable !== "" && editTipo !== "" && editRespaldoLegal !== "" && editRegion !== "" && editComuna !== "";
+
     return (
         <>
             {/* Titulo */}
@@ -488,7 +491,7 @@ function AdminFeriados() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialog} color="error">Cancelar</Button>
-                    <Button onClick={clickCrearFeriado} variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickCrearFeriado} variant="contained" color="primary" disabled={!formularioValido}>Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -593,7 +596,7 @@ function AdminFeriados() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialogEdit} color="error">Cancelar</Button>
-                    <Button onClick={clickEditarFeriado} variant="contained" color="primary">Guardar Cambios</Button>
+                    <Button onClick={clickEditarFeriado} variant="contained" color="primary" disabled={!editFormularioValido}>Guardar Cambios</Button>
                 </DialogActions>
             </Dialog>
 

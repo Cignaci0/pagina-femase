@@ -552,6 +552,8 @@ function AdminTurnos() {
     }, [busqueda, filtroestado]);
 
     // Renderizado condicional
+    const formularioValido = empresaCrear !== "" && nombreCrear.trim() !== "" && estadoCrear !== "";
+    const editFormularioValido = empresaEdit !== "" && nombreEdit.trim() !== "" && estadoEdit !== "";
 
     return (
         <>
@@ -793,6 +795,7 @@ function AdminTurnos() {
                                         value={nombreCrear}
                                         onChange={(e) => setNombreCrear(e.target.value)}
                                         fullWidth label="Nombre" size="small"
+                                        helperText={nombreCrear.trim() === "" ? "El nombre es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -808,6 +811,7 @@ function AdminTurnos() {
                                             Inactivo
                                         </MenuItem>
                                     </Select>
+                                    {estadoCrear === "" && <FormHelperText>El Estado es obligatorio</FormHelperText>}
                                 </FormControl>
 
 
@@ -817,7 +821,7 @@ function AdminTurnos() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarCrear} color="error">Cancelar</Button>
-                    <Button onClick={clickCrear} variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={!formularioValido}>Guardar</Button>
                 </DialogActions>
             </Dialog >
 
@@ -850,6 +854,7 @@ function AdminTurnos() {
                                         value={nombreEdit}
                                         onChange={(e) => setNombreEdit(e.target.value)}
                                         fullWidth label="Nombre" size="small"
+                                        helperText={nombreEdit.trim() === "" ? "El nombre es obligatorio" : ""}
                                     />
                                 </Box>
 
@@ -864,6 +869,7 @@ function AdminTurnos() {
                                             Inactivo
                                         </MenuItem>
                                     </Select>
+                                    {estadoEdit === "" && <FormHelperText>El Estado es obligatorio</FormHelperText>}
                                 </FormControl>
 
                             </Paper>
@@ -872,7 +878,7 @@ function AdminTurnos() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarEditar} color="error">Cancelar</Button>
-                    <Button onClick={clickEdit} variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickEdit} variant="contained" color="primary" disabled={!editFormularioValido}>Guardar</Button>
                 </DialogActions>
             </Dialog >
 

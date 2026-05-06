@@ -24,7 +24,7 @@ function AdminPreoveedorCorreo() {
     // Estados de datos
     const [proveedorCorreo, setProveedorCorreo] = useState([])
     const [cargando, setCargando] = useState(true);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -197,10 +197,13 @@ function AdminPreoveedorCorreo() {
         setPagina(0);
     }, [busqueda]);
 
-    
+
 
     // Renderizado condicional
-    if (cargando) return ;
+    if (cargando) return;
+
+    const formularioValido = nuevoEmpresa !== "" && nuevoDominio.trim() !== "";
+    const editFormularioValido = editEmpresa !== "" && editDominio.trim() !== "";
 
     return (
         <>
@@ -212,7 +215,7 @@ function AdminPreoveedorCorreo() {
             </Box>
 
             {/* Alerta de exito */}
-            
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -409,6 +412,7 @@ function AdminPreoveedorCorreo() {
                         onClick={clickCrearProveedorCorreo}
                         variant="contained"
                         color="primary"
+                        disabled={!formularioValido}
                     >
                         Guardar
                     </Button>
@@ -458,6 +462,7 @@ function AdminPreoveedorCorreo() {
                         onClick={clcickEditarProveedorCorreo}
                         variant="contained"
                         color="primary"
+                        disabled={!editFormularioValido}
                     >
                         Guardar Cambios
                     </Button>

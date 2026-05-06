@@ -27,7 +27,7 @@ function AdminAFPs() {
     // Estados de datos
     const [afp, setAfp] = useState([])
     const [cargando, setCargando] = useState(true);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -189,12 +189,15 @@ function AdminAFPs() {
         setPagina(0);
     }, [busqueda]);
 
-    
+
 
 
 
     // Renderizado condicional
-    if (cargando) return ;
+    if (cargando) return;
+
+    const formularioValido = nuevoNombre.trim() !== "" && nuevoEstado !== "";
+    const editFormularioValido = editNombre.trim() !== "" && editEstado !== "";
 
     return (
         <>
@@ -206,7 +209,7 @@ function AdminAFPs() {
             </Box>
 
             {/* Alerta de exito */}
-            
+
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -405,6 +408,7 @@ function AdminAFPs() {
                         onClick={handleCrearAfp}
                         variant="contained"
                         color="primary"
+                        disabled={!formularioValido}
                     >
                         Guardar
                     </Button>
@@ -453,6 +457,7 @@ function AdminAFPs() {
                         onClick={handleEditarAfp}
                         variant="contained"
                         color="primary"
+                        disabled={!editFormularioValido}
                     >
                         Guardar Cambios
                     </Button>
