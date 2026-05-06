@@ -41,7 +41,10 @@ function AdminCentroCosto() {
 
 
     // Estados de paginacion y filtrado
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtrodepartamento, setFiltroDepartamento] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("")
     const [busqueda, setBusqueda] = useState("");
@@ -119,9 +122,13 @@ function AdminCentroCosto() {
         }
     };
 
-    const llamarTurnos = async () => {
+    const llamarTurnos = async (empresaId) => {
+        if (!empresaId) {
+            setTurnos([]);
+            return;
+        }
         try {
-            const respuesta = await obtenerTurnos()
+            const respuesta = await obtenerTurnos(empresaId)
             setTurnos(respuesta)
         } catch (error) {
             toast.error(error.message)
@@ -492,6 +499,8 @@ function AdminCentroCosto() {
             try {
                 const res = await obtenerDeptoPorEmpresa(filtroEmpresa);
                 setDeptosFiltradosSelect(res || []);
+                // Cargamos también los turnos para esta empresa
+                llamarTurnos(filtroEmpresa);
             } catch (e) {
                 console.error(e);
                 setDeptosFiltradosSelect([]);
@@ -546,7 +555,6 @@ function AdminCentroCosto() {
         };
         cargarEmpresas();
         cargarDeptos();
-        llamarTurnos();
         llamarProveedorCorreo();
 
         const cargarDispositivos = async () => {

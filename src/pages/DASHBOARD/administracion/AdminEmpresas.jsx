@@ -31,7 +31,10 @@ function AdminEmpresas() {
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
 
     // Estados crear
     const [open, setOpen] = useState(false);

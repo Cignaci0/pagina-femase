@@ -33,7 +33,10 @@ function ReportesFiscaliza() {
     const [opcionesCencos, setOpcionesCencos] = useState([]);
 
     // Filtros superiores
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepartamento, setFiltroDepartamento] = useState("");
     const [filtroCenco, setFiltroCenco] = useState("");
     const [filtroTurno, setFiltroTurno] = useState("");

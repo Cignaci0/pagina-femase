@@ -33,7 +33,10 @@ function AdminTurnosRotativosAsignacion() {
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
-    const [empresasFiltro, setEmpresasFiltro] = useState("")
+    const [empresasFiltro, setEmpresasFiltro] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepto, setFiltroDepto] = useState("")
     const [filtroCenco, setFiltroCenco] = useState("")
 
@@ -298,6 +301,24 @@ function AdminTurnosRotativosAsignacion() {
     useEffect(() => {
         cargarDatos();
     }, []);
+
+    useEffect(() => {
+        if (empresasFiltro) {
+            const fetchInitialEmployees = async () => {
+                const tId = toast.loading("Cargando empleados...");
+                try {
+                    const res = await obtenerPorEmpresa(empresasFiltro);
+                    const filtrados = (res || []).filter(emp => emp.permite_rotativo === true);
+                    setEmpleados(filtrados);
+                    toast.success("Empleados cargados", { id: tId });
+                } catch (error) {
+                    toast.error("Error al cargar empleados", { id: tId });
+                    setEmpleados([]);
+                }
+            };
+            fetchInitialEmployees();
+        }
+    }, [empresasFiltro]);
 
     useEffect(() => {
         setPagina(0);

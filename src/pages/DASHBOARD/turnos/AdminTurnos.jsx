@@ -87,7 +87,10 @@ function AdminTurnos() {
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
-    const [empresasFiltro, setEmpresasFiltro] = useState("")
+    const [empresasFiltro, setEmpresasFiltro] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroestado, setFiltroEstado] = useState("")
 
     // Estados crear

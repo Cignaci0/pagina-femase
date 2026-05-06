@@ -136,7 +136,10 @@ function AdminUsuario() {
 
     // --- ESTADOS DE FILTRADO ---
     const [busqueda, setBusqueda] = useState("");
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroEstado, setFiltroEstado] = useState("");
     const [filtroPerfil, setFiltroPerfil] = useState("");
 
@@ -283,6 +286,7 @@ function AdminUsuario() {
         setAbrirAsignar(false)
         setSeleccionados([])
         setDisableAsignacion(false)
+        setEditEmpresa("")
     }
 
     // --- LOGICA ASIGNAR ---
@@ -308,7 +312,12 @@ function AdminUsuario() {
     const arbolDatos = React.useMemo(() => {
         if (!empresas.length) return []
 
-        return empresas.map(emp => {
+        // Filtramos para mostrar solo la empresa a la que pertenece el usuario
+        const empresasFiltradas = editEmpresa
+            ? empresas.filter(emp => emp.empresa_id === parseInt(editEmpresa))
+            : empresas;
+
+        return empresasFiltradas.map(emp => {
             const misDeptos = allDepartamentos.filter(d => d.empresa?.empresa_id === emp.empresa_id)
             const deptosConHijos = misDeptos.map(dep => {
                 const misCencos = allCencos.filter(c => c.departamento?.departamento_id === dep.departamento_id)
@@ -335,7 +344,7 @@ function AdminUsuario() {
                 hijos: deptosConHijos
             };
 
-        }, [empresas, allDepartamentos, allCencos])
+        }, [empresas, allDepartamentos, allCencos, editEmpresa])
     })
 
     const [seleccionados, setSeleccionados] = useState([]);
@@ -585,6 +594,7 @@ function AdminUsuario() {
                                                     <IconButton
                                                         onClick={() => {
                                                             setEditId(usuario.usuario_id);
+                                                            setEditEmpresa(usuario.empresa?.empresa_id); // Capturamos la empresa del usuario
                                                             setAbrirAsignar(true);
                                                             setDisableAsignacion(usuario.empleado !== null);
                                                             if (usuario.cencos && usuario.cencos.length > 0) {

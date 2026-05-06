@@ -122,7 +122,10 @@ function AdminEmpleados() {
 
 
     // Estados de paginacion y filtrado
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepartamento, setFiltroDepartamento] = useState("");
     const [filtroCenco, setFiltroCenco] = useState("")
     const [filtroEstado, setFiltroEstado] = useState("")

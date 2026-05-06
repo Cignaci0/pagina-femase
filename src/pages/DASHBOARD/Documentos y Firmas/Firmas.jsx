@@ -15,7 +15,10 @@ import { obtenerEmpresas } from "../../../services/empresasServices";
 function Firma() {
     const [firmas, setFirmas] = useState([]);
     const [editId, setEditId] = useState(null);
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [idEmpleado, setIdEmpleado] = useState(null);
     const [pin, setPin] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("TODOS");

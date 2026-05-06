@@ -34,7 +34,10 @@ function AdminHorarios() {
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(7);
-    const [filtroEmpresa, setFiltroEmpresa] = useState("")
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
 
     // Estados crear
     const [open, setOpen] = useState(false);

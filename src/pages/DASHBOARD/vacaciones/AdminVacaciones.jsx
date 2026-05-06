@@ -88,7 +88,10 @@ function AdminVacaciones() {
     const [opcionesCencos, setOpcionesCencos] = useState([]);
 
     // Filtros generales
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepto, setFiltroDepto] = useState("");
     const [filtroCenco, setFiltroCenco] = useState("");
     const [filtroEmpleado, setFiltroEmpleado] = useState("");

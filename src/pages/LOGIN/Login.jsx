@@ -29,6 +29,7 @@ function Login() {
       if (respuesta.token) {
         localStorage.setItem('token', respuesta.token);
         localStorage.setItem('perfilId', respuesta.profile_id);
+        localStorage.setItem('empresaId', respuesta.empresa_id);
       }
       navigate("/dashboard");
     } catch (error) {

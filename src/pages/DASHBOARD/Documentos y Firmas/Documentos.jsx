@@ -18,7 +18,10 @@ import { obtenerPorEmpresa as obtenerEmpleadosPorEmpresa } from "../../../servic
 function Documento() {
     const [documentos, setDocumentos] = useState([]);
     const [editId, setEditId] = useState(null);
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
 
     // Pagination states
     const [pagina, setPagina] = useState(0);

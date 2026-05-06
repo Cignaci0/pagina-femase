@@ -34,7 +34,10 @@ function AdminCargos() {
     const [filaPorPagina, setFilaPorPagina] = useState(7);
     const [busqueda, setBusqueda] = useState("");
     const [filtroestado, setFiltroEstado] = useState("")
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
 
     // Estados crear
     const [open, setOpen] = useState(false);

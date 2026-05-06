@@ -27,7 +27,10 @@ function AdminAsignacionCiclica() {
     const [empleados, setEmpleados] = useState([])
 
     // Estados filtros
-    const [filtroEmpresa, setFiltroEmpresa] = useState("")
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepartamento, setFiltroDepartamento] = useState("")
     const [filtroCenco, setFiltroCenco] = useState("")
 
@@ -176,7 +179,12 @@ function AdminAsignacionCiclica() {
                 toast.error(err.message);
             }
         };
+
         cargarDatos();
+        const storedEmpresaId = localStorage.getItem('empresaId');
+        if (storedEmpresaId) {
+            handleCambioEmpresa(parseInt(storedEmpresaId));
+        }
     }, []);
 
     // Filtros en cascada: departamentos filtrados por empresa

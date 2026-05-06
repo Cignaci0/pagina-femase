@@ -59,7 +59,10 @@ function BusquedaPorMarcas() {
 
     // --- ESTADOS DE SELECCIÓN DE FILTROS ---
     const [busqueda, setBusqueda] = useState("");
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepto, setFiltroDepto] = useState("");
     const [filtroCenco, setFiltroCenco] = useState("");
     const [filtroEmpleado, setFiltroEmpleado] = useState("");

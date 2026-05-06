@@ -159,7 +159,7 @@ function AdminPerfilUsuarios() {
                 </Box>
 
                 {/* Tabla principal */}
-                <TableContainer sx={{ minHeight: '366px' }}>
+                <TableContainer sx={{ flex: 1, overflow: "auto" }}>
                     <Table stickyHeader sx={{ minWidth: 650 }} aria-label="tabla de usuarios">
                         <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                             <TableRow>
