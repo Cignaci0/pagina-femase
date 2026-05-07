@@ -130,7 +130,9 @@ function AdminTipoMarcasManuales() {
         }
     }
 
-    // Effects
+    // Renderizado condicional
+    const esFormularioValido = nuevoNombre.trim() !== "" && nuevoVigente !== "";
+    const esEditValido = editNombre.trim() !== "" && editVigente !== "";
     useEffect(() => {
         cargarDatos();
     }, []);
@@ -307,6 +309,7 @@ function AdminTipoMarcasManuales() {
                         variant="contained"
                         color="primary"
                         onClick={handleCrearTipoMarca}
+                        disabled={!esFormularioValido}
                     >
                         Guardar
                     </Button>
@@ -352,6 +355,7 @@ function AdminTipoMarcasManuales() {
                         variant="contained"
                         color="primary"
                         onClick={handleEditarTipoMarca}
+                        disabled={!esEditValido}
                     >
                         Guardar Cambios
                     </Button>

@@ -144,11 +144,9 @@ function AdminVacaciones() {
                 });
                 setOpcionesDeptos(Array.from(deptosMap.values()));
 
-                const tId = toast.loading("Cargando empleados...");
                 try {
                     const empsRes = await obtenerPorEmpresa(filtroEmpresa);
                     setEmpleadosGlobal(empsRes || []);
-                    toast.success("Empleados cargados", { id: tId });
                 } catch (error) {
                     toast.error("Error al cargar empleados", { id: tId });
                     setEmpleadosGlobal([]);
@@ -364,13 +362,13 @@ function AdminVacaciones() {
     const [open, setOpen] = useState(false);
     const [nuevoFechaInicio, setNuevoFechaInicio] = useState(null);
     const [nuevoFechaFin, setNuevoFechaFin] = useState(null);
-    const [nuevoEstado, setNuevoEstado] = useState("A");
+    const [nuevoEstado, setNuevoEstado] = useState("P");
 
     const cerrarDialog = () => {
         setOpen(false);
         setNuevoFechaInicio(null);
         setNuevoFechaFin(null);
-        setNuevoEstado("A");
+        setNuevoEstado("P");
     };
 
     // Estados de Aprobar/Rechazar
@@ -430,7 +428,7 @@ function AdminVacaciones() {
                 await handleBuscarVacaciones();
             }
         } catch (error) {
-            toast.error("Error al registrar solicitud", { id: toastId });
+            toast.error(error.message || "Error al registrar solicitud", { id: toastId });
         }
     };
 
@@ -808,14 +806,6 @@ function AdminVacaciones() {
                                 </LocalizationProvider>
                             </Box>
 
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Estado *</InputLabel>
-                                <Select label="Estado *" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
-                                    <MenuItem value="A">Aprobado</MenuItem>
-                                    <MenuItem value="P">Pendiente</MenuItem>
-                                    <MenuItem value="R">Rechazado</MenuItem>
-                                </Select>
-                            </FormControl>
                         </Paper>
                     </Box>
                 </DialogContent>
@@ -825,7 +815,7 @@ function AdminVacaciones() {
                         onClick={clickCrear}
                         variant="contained"
                         color="primary"
-                        disabled={!nuevoFechaInicio || !nuevoFechaFin || !nuevoEstado}
+                        disabled={!nuevoFechaInicio || !nuevoFechaFin}
                     >
                         Guardar
                     </Button>

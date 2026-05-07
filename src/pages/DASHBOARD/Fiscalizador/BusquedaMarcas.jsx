@@ -486,7 +486,7 @@ function BusquedaPorMarcas() {
                                     <TableCell align="center"><strong>Más Info</strong></TableCell>
                                     <TableCell align="center"><strong>Hashcode</strong></TableCell>
                                     <TableCell align="center"><strong>Tipo Marca</strong></TableCell>
-                                    <TableCell align="center"><strong>Actualización</strong></TableCell>
+                                    <TableCell align="center"><strong>Historial</strong></TableCell>
                                     <TableCell align="center"><strong>Comentario</strong></TableCell>
                                 </TableRow>
                             </TableHead>
@@ -571,6 +571,7 @@ function BusquedaPorMarcas() {
                                     <TableCell align="center"><strong>Num Ficha</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Usuario Actualizador</strong></TableCell>
+                                    <TableCell align="center"><strong>Estado</strong></TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -593,7 +594,18 @@ function BusquedaPorMarcas() {
                                             <TableCell align="center">{h.num_ficha || "-"}</TableCell>
                                             <TableCell align="center">{h.fecha_actualizacion ? dayjs(h.fecha_actualizacion).format("YYYY-MM-DD HH:mm") : "-"}</TableCell>
                                             <TableCell align="center">{h.usuario_actualizador || "-"}</TableCell>
-                                        </TableRow>
+                                            <TableCell align="center">
+                                                <Box
+                                                    sx={{
+                                                        width: 14,
+                                                        height: 14,
+                                                        borderRadius: "50%",
+                                                        bgcolor: h.estado_id === 1 ? "#4caf50" : h.estado_id === 2 ? "#f44336" : h.estado_id === 3 ? "#ffc107" : "#bdbdbd",
+                                                        display: "inline-block",
+                                                        boxShadow: "0 0 4px rgba(0,0,0,0.2)"
+                                                    }}
+                                                />
+                                            </TableCell>                                        </TableRow>
                                     ))
                                 )}
                             </TableBody>

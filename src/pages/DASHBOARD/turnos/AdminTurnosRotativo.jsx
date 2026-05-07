@@ -15,10 +15,10 @@ import { toast } from "react-hot-toast";
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDepartamentos } from "../../../services/departamentosServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import { getTurnosRotativos, actualizarTurnoRotativo, asignarTurnosRotativos } from "../../../services/turnosRotativoService";
+import { getTurnosRotativos, actualizarTurnoRotativo, asignarTurnosRotativos, eliminarTurnoRotativo } from "../../../services/turnosRotativoService";
 import { obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerHorarios } from "../../../services/horariosServices";
-import { Grid } from "@mui/material";
+import { Grid, Divider } from "@mui/material";
 
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -59,6 +59,12 @@ function AdminTurnosRotativosAsignacion() {
     const [cargandoEnvio, setCargandoEnvio] = useState(false)
     const [cargandoEnvioFiltro, setCargandoEnvioFiltro] = useState(false)
 
+    // Estados para eliminación
+    const [seleccionadosEliminar, setSeleccionadosEliminar] = useState([]);
+    const [dialogConfirmarEliminar, setDialogConfirmarEliminar] = useState(false);
+    const [textoConfirmacion, setTextoConfirmacion] = useState("");
+    const [cargandoEliminar, setCargandoEliminar] = useState(false);
+
     // Helper para formato de horario
     const formatHorarioInfo = (h) => {
         if (!h) return "Descanso";
@@ -87,15 +93,13 @@ function AdminTurnosRotativosAsignacion() {
     const cargarDatos = async () => {
         setCargando(true)
         try {
-            const [dataEmpresas, dataDeptos, dataCencos, dataHorarios] = await Promise.all([
+            const [dataEmpresas, dataDeptos, dataCencos] = await Promise.all([
                 obtenerEmpresas(),
                 obtenerDepartamentos(),
-                obtenerCentroCostos(),
-                obtenerHorarios()
+                obtenerCentroCostos()
             ]);
 
             setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
-            setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
 
             const deptos = dataDeptos?.departamentos || dataDeptos;
             setDepartamentos(Array.isArray(deptos) ? deptos : [deptos]);
@@ -117,7 +121,10 @@ function AdminTurnosRotativosAsignacion() {
     const cerrarAsignar = () => { setAsignar(false) }
     const cerrarDetalle = () => { setDetalle(false) }
     const cerrarCrear = () => { setCrear(false) }
-    const cerrarEditar = () => { setEditar(false) }
+    const cerrarEditar = () => { 
+        setEditar(false);
+        setSeleccionadosEliminar([]);
+    }
     const cerrarDetallesCrear = () => { setDetalleCrear(false) }
     const cerrarDetalleEditar = () => { setDetalleEditar(false) }
 
@@ -231,6 +238,43 @@ function AdminTurnosRotativosAsignacion() {
         }
     };
 
+    const handleToggleEliminar = (id) => {
+        setSeleccionadosEliminar(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const handleConfirmarEliminar = async () => {
+        if (textoConfirmacion !== "ELIMINAR") {
+            toast.error("Debe escribir ELIMINAR para confirmar");
+            return;
+        }
+
+        setCargandoEliminar(true);
+        const tId = toast.loading(`Eliminando ${seleccionadosEliminar.length} registros...`);
+        try {
+            for (const id of seleccionadosEliminar) {
+                await eliminarTurnoRotativo(id);
+            }
+            toast.success("Registros eliminados correctamente", { id: tId });
+            setSeleccionadosEliminar([]);
+            setDialogConfirmarEliminar(false);
+            setTextoConfirmacion("");
+
+            // Recargar historial
+            if (empleadoSeleccionado) {
+                const result = await getTurnosRotativos(empleadoSeleccionado.empleado_id, historialPage);
+                const dataArray = Array.isArray(result) ? result : (result.data || []);
+                setAsignacionesEmpleado(dataArray);
+                setHistorialTotalPages(result.lastPage || (result.totalPages) || 1);
+            }
+        } catch (error) {
+            toast.error(error.message || "Error al eliminar algunos registros", { id: tId });
+        } finally {
+            setCargandoEliminar(false);
+        }
+    };
+
     // Filtrado y paginacion
     const deptosFiltrados = empresasFiltro
         ? departamentos.filter(d => d.empresa?.empresa_id === empresasFiltro)
@@ -304,19 +348,25 @@ function AdminTurnosRotativosAsignacion() {
 
     useEffect(() => {
         if (empresasFiltro) {
-            const fetchInitialEmployees = async () => {
-                const tId = toast.loading("Cargando empleados...");
+            const fetchInitialData = async () => {
                 try {
-                    const res = await obtenerPorEmpresa(empresasFiltro);
+                    const [res, dataHorarios] = await Promise.all([
+                        obtenerPorEmpresa(empresasFiltro),
+                        obtenerHorarios(empresasFiltro)
+                    ]);
                     const filtrados = (res || []).filter(emp => emp.permite_rotativo === true);
                     setEmpleados(filtrados);
-                    toast.success("Empleados cargados", { id: tId });
+                    setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
                 } catch (error) {
-                    toast.error("Error al cargar empleados", { id: tId });
+                    toast.error("Error al cargar datos", { id: "error-datos" });
                     setEmpleados([]);
+                    setHorarios([]);
                 }
             };
-            fetchInitialEmployees();
+            fetchInitialData();
+        } else {
+            setEmpleados([]);
+            setHorarios([]);
         }
     }, [empresasFiltro]);
 
@@ -368,12 +418,10 @@ function AdminTurnosRotativosAsignacion() {
                                 setFiltroDepto("");
                                 setFiltroCenco("");
                                 if (idEmp) {
-                                    const tId = toast.loading("Cargando empleados...");
                                     try {
                                         const res = await obtenerPorEmpresa(idEmp);
                                         const filtrados = (res || []).filter(emp => emp.permite_rotativo === true);
                                         setEmpleados(filtrados);
-                                        toast.success("Empleados cargados", { id: tId });
                                     } catch (error) {
                                         toast.error("Error al cargar empleados", { id: tId });
                                         setEmpleados([]);
@@ -555,7 +603,11 @@ function AdminTurnosRotativosAsignacion() {
                                                             />
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            <Checkbox size="small" />
+                                                            <Checkbox
+                                                                size="small"
+                                                                checked={seleccionadosEliminar.includes(asig.id)}
+                                                                onChange={() => handleToggleEliminar(asig.id)}
+                                                            />
                                                         </TableCell>
                                                         <TableCell align="left">
                                                             {formatHorarioInfo(asig.horario)}
@@ -610,9 +662,56 @@ function AdminTurnosRotativosAsignacion() {
                         >
                             Editar Turno Rotativo
                         </Button>
-                        <Button variant="outlined" color="error" sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}>Eliminar Seleccionado(S)</Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            sx={{ px: 2, py: 0.5, fontSize: "0.8rem" }}
+                            disabled={seleccionadosEliminar.length === 0}
+                            onClick={() => {
+                                setTextoConfirmacion("");
+                                setDialogConfirmarEliminar(true);
+                            }}
+                        >
+                            Eliminar Seleccionado(s) ({seleccionadosEliminar.length})
+                        </Button>
                     </Box>
                     <Button onClick={cerrarEditar} color="error" variant="outlined">Salir</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog de confirmación de eliminación */}
+            <Dialog open={dialogConfirmarEliminar} onClose={() => !cargandoEliminar && setDialogConfirmarEliminar(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Confirmar Eliminación</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ py: 1, textAlign: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Estás a punto de eliminar <strong>{seleccionadosEliminar.length}</strong> registro(s). Esta acción no se puede deshacer.
+                        </Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                            Para confirmar, escribe <strong>ELIMINAR</strong> a continuación:
+                        </Typography>
+                        <TextField
+                            fullWidth
+                            size="small"
+                            value={textoConfirmacion}
+                            onChange={(e) => setTextoConfirmacion(e.target.value)}
+                            placeholder="Escribe ELIMINAR"
+                            autoComplete="off"
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 3, justifyContent: 'center', gap: 2 }}>
+                    <Button onClick={() => setDialogConfirmarEliminar(false)} disabled={cargandoEliminar} color="inherit" variant="outlined">
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleConfirmarEliminar}
+                        disabled={textoConfirmacion !== "ELIMINAR" || cargandoEliminar}
+                        color="error"
+                        variant="contained"
+                    >
+                        {cargandoEliminar ? <CircularProgress size={24} color="inherit" /> : "Confirmar Eliminación"}
+                    </Button>
                 </DialogActions>
             </Dialog>
 

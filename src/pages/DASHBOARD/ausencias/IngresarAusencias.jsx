@@ -22,7 +22,10 @@ function AdminAusencias() {
     const [tiposAusenciaBack, setTiposAusenciaBack] = useState([]);
 
     // Filtros de selección
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepto, setFiltroDepto] = useState("");
     const [filtroCenco, setFiltroCenco] = useState("");
     const [filtroEmpleado, setFiltroEmpleado] = useState("");
@@ -66,25 +69,30 @@ function AdminAusencias() {
     }, []);
 
     // Handlers cascada
-    const handleEmpresaChange = async (e) => {
+    const handleEmpresaChange = (e) => {
         const val = e.target.value;
         setFiltroEmpresa(val);
         setFiltroDepto("");
         setFiltroCenco("");
         setFiltroEmpleado("");
         setEmpleadosGlobal([]);
-
-        if (val) {
-            const tId = toast.loading("Cargando empleados...");
-            try {
-                const results = await obtenerPorEmpresa(val);
-                setEmpleadosGlobal(results || []);
-                toast.success("Empleados cargados", { id: tId });
-            } catch (error) {
-                toast.error("Error al cargar empleados", { id: tId });
-            }
-        }
     };
+
+    useEffect(() => {
+        if (filtroEmpresa) {
+            const cargarEmpleados = async () => {
+                try {
+                    const results = await obtenerPorEmpresa(filtroEmpresa);
+                    setEmpleadosGlobal(results || []);
+                } catch (error) {
+                    toast.error("Error al cargar empleados");
+                }
+            };
+            cargarEmpleados();
+        } else {
+            setEmpleadosGlobal([]);
+        }
+    }, [filtroEmpresa]);
 
     const handleDeptoChange = (e) => {
         setFiltroDepto(e.target.value);
@@ -341,7 +349,7 @@ function AdminAusencias() {
                                     {tipoAusenciaVisual === "Ausencia por hora" && (
                                         <Box sx={{ display: 'flex', gap: 2 }}>
                                             <Box sx={{ flex: 1 }}>
-                                                <Typography variant="body2" color="text.secondary" mb={1}>Hora de Entrada</Typography>
+                                                <Typography variant="body2" color="text.secondary" mb={1}>Hora de Inicio</Typography>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <TextField 
                                                         size="small" placeholder="HH" 
@@ -361,7 +369,7 @@ function AdminAusencias() {
                                                 </Box>
                                             </Box>
                                             <Box sx={{ flex: 1 }}>
-                                                <Typography variant="body2" color="text.secondary" mb={1}>Hora de Salida</Typography>
+                                                <Typography variant="body2" color="text.secondary" mb={1}>Hora de Fin</Typography>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <TextField 
                                                         size="small" placeholder="HH" 

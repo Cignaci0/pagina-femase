@@ -63,11 +63,9 @@ function ReporteVacacion() {
                 });
                 setOpcionesDeptos(Array.from(deptosMap.values()));
 
-                const tId = toast.loading("Cargando empleados...");
                 try {
                     const resEmps = await obtenerPorEmpresa(filtroEmpresa);
                     setEmpleadosGlobal(resEmps || []);
-                    toast.success("Empleados cargados", { id: tId });
                 } catch (error) {
                     toast.error("Error al cargar empleados", { id: tId });
                     setEmpleadosGlobal([]);

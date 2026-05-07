@@ -81,11 +81,9 @@ function AsignacionTeletrabajos() {
         setCheckedDer([]);
 
         if (valor) {
-            const tId = toast.loading("Cargando empleados...");
             try {
                 const results = await obtenerPorEmpresa(valor);
                 setEmpleados(results || []);
-                toast.success("Empleados cargados", { id: tId });
             } catch (error) {
                 toast.error("Error al cargar empleados de la empresa", { id: tId });
                 setEmpleados([]);

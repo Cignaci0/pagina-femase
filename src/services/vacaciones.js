@@ -65,27 +65,24 @@ export const generarSolicitudVacaciones = async (datosPayload) => {
 }
 
 export const crearSolicitudVacaciones = async (numFicha, fechaInicio, fechaFin, estado) => {
-    try {
-        const response = await fetch(`${API_URL}/vacaciones/solicitud?numFicha=${numFicha}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + window.localStorage.getItem("token"),
-            },
-            body: JSON.stringify({
-                fechaInicio: fechaInicio,
-                fechaFin: fechaFin,
-                estadoId: estado,
-            }),
-        });
-        if (!response.ok) {
-            return [];
-        }
-        const data = await response.json();
-        return data || [];
-    } catch (error) {
-        return [];
+    const response = await fetch(`${API_URL}/vacaciones/solicitud?numFicha=${numFicha}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
+        },
+        body: JSON.stringify({
+            fechaInicio: fechaInicio,
+            fechaFin: fechaFin,
+            estadoId: estado,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al crear la solicitud de vacaciones");
     }
+    return await response.json();
 }
 
 export const aprobarRechazar = async (id, estado) => {

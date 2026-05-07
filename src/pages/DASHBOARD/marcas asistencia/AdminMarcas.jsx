@@ -164,11 +164,9 @@ function AdminMarcas() {
                 });
                 setOpcionesDeptos(Array.from(deptosMap.values()));
 
-                const tId = toast.loading("Cargando empleados...");
                 try {
                     const empsRes = await obtenerPorEmpresa(filtroEmpresa);
                     setEmpleadosGlobal(empsRes || []);
-                    toast.success("Empleados cargados", { id: tId });
                 } catch (error) {
                     toast.error("Error al cargar empleados", { id: tId });
                     setEmpleadosGlobal([]);
@@ -511,17 +509,6 @@ function AdminMarcas() {
                         const isTipoCargo1Global = userRole === 1;
                         const isSelfRestricted = (cargoTipoBusqueda === 2 && normalizeRut(empSelBusqueda?.run) === userRut);
 
-                        // Debug log para ayudar al usuario
-                        console.log("Restriccion Info:", { 
-                            userRut, 
-                            foundMe: !!loggedInEmpleado, 
-                            userRole, 
-                            selRut: empSelBusqueda?.run, 
-                            cargoTipoBusqueda,
-                            isTipoCargo1Global,
-                            isSelfRestricted
-                        });
-
                         return (
                             <Button
                                 variant="contained"
@@ -568,7 +555,7 @@ function AdminMarcas() {
                                     <TableCell align="center"><strong>Más Info</strong></TableCell>
                                     <TableCell align="center"><strong>Hashcode</strong></TableCell>
                                     <TableCell align="center"><strong>Tipo Marca</strong></TableCell>
-                                    <TableCell align="center"><strong>Actualización</strong></TableCell>
+                                    <TableCell align="center"><strong>Historial de Actualización</strong></TableCell>
                                     <TableCell align="center"><strong>Comentario</strong></TableCell>
                                     <TableCell align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
@@ -810,7 +797,7 @@ function AdminMarcas() {
                                             <TableCell align="center">{h.evento === 1 ? "Entrada" : h.evento === 2 ? "Salida" : "-"}</TableCell>
                                             <TableCell align="center">{h.hashcode || "-"}</TableCell>
                                             <TableCell align="center">{h.num_ficha || "-"}</TableCell>
-                                            <TableCell align="center">{h.fecha_actualizacion ? dayjs(h.fecha_actualizacion).format("YYYY-MM-DD HH:mm") : "-"}</TableCell>
+                                            <TableCell align="center">{h.fecha_actualizacion ? dayjs(h.fecha_actualizacion).format("YYYY-MM-DD") : "-"}</TableCell>
                                             <TableCell align="center">{h.usuario_actualizador || "-"}</TableCell>
                                             <TableCell align="center">
                                                 <Box

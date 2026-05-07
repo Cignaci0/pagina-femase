@@ -106,11 +106,9 @@ function AdminAusencia() {
                 });
                 setOpcionesDeptos(Array.from(deptosMap.values()));
 
-                const tId = toast.loading("Cargando empleados...");
                 try {
                     const empsRes = await obtenerPorEmpresa(filtroEmpresa);
                     setEmpleadosGlobal(empsRes || []);
-                    toast.success("Empleados cargados", { id: tId });
                 } catch (error) {
                     toast.error("Error al cargar empleados", { id: tId });
                     setEmpleadosGlobal([]);

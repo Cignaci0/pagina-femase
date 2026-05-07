@@ -50,17 +50,15 @@ function AdminTeletrabajos() {
     useEffect(() => {
         const cargarDatosBase = async () => {
             try {
-                const [dataEmp, dataDep, dataCen, dataHor] = await Promise.all([
+                const [dataEmp, dataDep, dataCen] = await Promise.all([
                     obtenerEmpresas(),
                     obtenerDepartamentos(),
-                    obtenerCentroCostos(),
-                    obtenerHorarios()
+                    obtenerCentroCostos()
                 ]);
                 setEmpresas(Array.isArray(dataEmp) ? dataEmp : [dataEmp]);
                 const deptos = dataDep?.departamentos || dataDep;
                 setDepartamentos(Array.isArray(deptos) ? deptos : [deptos]);
                 setCencos(Array.isArray(dataCen) ? dataCen : [dataCen]);
-                setHorarios(Array.isArray(dataHor) ? dataHor : [dataHor]);
             } catch (err) {
                 toast.error("Error al cargar datos base");
             }
@@ -101,16 +99,21 @@ function AdminTeletrabajos() {
         setCargando(true);
         const tId = toast.loading("Cargando registros de teletrabajo...");
         try {
-            const res = await obtenerEmpleadosPorTeletrabajo(idEmp, p + 1, r);
+            const [res, resHor] = await Promise.all([
+                obtenerEmpleadosPorTeletrabajo(idEmp, p + 1, r),
+                obtenerHorarios(idEmp)
+            ]);
             const data = res.data || [];
             setEmpleados(data);
             setTotalRecords(res.total || 0);
+            setHorarios(resHor || []);
             if (idEmpresa) setEmpresaSeleccionada(idEmpresa);
             toast.success("Datos cargados", { id: tId });
         } catch (error) {
-            toast.error("Error al obtener teletrabajos", { id: tId });
+            toast.error("Error al obtener datos", { id: tId });
             setEmpleados([]);
             setTotalRecords(0);
+            setHorarios([]);
         } finally {
             setCargando(false);
         }
@@ -183,7 +186,13 @@ function AdminTeletrabajos() {
             toast.error("Porvafor seleccione un registro del historial");
             return;
         }
-        setHorarioIdEdicion(asignacionSeleccionada.horario?.horario_id || "");
+        // Extraemos el ID considerando que horario_id puede ser el objeto completo
+        let currentHid = "";
+        const prop = asignacionSeleccionada.horario || asignacionSeleccionada.horario_id || asignacionSeleccionada.id_horario;
+        if (prop) {
+            currentHid = typeof prop === 'object' ? (prop.horario_id || prop.id || "") : prop;
+        }
+        setHorarioIdEdicion(currentHid);
         setDialogAsignar(true);
     };
 
@@ -200,8 +209,11 @@ function AdminTeletrabajos() {
         }
 
         // Validación de duración
-        const horarioAnterior = asignacionSeleccionada.horario;
-        const horarioNuevo = horarios.find(h => h.horario_id === horarioIdEdicion);
+        let horarioAnterior = asignacionSeleccionada.horario || asignacionSeleccionada.horario_id || asignacionSeleccionada.id_horario;
+        if (horarioAnterior && typeof horarioAnterior !== 'object') {
+            horarioAnterior = horarios.find(h => String(h.horario_id) === String(horarioAnterior));
+        }
+        const horarioNuevo = horarios.find(h => String(h.horario_id) === String(horarioIdEdicion));
 
         if (horarioAnterior && horarioNuevo) {
             const duracionAnterior = getDuracionHorario(horarioAnterior);
@@ -261,11 +273,46 @@ function AdminTeletrabajos() {
         }
     };
 
-    const formatHorarioInfo = (h) => {
-        if (!h) return "Descanso";
-        const entrada = h.hora_entrada?.slice(0, 5) || "??:??";
-        const salida = h.hora_salida?.slice(0, 5) || "??:??";
-        return `${entrada} - ${salida}`;
+    const formatHorarioInfo = (asig) => {
+        // La API envía el objeto de horario dentro de horario_id o id_horario
+        let h = asig.horario || asig.horario_id || asig.id_horario;
+        
+        // Si h no es objeto pero tenemos un ID, buscamos en la lista global
+        if (h && typeof h !== 'object') {
+            const hid = h;
+            const hGlobal = horarios.find(x => String(x.horario_id || x.id) === String(hid));
+            if (hGlobal) h = hGlobal;
+        }
+
+        if (h && typeof h === 'object') {
+            const entrada = h.hora_entrada?.slice(0, 5);
+            const salida = h.hora_salida?.slice(0, 5);
+            if (entrada && salida) {
+                return `${entrada} - ${salida}`;
+            }
+            // Si el objeto no tiene las horas, buscamos por su ID interno en la lista global
+            const internalId = h.horario_id || h.id_horario || h.id;
+            if (internalId) {
+                const hGlobal = horarios.find(x => String(x.horario_id || x.id) === String(internalId));
+                if (hGlobal) {
+                    const ent = hGlobal.hora_entrada?.slice(0, 5) || "??:??";
+                    const sal = hGlobal.hora_salida?.slice(0, 5) || "??:??";
+                    return `${ent} - ${sal}`;
+                }
+            }
+        }
+        
+        // Fallback de diagnóstico final
+        const rawId = asig.horario_id || asig.id_horario;
+        if (rawId) {
+            if (typeof rawId === 'object') {
+                const actualId = rawId.horario_id || rawId.id_horario || rawId.id || "?";
+                return `ID Obj: ${actualId}`;
+            }
+            return `ID: ${rawId}`;
+        }
+        
+        return "Descanso";
     };
 
     const handleChangePage = (event, newPage) => {
@@ -437,7 +484,7 @@ function AdminTeletrabajos() {
                                                 <TableCell align="center">
                                                     <Radio checked={asignacionSeleccionada?.id === asig.id} onChange={() => setAsignacionSeleccionada(asig)} size="small" />
                                                 </TableCell>
-                                                <TableCell align="center">{formatHorarioInfo(asig.horario)}</TableCell>
+                                                <TableCell align="center">{formatHorarioInfo(asig)}</TableCell>
                                                 <TableCell align="center">{asig.fecha_inicio_turno?.split('T')[0] || asig.fecha_actual?.split('T')[0]}</TableCell>
                                             </TableRow>
                                         ))}
@@ -503,13 +550,13 @@ function AdminTeletrabajos() {
 
             {/* Dialog Editar (Funcional) */}
             <Dialog open={dialogAsignar} onClose={() => !cargandoEnvio && setDialogAsignar(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Editar Asignación de Teletrabajo</DialogTitle>
-                <DialogContent>
-                    <Typography variant="subtitle2" sx={{ mb: 2, mt: 1 }}>
+                <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Editar Asignación de Teletrabajo</DialogTitle>
+                <DialogContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3, mt: 1 }}>
                         Empleado: {empleadoSeleccionado?.nombres} {empleadoSeleccionado?.apellido_paterno}
                     </Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
+                    <Grid container spacing={2} justifyContent="center">
+                        <Grid item xs={12} sm={8}>
                             <FormControl fullWidth size="small">
                                 <InputLabel shrink>Horario</InputLabel>
                                 <Select
@@ -530,32 +577,10 @@ function AdminTeletrabajos() {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={6}>
-                            <TextField 
-                                fullWidth 
-                                label="Fecha Inicio" 
-                                type="date" 
-                                InputLabelProps={{ shrink: true }} 
-                                value={asignacionSeleccionada?.fecha_inicio_turno?.split('T')[0] || ""} 
-                                size="small" 
-                                disabled 
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField 
-                                fullWidth 
-                                label="Fecha Fin" 
-                                type="date" 
-                                InputLabelProps={{ shrink: true }} 
-                                value={asignacionSeleccionada?.fecha_fin_turno?.split('T')[0] || ""} 
-                                size="small" 
-                                disabled 
-                            />
-                        </Grid>
                     </Grid>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDialogAsignar(false)} disabled={cargandoEnvio}>Cancelar</Button>
+                <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
+                    <Button variant="outlined" color="error" onClick={() => setDialogAsignar(false)} disabled={cargandoEnvio}>Cancelar</Button>
                     <Button 
                         variant="contained" 
                         color="primary" 

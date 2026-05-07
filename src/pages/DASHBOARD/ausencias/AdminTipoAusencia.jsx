@@ -237,6 +237,9 @@ function AdminTipoAusencia() {
     }, []);
 
     // Renderizado condicional
+    const esFormularioValido = nuevoNombre.trim() !== "" && nuevoTipo !== "" && nuevoEstado !== "" && nuevoJustificaHora !== "" && nuevoPagadas !== "";
+    const esEditValido = editNombre.trim() !== "" && editTipo !== "" && editEstado !== "" && editJustidicaHora !== "" && editPagadas !== "";
+
     if (cargando) return ;
 
     return (
@@ -481,7 +484,7 @@ function AdminTipoAusencia() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
-                    <Button onClick={clickGuardarCrear} variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={clickGuardarCrear} variant="contained" color="primary" disabled={!esFormularioValido}>Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -556,7 +559,7 @@ function AdminTipoAusencia() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
-                    <Button onClick={clickGuardarEdit} variant="contained" color="primary">Guardar Cambios</Button>
+                    <Button onClick={clickGuardarEdit} variant="contained" color="primary" disabled={!esEditValido}>Guardar Cambios</Button>
                 </DialogActions>
             </Dialog>
 

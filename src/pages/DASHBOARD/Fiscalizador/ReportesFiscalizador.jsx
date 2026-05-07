@@ -83,7 +83,6 @@ function ReportesFiscaliza() {
     useEffect(() => {
         const handleCambioEmpresa = async () => {
             if (filtroEmpresa !== "") {
-                const tId = toast.loading("Cargando información...");
                 // 1. Filtrar cargos por empresa
                 const cargosEmp = cargosGlobal.filter(c => {
                     const idEmp = c.empresa?.empresa_id || c.empresa_id || c.id_empresa;
@@ -117,7 +116,6 @@ function ReportesFiscaliza() {
                     setOpcionesHorarios(horariosEmp);
 
                     setEmpleadosGlobal(emps || []);
-                    toast.success("Información cargada correctamente", { id: tId });
                 } catch (error) {
                     toast.error("Error al cargar datos de la empresa", { id: tId });
                     setEmpleadosGlobal([]);

@@ -63,3 +63,18 @@ export const actualizarTurnoRotativo = async (id, horario,fecha_fin) => {
     }
     return datos;
 }
+
+export const eliminarTurnoRotativo = async (id) => {
+    const peticion = await fetch(`${API_URL}/asignacion-turno-rotativo/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
+        },
+    });
+    const datos = await peticion.json();
+    if (!peticion.ok) {
+        throw new Error(datos.message || "Error al eliminar turnos rotativos");
+    }
+    return datos;
+}

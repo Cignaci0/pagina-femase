@@ -10,21 +10,14 @@ import {
 import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
-import { obtenerEmpleados } from "../../../services/empleadosServices";
+import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerAutorizacionesHE } from "../../../services/autorizaHorasExtras";
-import { regiones, comunas } from "../../../utils/dataGeografica";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker, TimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
-import DraftsIcon from '@mui/icons-material/Drafts';
-import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
-import { FaFileExcel, FaFileCsv } from "react-icons/fa";
-import * as XLSX from 'xlsx';
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 dayjs.locale("es");
@@ -33,7 +26,6 @@ dayjs.locale("es");
 function AutorizacionHoraExtra() {
 
     // Estados de datos
-    const [empresas, setEmpresas] = useState([])
     const [cargando, setCargando] = useState(false);
 
     // Estados de paginacion y filtrado
@@ -56,7 +48,10 @@ function AutorizacionHoraExtra() {
     const [opcionesCencos, setOpcionesCencos] = useState([]);
     const [opcionesEmpleados, setOpcionesEmpleados] = useState([]);
 
-    const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
+        const stored = localStorage.getItem('empresaId');
+        return stored ? parseInt(stored) : "";
+    });
     const [filtroDepto, setFiltroDepto] = useState("");
     const [filtroCenco, setFiltroCenco] = useState("");
     const [filtroEmpleado, setFiltroEmpleado] = useState("");
@@ -68,16 +63,9 @@ function AutorizacionHoraExtra() {
     const [editFecha, setEditFecha] = useState(null)
     const [horaEntradaReal, setHoraEntradaReal] = useState(null)
     const [horaSalidaReal, setHoraSalidaReal] = useState(null)
-    const [horaHeEdit, setHoraHeEdit] = useState("")
-    const [minutoHeEdit, setMinutoHeEdit] = useState("")
-    const [segHeEdit, setSegHeEdit] = useState("")
     const [autoriza, setAutoriza] = useState("")
     const [horaHeAutEdit, setHoraHeAutEdit] = useState("")
     const [minutoHeAutEdit, setMinutoHeAutEdit] = useState("")
-    const [segHeAutEdit, setSegHeAutEdit] = useState("")
-    const [horaAutEdit, setHoraAutEdit] = useState("")
-    const [minutoAutEdit, setMinutoAutEdit] = useState("")
-    const [segAutEdit, setSegAutEdit] = useState("")
 
     // Manejo de dialogs
     const cerrarDialogEdit = () => {
@@ -138,49 +126,7 @@ function AutorizacionHoraExtra() {
         }
     };
 
-    const calcularDV = (cuerpo) => {
-        let suma = 0;
-        let multiplicador = 2;
-        for (let i = cuerpo.length - 1; i >= 0; i--) {
-            suma += parseInt(cuerpo.charAt(i)) * multiplicador;
-            multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-        }
-        const resto = 11 - (suma % 11);
-        if (resto === 11) return '0';
-        if (resto === 10) return 'K';
-        return resto.toString();
-    };
-
-    const esRutValido = (rut) => {
-        if (!rut) return false;
-        const valor = rut.replace(/[^0-9kK]/g, "");
-        if (valor.length < 8 || valor.length > 9) return false;
-        const cuerpo = valor.slice(0, -1);
-        const dv = valor.slice(-1).toUpperCase();
-        return /^\d+$/.test(cuerpo) && calcularDV(cuerpo) === dv;
-    };
-
-    const formatearRut = (rut) => {
-        let value = rut.replace(/[^0-9kK]/g, "");
-        value = value.replace(/k(?!$)/gi, "");
-        if (value.length > 9) {
-            value = value.slice(0, 9);
-        }
-        if (value.length > 1) {
-            const cuerpo = value.slice(0, -1);
-            const dv = value.slice(-1).toUpperCase();
-            return `${cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, "")}-${dv}`;
-        }
-        return value;
-    };
-
     // Filtrado y paginacion
-    const empresasFiltradas = empresas.filter((empresa) => {
-        const textoBusqueda = `${empresa.nombre_empresa || ''} ${empresa.rut_empresa || ''} ${empresa.direccion_empresa || ''} ${empresa.rut_empresa || ''}`.toLowerCase();
-        const term = busqueda.toLowerCase();
-        const coincideTexto = textoBusqueda.includes(term)
-        return coincideTexto;
-    });
 
     const handleBuscarHE = async () => {
         if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
@@ -229,12 +175,9 @@ function AutorizacionHoraExtra() {
             setCargando(true);
             try {
                 const cencos = await obtenerCentroCostos();
-                const emps = await obtenerEmpleados();
-
                 setCencosGlobal(cencos || []);
-                setEmpleadosGlobal(emps || []);
 
-                // Extraer empresas únicas
+                // Extraer empresas únicas de los cencos
                 const empresasMap = new Map();
                 (cencos || []).forEach(c => {
                     const e = c.departamento?.empresa;
@@ -252,22 +195,34 @@ function AutorizacionHoraExtra() {
         fetchCatalogos();
     }, []);
 
-    // Cascada: Empresa -> Deptos
+    // Cascada: Empresa -> Deptos y Empleados
     useEffect(() => {
-        if (filtroEmpresa !== "") {
-            const deptosMap = new Map();
-            cencosGlobal.forEach(c => {
-                if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
-                    if (!deptosMap.has(c.departamento.departamento_id)) {
-                        deptosMap.set(c.departamento.departamento_id, c.departamento);
+        const actualizarDatosEmpresa = async () => {
+            if (filtroEmpresa !== "") {
+                const deptosMap = new Map();
+                cencosGlobal.forEach(c => {
+                    if (c.departamento?.empresa?.empresa_id === filtroEmpresa && c.departamento) {
+                        if (!deptosMap.has(c.departamento.departamento_id)) {
+                            deptosMap.set(c.departamento.departamento_id, c.departamento);
+                        }
                     }
+                });
+                setOpcionesDeptos(Array.from(deptosMap.values()));
+
+                try {
+                    const empsRes = await obtenerPorEmpresa(filtroEmpresa);
+                    setEmpleadosGlobal(Array.isArray(empsRes) ? empsRes : []);
+                } catch (error) {
+                    toast.error("Error al cargar empleados");
+                    setEmpleadosGlobal([]);
                 }
-            });
-            setOpcionesDeptos(Array.from(deptosMap.values()));
-        } else {
-            setOpcionesDeptos([]);
-        }
-        setFiltroDepto("");
+            } else {
+                setOpcionesDeptos([]);
+                setEmpleadosGlobal([]);
+            }
+            setFiltroDepto("");
+        };
+        actualizarDatosEmpresa();
     }, [filtroEmpresa, cencosGlobal]);
 
     // Cascada: Depto -> Cencos
@@ -283,14 +238,14 @@ function AutorizacionHoraExtra() {
 
     // Cascada: Cenco -> Empleados
     useEffect(() => {
-        if (filtroCenco !== "") {
+        if (filtroCenco !== "" && Array.isArray(empleadosGlobal)) {
             const empsFiltrados = empleadosGlobal.filter(e => e.cenco?.cenco_id === filtroCenco || e.cenco === filtroCenco);
             setOpcionesEmpleados(empsFiltrados);
         } else {
             setOpcionesEmpleados([]);
         }
         setFiltroEmpleado("");
-    }, [filtroCenco, cencosGlobal, empleadosGlobal]);
+    }, [filtroCenco, empleadosGlobal]);
 
     useEffect(() => {
         setPagina(0);

@@ -96,23 +96,19 @@ export const historialMarcas = async (idMarca) => {
 }
 
 export const eliminarMarca = async (idMarca) => {
-    try {
-        const response = await fetch(`${API_URL}/marcas/${idMarca}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + window.localStorage.getItem("token"),
-            },
-        });
+    const response = await fetch(`${API_URL}/marcas/${idMarca}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + window.localStorage.getItem("token"),
+        },
+    });
 
-        if (!response.ok) {
-            return [];
-        }
-        const datos = await response.json();
-        return datos || [];
-    } catch (error) {
-        return [];
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al eliminar la marca");
     }
+    return await response.json();
 }
 
 export const buscarPorHash = async (hash) => {

@@ -164,14 +164,12 @@ function AdminAsignacionCiclica() {
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const [dataEmpresas, dataHorarios, dataDepartamentos, dataCencos] = await Promise.all([
+                const [dataEmpresas, dataDepartamentos, dataCencos] = await Promise.all([
                     obtenerEmpresas(),
-                    obtenerHorarios(),
                     obtenerDepartamentos(),
                     obtenerCentroCostos()
                 ]);
                 setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : [dataEmpresas]);
-                setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
                 const deptos = dataDepartamentos?.departamentos || dataDepartamentos;
                 setDepartamentos(Array.isArray(deptos) ? deptos : [deptos]);
                 setCencos(Array.isArray(dataCencos) ? dataCencos : [dataCencos]);
@@ -208,17 +206,21 @@ function AdminAsignacionCiclica() {
         setCheckedDer([]);
 
         if (valor) {
-            const tId = toast.loading("Cargando empleados...");
             try {
-                const results = await obtenerPorEmpresa(valor);
+                const [results, dataHorarios] = await Promise.all([
+                    obtenerPorEmpresa(valor),
+                    obtenerHorarios(valor)
+                ]);
                 setEmpleados(results || []);
-                toast.success("Empleados cargados", { id: tId });
+                setHorarios(Array.isArray(dataHorarios) ? dataHorarios : [dataHorarios]);
             } catch (error) {
-                toast.error("Error al cargar empleados de la empresa", { id: tId });
+                toast.error("Error al cargar datos de la empresa");
                 setEmpleados([]);
+                setHorarios([]);
             }
         } else {
             setEmpleados([]);
+            setHorarios([]);
         }
     }
 
