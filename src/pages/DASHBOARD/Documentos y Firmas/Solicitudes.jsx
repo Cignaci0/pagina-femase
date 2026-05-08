@@ -261,9 +261,9 @@ function Solicitud() {
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }}>
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell><strong>tipo de solicitud</strong></TableCell>
-                                    <TableCell align="center"><strong>estado</strong></TableCell>
-                                    <TableCell align="center"><strong>acciones</strong></TableCell>
+                                    <TableCell><strong>Tipo De Solicitud</strong></TableCell>
+                                    <TableCell align="center"><strong>Estado</strong></TableCell>
+                                    <TableCell align="center"><strong>Acciones</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 

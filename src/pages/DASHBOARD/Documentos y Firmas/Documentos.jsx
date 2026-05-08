@@ -231,7 +231,7 @@ function Documento() {
                         sx={{ height: "40px", ml: 'auto' }}
                         onClick={handleOpenModal}
                     >
-                        nueva
+                        Nuevo Registro
                     </Button>
                 </Box>
 
@@ -240,9 +240,9 @@ function Documento() {
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }}>
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
-                                    <TableCell><strong>nombre</strong></TableCell>
-                                    <TableCell><strong>tipo</strong></TableCell>
-                                    <TableCell align="center"><strong>acciones</strong></TableCell>
+                                    <TableCell><strong>Nombre</strong></TableCell>
+                                    <TableCell><strong>Tipo</strong></TableCell>
+                                    <TableCell align="center"><strong>Acciones</strong></TableCell>
                                 </TableRow>
                             </TableHead>
 
