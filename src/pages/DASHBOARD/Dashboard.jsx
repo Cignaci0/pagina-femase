@@ -301,12 +301,8 @@ function Dashboard(props) {
             let nombreLogo = await obtenerLogoEmpresa(idEmpresa);
             console.log("Respuesta cruda de obtenerLogoEmpresa:", nombreLogo);
             if (nombreLogo) {
-              // Limpiar posibles comillas devueltas por el backend
-              nombreLogo = nombreLogo.replace(/["']/g, "").trim();
-              const baseUrl = API_URL.replace('/api', ''); 
-              const urlFinal = `${baseUrl}/logos/${nombreLogo}`;
-              console.log("Estableciendo logoDinamico a:", urlFinal);
-              setLogoDinamico(urlFinal);
+              console.log("Estableciendo logoDinamico a:", nombreLogo);
+              setLogoDinamico(nombreLogo);
             }
           } else {
             console.log("No se encontró empresa_id en el payload del token.");

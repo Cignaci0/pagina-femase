@@ -89,7 +89,7 @@ export const actualizarEmpresa = async (
       email_noti: editEmailNoti || null,
     }),
   });
-  
+
   const datos = await peticion.json();
   if (!peticion.ok) {
     throw new Error(datos.message || "Error al actualizar la empresa");
@@ -103,7 +103,7 @@ export const actualizarHorarioLegal = async (horario) => {
     headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + window.localStorage.getItem("token"),
-    },body: JSON.stringify({
+    }, body: JSON.stringify({
       hora: horario
     })
   });
@@ -131,7 +131,7 @@ export const actualizarHorarioEmpresa = async (id, horario) => {
   return datos;
 };
 
-export const obtenerHorarioLegal = async() => {
+export const obtenerHorarioLegal = async () => {
   const peticion = await fetch(`${API_URL}/horas-legales`, {
     method: "GET",
     headers: {
@@ -172,11 +172,11 @@ export const obtenerLogoEmpresa = async (id) => {
       "Authorization": "Bearer " + window.localStorage.getItem("token"),
     },
   });
-  
+
   if (!peticion.ok) {
     throw new Error("Error al obtener el logo");
   }
-  
-  const datos = await peticion.text();
-  return datos;
+
+  const blob = await peticion.blob();
+  return URL.createObjectURL(blob);
 };
