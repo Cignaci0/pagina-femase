@@ -199,6 +199,51 @@ export const cambiarPinFirma = async (idUser, pinActual, pinFirma) => {
   return datos;
 }
 
+export const cambiarNoti = async (idUsuario, noti30Entrada, noti30Salida) => {
+  const body = {};
+  if (noti30Entrada !== undefined) {
+    body.noti_30_entrada = noti30Entrada;
+  }
+  if (noti30Salida !== undefined) {
+    body.noti_30_salida = noti30Salida;
+  }
+  const peticion = await fetch(`${API_URL}/empleado/cambiar-noti/${idUsuario}`,{
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+      body: JSON.stringify(body),
+    }
+  );
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al cambiar la notificacion");
+  }
+  return datos;
+}
+
+export const obtenerNoti = async (idUsuario) => {
+  try {
+    const response = await fetch(`${API_URL}/empleado/obtener-noti/${idUsuario}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data || null;
+  } catch (error) {
+    return null;
+  }
+}
+
 
 
 

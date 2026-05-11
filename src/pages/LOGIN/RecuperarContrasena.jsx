@@ -71,7 +71,7 @@ function RecuperarContrasena() {
                     Recuperar contraseña
                 </Typography>
                 <Typography variant="body2" color="text.secondary" textAlign="center">
-                    Ingrese su RUT sin puntos y con guion
+                    Ingrese su username
                 </Typography>
                 {/* Alerta de exito */}
                 {mensaje && <Alert severity="success" sx={{ mt: 2 }}>{mensaje}</Alert>}
@@ -82,12 +82,12 @@ function RecuperarContrasena() {
             {/* Formulario de entrada */}
             <Grid item xs={12}>
                 <TextField
-                    label="RUT"
+                    label="Username"
                     variant="outlined"
                     fullWidth
                     value={rut}
                     onChange={(e) => setRut(e.target.value)}
-                    placeholder="Ej: 00000000-0"
+                    placeholder="Ej: 19362833-2"
                 />
             </Grid>
 

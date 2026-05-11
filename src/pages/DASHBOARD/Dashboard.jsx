@@ -102,6 +102,9 @@ import Documento from "../DASHBOARD/Documentos y Firmas/Documentos";
 import Firma from "../DASHBOARD/Documentos y Firmas/Firmas";
 import Solicitud from "../DASHBOARD/Documentos y Firmas/Solicitudes"
 
+// NOTIFICACIONES
+import Notifi from "../DASHBOARD/Notificaciones/Notis";
+
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
 
@@ -192,7 +195,10 @@ const COMPONENTES_VISTA = {
   // DOCUMENTOS Y FIRMAS
   "Documentos": <Documento />,
   "Firmas": <Firma />,
-  "Solicitudes":<Solicitud></Solicitud>
+  "Solicitudes":<Solicitud></Solicitud>,
+
+  // NOTIFICACIONES
+  "Notificaciones": <Notifi />,
 
 
 }
