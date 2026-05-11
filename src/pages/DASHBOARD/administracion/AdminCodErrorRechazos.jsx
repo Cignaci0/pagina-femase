@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
     Box, Paper, TextField, Button, Table, TableContainer, TableHead,
     TableRow, TableCell, TableBody, Dialog, DialogTitle,
@@ -53,10 +53,10 @@ function AdminCodErrorRechazos() {
     };
 
     //Crear error rachazo
-    const ClickcrearErrorRechazo = async () => {
+    const handleClickCrear = async () => {
         try {
             const respuesta = await crearErrorRechazo(nuevoDescripcion)
-            toast.success("¡Error de rechazo creado exitosamente!");
+            toast.success("Â¡Error de rechazo creado exitosamente!");
             closeDialog();
             cargarDatos();
         } catch (err) {
@@ -66,10 +66,10 @@ function AdminCodErrorRechazos() {
         }
     }
 
-    const ClickEditarErrorRechazo = async () => {
+    const handleClickEditar = async () => {
         try {
             const respuesta = await actualizarErrorRechazo(editId, editDescripcion)
-            toast.success("¡Error de rechazo editado exitosamente!");
+            toast.success("Â¡Error de rechazo editado exitosamente!");
             closeDialogEdit();
             cargarDatos();
         } catch (err) {
@@ -83,7 +83,7 @@ function AdminCodErrorRechazos() {
     const prepararDatosParaExportar = () => {
         return errorRachazoFiltrados.map(error => ({
             "Id": error.id,
-            "Descripción": error.descripcion
+            "DescripciÃ³n": error.descripcion
         }));
     };
 
@@ -116,7 +116,7 @@ function AdminCodErrorRechazos() {
         const rows = data.map(row => Object.values(row).join("\t")).join("\n");
         const texto = `${headers}\n${rows}`;
         navigator.clipboard.writeText(texto).then(() => {
-            toast.success("¡Datos copiados al portapapeles!");
+            toast.success("Â¡Datos copiados al portapapeles!");
         });
     };
 
@@ -296,7 +296,7 @@ function AdminCodErrorRechazos() {
                                     errorRachazoFiltrados
                                         .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
                                         .map((error) => (
-                                            <TableRow>
+                                            <TableRow key={error.id}>
                                                 <TableCell align="center">
                                                     {error.id}
                                                 </TableCell>
@@ -368,7 +368,7 @@ function AdminCodErrorRechazos() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialog} color="error">Cancelar</Button>
                     <Button
-                        onClick={ClickcrearErrorRechazo}
+                        onClick={handleClickCrear}
                         variant="contained"
                         color="primary"
 
@@ -404,7 +404,7 @@ function AdminCodErrorRechazos() {
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={closeDialogEdit} color="error">Cancelar</Button>
                     <Button
-                        onClick={ClickEditarErrorRechazo}
+                        onClick={handleClickEditar}
                         variant="contained"
                         color="primary"
                     >

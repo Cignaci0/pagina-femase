@@ -69,3 +69,39 @@ export const claveDt = async (email) => {
   }
   return datos;
 };
+
+// Función para renovar el token
+export const renovarToken = async () => {
+  const peticion = await fetch(`${API_URL}/auth/refresh`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + window.localStorage.getItem("token"),
+    },
+  });
+
+  const datos = await peticion.json();
+
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al renovar el token");
+  }
+  return datos;
+};
+
+// Función para cerrar sesión en el backend
+export const logoutApi = async () => {
+  const token = window.localStorage.getItem("token");
+  if (!token) return;
+  
+  try {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+    });
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error);
+  }
+};

@@ -1,6 +1,7 @@
 // src/App.jsx
 import { Toaster } from 'react-hot-toast';
 import AppRouter from './router/AppRouter';
+import TokenExpirationChecker from './components/TokenExpirationChecker';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           }
         }}
       />
+      <TokenExpirationChecker />
       <AppRouter />
     </>
   );

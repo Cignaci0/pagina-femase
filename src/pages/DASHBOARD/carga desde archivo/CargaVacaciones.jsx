@@ -4,20 +4,10 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { useState } from "react";
 
 
-function cargaVacaciones() {
+function CargaVacaciones() {
 
     // Estados de datos
     const [file, setFile] = useState(null);
-
-    // Estados de paginacion y filtrado
-    // (No definidos en este archivo)
-
-    // Estados crear
-    // (No definidos en este archivo)
-
-    // Estados editar
-    // (No definidos en este archivo)
-
     // Carga de datos
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -30,21 +20,6 @@ function cargaVacaciones() {
         }
         console.log("Archivo seleccionado:", file);
     };
-
-    // Exportacion
-    // (No definida en este archivo)
-
-    // Manejo de dialogs
-    // (No definidos en este archivo)
-
-    // Filtrado y paginacion
-    // (No definidos en este archivo)
-
-    // Effects
-    // (No definidos en este archivo)
-
-    // Renderizado condicional
-    // (No definido en este archivo)
 
     return (
         <>
@@ -104,4 +79,4 @@ function cargaVacaciones() {
         </>
     );
 }
-export default cargaVacaciones;
+export default CargaVacaciones;
