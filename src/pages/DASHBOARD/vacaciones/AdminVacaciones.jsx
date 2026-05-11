@@ -146,16 +146,35 @@ function AdminVacaciones() {
 
                 try {
                     const empsRes = await obtenerPorEmpresa(filtroEmpresa);
-                    setEmpleadosGlobal(empsRes || []);
+                    const emps = empsRes || [];
+                    setEmpleadosGlobal(emps);
+                    
+                    if (userInfo?.num_ficha && filtroDepto === "" && filtroCenco === "" && filtroEmpleado === "") {
+                        const me = emps.find(e => e.num_ficha === userInfo.num_ficha);
+                        if (me) {
+                            const myCencoId = me.cenco?.cenco_id || me.cenco;
+                            let myDeptoId = me.departamento?.departamento_id;
+
+                            if (!myDeptoId && myCencoId) {
+                                const miCencoGlobal = cencosGlobal.find(c => c.cenco_id === myCencoId);
+                                if (miCencoGlobal?.departamento?.departamento_id) {
+                                    myDeptoId = miCencoGlobal.departamento.departamento_id;
+                                }
+                            }
+
+                            if (myDeptoId) setFiltroDepto(myDeptoId);
+                            if (myCencoId) setFiltroCenco(myCencoId);
+                            setFiltroEmpleado(me.empleado_id || me.run);
+                        }
+                    }
                 } catch (error) {
-                    toast.error("Error al cargar empleados", { id: tId });
+                    toast.error("Error al cargar empleados");
                     setEmpleadosGlobal([]);
                 }
             } else {
                 setOpcionesDeptos([]);
                 setEmpleadosGlobal([]);
             }
-            setFiltroDepto("");
         };
         actualizarDatosEmpresa();
     }, [filtroEmpresa, cencosGlobal]);
@@ -168,7 +187,6 @@ function AdminVacaciones() {
         } else {
             setOpcionesCencos([]);
         }
-        setFiltroCenco("");
     }, [filtroDepto, cencosGlobal]);
 
     // Cascada: Cenco -> Empleados
@@ -181,7 +199,6 @@ function AdminVacaciones() {
             setEmpleadosFiltro([]);
             setEmpleadosDisponibles([]);
         }
-        setFiltroEmpleado("");
         setEmpleadosSeleccionados([]);
         setCheckedIzq([]);
         setCheckedDer([]);
@@ -418,12 +435,12 @@ function AdminVacaciones() {
         try {
             const fi = nuevoFechaInicio.format("YYYY-MM-DD");
             const ff = nuevoFechaFin.format("YYYY-MM-DD");
-            
+
             await crearSolicitudVacaciones(numFicha, fi, ff, nuevoEstado);
-            
+
             toast.success("Solicitud creada exitosamente", { id: toastId });
             cerrarDialog();
-            
+
             if (haBuscado && desdeFecha && hastaFecha) {
                 await handleBuscarVacaciones();
             }
@@ -477,7 +494,7 @@ function AdminVacaciones() {
                     {/* Filtros de seleccion */}
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
+                        <Select sx={{ width: "15vh" }} label="Empresa" value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepto(""); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={[1, 2, 3].includes(userInfo?.cargo)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
                             {opcionesEmpresas.map(emp => (
                                 <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
@@ -487,7 +504,7 @@ function AdminVacaciones() {
 
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Depto" value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
+                        <Select sx={{ width: "15vh" }} label="Depto" value={filtroDepto} onChange={(e) => { setFiltroDepto(e.target.value); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroEmpresa}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
                             {opcionesDeptos.map(dep => (
                                 <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
@@ -497,7 +514,7 @@ function AdminVacaciones() {
 
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Cenco" value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
+                        <Select sx={{ width: "15vh" }} label="Cenco" value={filtroCenco} onChange={(e) => { setFiltroCenco(e.target.value); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroDepto}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
                             {opcionesCencos.map(c => (
                                 <MenuItem key={c.cenco_id} value={c.cenco_id}>{c.nombre_cenco}</MenuItem>
@@ -507,7 +524,7 @@ function AdminVacaciones() {
 
                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco || empleadosFiltro.length === 0}>
+                        <Select sx={{ width: "15vh" }} label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={userInfo?.cargo === 1 || !filtroCenco || empleadosFiltro.length === 0}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
                             {empleadosFiltro.map(emp => (
                                 <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
@@ -516,8 +533,8 @@ function AdminVacaciones() {
                             ))}
                         </Select>
                     </FormControl>
-                    
-                     <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+
+                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
                         <InputLabel>Estado</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -727,10 +744,10 @@ function AdminVacaciones() {
                                                 <TableCell align="center">
                                                     {row.estado === "P" && (() => {
                                                         const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
-                                                        const isSelfRestricted = empSel?.num_ficha === userInfo?.num_ficha && empSel?.cargo?.tipo_cargo === 2 || empSel?.cargo?.tipo_cargo === 1;
-                                                        
+                                                        const isSelfRestricted = empSel?.num_ficha === userInfo?.num_ficha && (empSel?.cargo?.tipo_cargo === 2 || empSel?.cargo?.tipo_cargo === 1);
+
                                                         return (
-                                                            <IconButton 
+                                                            <IconButton
                                                                 onClick={() => handleAbrirAprobar(row)}
                                                                 disabled={isSelfRestricted}
                                                                 sx={{ opacity: isSelfRestricted ? 0.5 : 1 }}
