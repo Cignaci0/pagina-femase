@@ -247,27 +247,37 @@ function Documento() {
                             </TableHead>
 
                             <TableBody>
-                                {documentos
-                                    .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
-                                    .map((row) => (
-                                        <TableRow 
-                                            key={row.id}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { backgroundColor: '#f5f5f5' } }}
-                                        >
-                                            <TableCell>{row.nombre}</TableCell>
-                                            <TableCell>{row.tipo}</TableCell>
-                                            <TableCell align="center">
-                                                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                                                    <IconButton onClick={() => handleEdit(row)} sx={{ padding: 0 }} title="Editar plantilla">
-                                                        <EditIcon fontSize="small" />
-                                                    </IconButton>
-                                                    <IconButton onClick={() => handleSendIconClick(row)} sx={{ padding: 0 }} title="Enviar a empleado" color="primary">
-                                                        <SendIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                {documentos.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={3} align="center">
+                                            <Typography variant="body1" sx={{ py: 3, color: 'text.secondary' }}>
+                                                No tiene registros
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    documentos
+                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((row) => (
+                                            <TableRow 
+                                                key={row.id}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { backgroundColor: '#f5f5f5' } }}
+                                            >
+                                                <TableCell>{row.nombre}</TableCell>
+                                                <TableCell>{row.tipo}</TableCell>
+                                                <TableCell align="center">
+                                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                                        <IconButton onClick={() => handleEdit(row)} sx={{ padding: 0 }} title="Editar plantilla">
+                                                            <EditIcon fontSize="small" />
+                                                        </IconButton>
+                                                        <IconButton onClick={() => handleSendIconClick(row)} sx={{ padding: 0 }} title="Enviar a empleado" color="primary">
+                                                            <SendIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
