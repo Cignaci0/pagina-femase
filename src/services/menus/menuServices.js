@@ -47,11 +47,23 @@ export const obtenerSubMenusPerfil = async (profileId) => {
 
 //Asignar/Agregar sub menus a perfil
 export const agregarSubMenu = async (perfilId, moduloIds) => {
+  const token = window.localStorage.getItem("token");
+  let idUsuario = null;
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload && payload.usuario_id) {
+        idUsuario = payload.usuario_id;
+      }
+    } catch (error) {
+      console.error("Error al decodificar el token:", error);
+    }
+  }
   const peticion = await fetch(`${API_URL}/perfiles/asignar-menus/${perfilId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: JSON.stringify({
       moduloIds: moduloIds

@@ -33,11 +33,12 @@ export const crearEmpresa = async (
   estado,
   email_noti
 ) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/empresas/crear`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token")
+      "Authorization": "Bearer " + token
     },
     body: JSON.stringify({
       nombre_empresa: nombre_empresa,
@@ -71,11 +72,12 @@ export const actualizarEmpresa = async (
   editEmailNoti
 
 ) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/empresas/actualizar/${editId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: JSON.stringify({
       nombre_empresa: editNombre,
@@ -98,13 +100,15 @@ export const actualizarEmpresa = async (
 };
 
 export const actualizarHorarioLegal = async (horario) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/horas-legales/1`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     }, body: JSON.stringify({
-      hora: horario
+      hora: horario,
+      idUsuario: idUsuario,
     })
   });
 
@@ -116,11 +120,12 @@ export const actualizarHorarioLegal = async (horario) => {
 };
 
 export const actualizarHorarioEmpresa = async (id, horario) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/empresas/actualizarHorario/${id}/${horario}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
   });
 
@@ -148,12 +153,14 @@ export const obtenerHorarioLegal = async () => {
 };
 
 export const subirLogoEmpresa = async (id, file) => {
+  const token = window.localStorage.getItem("token");
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("idUsuario", idUsuario); 
   const peticion = await fetch(`${API_URL}/empresas/${id}/logo`, {
     method: "POST",
     headers: {
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: formData
   });

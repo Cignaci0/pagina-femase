@@ -25,11 +25,12 @@ export const obtenerPerfiles = async () => {
 
 //Crear perfil
 export const crearPerfilUsuario = async (nombre_perfil, estado) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/perfiles/crear`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json", 
-      "Authorization": "Bearer " + window.localStorage.getItem("token")
+      "Authorization": "Bearer " + token
     },
     body: JSON.stringify({
       nombre_perfil: nombre_perfil,
@@ -46,11 +47,12 @@ export const crearPerfilUsuario = async (nombre_perfil, estado) => {
 
 //Actualizar perfil
 export const actualizarPerfil = async (editId, editNombre, editEstado) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/perfiles/actualizar/${editId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: JSON.stringify({
       nombre_perfil: editNombre,

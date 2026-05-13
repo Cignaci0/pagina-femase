@@ -8,6 +8,7 @@ import {
     FormHelperText
 } from "@mui/material";
 import { toast } from "react-hot-toast";
+import { registrarEvento } from "../../../services/registroEventos";
 import SearchIcon from '@mui/icons-material/Search';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import { FaFileExcel, FaFileCsv } from "react-icons/fa";
@@ -33,7 +34,23 @@ function AdminEventosSistema() {
     const [filtroFechaInicio, setFiltroFechaInicio] = useState(null);
     const [filtroFechaFin, setFiltroFechaFin] = useState(null);
 
-   
+    // Cargar datos
+    const cargarDatos = async () => {
+        setCargando(true);
+        try {
+            const data = await registrarEvento();
+            setEventos(data);
+            setTotalEventos(data.length);
+        } catch (error) {
+            toast.error("Error al cargar los eventos: " + error.message);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    useEffect(() => {
+        cargarDatos();
+    }, []);
 
     // Exportacion
     const prepararDatosParaExportar = () => {
@@ -46,9 +63,9 @@ function AdminEventosSistema() {
             "Hora": evento.hora || "-",
             "S.O.": evento.sistema_operativo || "-",
             "Browser": evento.browser || "-",
-            "Empresa": evento.empresa?.nombre_empresa || "-",
-            "Depto": evento.depto?.nombre_departamento || "-",
-            "Cenco": evento.cenco?.nombre_cenco || "-",
+            "Empresa": evento.empresa || "-",
+            "Depto": evento.depto || "-",
+            "Cenco": evento.cenco || "-",
             "Rut": evento.rut || "-"
         }));
     };
@@ -295,7 +312,7 @@ function AdminEventosSistema() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    eventos.map((evento) => (
+                                    eventos.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((evento) => (
                                         <TableRow key={evento.id}>
                                             <TableCell>{evento.usuario || "-"}</TableCell>
                                             <TableCell align="center">{evento.evento || "-"}</TableCell>
@@ -306,9 +323,9 @@ function AdminEventosSistema() {
                                             </TableCell>
                                             <TableCell align="center">{evento.sistema_operativo || "-"}</TableCell>
                                             <TableCell align="center">{evento.browser || "-"}</TableCell>
-                                            <TableCell align="center">{evento.empresa?.nombre_empresa || "-"}</TableCell>
-                                            <TableCell align="center">{evento.depto?.nombre_departamento || "-"}</TableCell>
-                                            <TableCell align="center">{evento.cenco?.nombre_cenco || "-"}</TableCell>
+                                            <TableCell align="center">{evento.empresa || "-"}</TableCell>
+                                            <TableCell align="center">{evento.depto || "-"}</TableCell>
+                                            <TableCell align="center">{evento.cenco || "-"}</TableCell>
                                             <TableCell align="center">{evento.rut || "-"}</TableCell>
                                         </TableRow>
                                     ))

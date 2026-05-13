@@ -33,11 +33,12 @@ export const crearUsuario = async (
   run_usuario,
   empresa
 ) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/users/crear`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: JSON.stringify({
       username,
@@ -49,7 +50,7 @@ export const crearUsuario = async (
       email,
       perfil,
       run_usuario,
-      empresa,
+      empresa
     }),
   });
 
@@ -73,11 +74,13 @@ export const actualizarUsuario = async (
   run_usuario,
   empresa
 ) => {
+
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/users/actualizar/${editId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: JSON.stringify({
       username,

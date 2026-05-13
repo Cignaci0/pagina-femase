@@ -46,11 +46,12 @@ export const obtenerDeptoPorEmpresa = async (empresaId) => {
 
 //Crear departamento
 export const crearDepto = async (nuevoNombre, nuevoEstado, nuevaEmpresa) => {
+  const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/departamentos/crear`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + window.localStorage.getItem("token"),
+      Authorization: "Bearer " + token,
     },
     body: JSON.stringify({
       nombre_departamento: nuevoNombre,

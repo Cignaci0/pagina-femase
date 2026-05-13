@@ -3,11 +3,23 @@ import { API_URL } from "../../config/config";
 
 //Asignar centros de costo a usuario
 export const asignarCencos = async (userId, cencosIds) => {
+  const token = window.localStorage.getItem("token");
+  let idUsuario = null;
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload && payload.usuario_id) {
+        idUsuario = payload.usuario_id;
+      }
+    } catch (error) {
+      console.error("Error al decodificar el token:", error);
+    }
+  }
   const peticion = await fetch(`${API_URL}/users/asignar-cencos/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+      "Authorization": "Bearer " + token,
     },
     body: JSON.stringify({
       cencoIds: cencosIds,

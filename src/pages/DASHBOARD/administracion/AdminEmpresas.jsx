@@ -31,10 +31,7 @@ function AdminEmpresas() {
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
-    const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
-        const stored = localStorage.getItem('empresaId');
-        return stored ? parseInt(stored) : "";
-    });
+    const [filtroEmpresa, setFiltroEmpresa] = useState("");
 
     // Estados crear
     const [open, setOpen] = useState(false);
@@ -413,6 +410,7 @@ function AdminEmpresas() {
                         </IconButton>
                     </Paper>
 
+    
                     {/* Botones de exportacion */}
                     <Stack direction="row" spacing={2} sx={{ ml: 3 }} >
                         <Paper
