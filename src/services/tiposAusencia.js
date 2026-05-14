@@ -50,6 +50,7 @@ export const updateTipoAusencia = async (id, data) => {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + window.localStorage.getItem("token"),
         },
         body: JSON.stringify({
             nombre: data.nombre,

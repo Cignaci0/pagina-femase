@@ -226,11 +226,9 @@ function AdminCentroCosto() {
         const asignados = cenco.dispositivos || [];
         setRight(asignados);
 
-        // Obtenemos todos los dispositivos asignados a TODOS los cencos
-        const todosAsignados = cencos.flatMap(c => c.dispositivos || []);
-
+        // Un dispositivo está disponible solo si no tiene cenco asignado
         const disponibles = todosDispositivos.filter(dispoGlobal =>
-            !todosAsignados.some(asignado => asignado.dispositivo_id === dispoGlobal.dispositivo_id)
+            !dispoGlobal.cenco || dispoGlobal.cenco === null
         );
         setLeft(disponibles);
 
@@ -262,6 +260,14 @@ function AdminCentroCosto() {
             toast.success("Dispositivos asignados correctamente");
             setDialogDispositivo(false);
             cargarCencos();
+            
+            // Recargar dispositivos globales para actualizar su estado de asignación
+            try {
+                const dataDispo = await obtenerDispositivo();
+                setTodosDispositivos(dataDispo || []);
+            } catch (e) {
+                console.error("Error recargando dispositivos", e);
+            }
 
         } catch (error) {
             console.error(error);

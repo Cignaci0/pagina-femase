@@ -3,13 +3,13 @@ import {
     Box, Paper, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, TablePagination,
     Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, TextField, Grid, Divider
 } from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Send as SendIcon } from "@mui/icons-material";
+import { Add as AddIcon, Edit as EditIcon, Send as SendIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { toast } from "react-hot-toast";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 // Services
-import { obtenerDocumento, crearDocumento, actualizarDocumento, crearFirma } from "../../../services/documentosYFirmas";
+import { obtenerDocumento, crearDocumento, actualizarDocumento, crearFirma, eliminarDocumento } from "../../../services/documentosYFirmas";
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDeptoPorEmpresa } from "../../../services/departamentosServices";
 import { obtenerCencosPorDepto } from "../../../services/centroCostosServices";
@@ -199,6 +199,18 @@ function Documento() {
         setOpenModal(true);
     };
 
+    const handleDelete = async (id) => {
+        if (window.confirm("¿Está seguro que desea eliminar este documento?")) {
+            try {
+                await eliminarDocumento(id);
+                toast.success("Documento eliminado con éxito");
+                fetchDocumentos(filtroEmpresa);
+            } catch (error) {
+                toast.error(error.message || "Error al eliminar el documento");
+            }
+        }
+    };
+
     return (
         <>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
@@ -272,6 +284,9 @@ function Documento() {
                                                         </IconButton>
                                                         <IconButton onClick={() => handleSendIconClick(row)} sx={{ padding: 0 }} title="Enviar a empleado" color="primary">
                                                             <SendIcon fontSize="small" />
+                                                        </IconButton>
+                                                        <IconButton onClick={() => handleDelete(row.id)} sx={{ padding: 0 }} title="Eliminar documento" color="error">
+                                                            <DeleteIcon fontSize="small" />
                                                         </IconButton>
                                                     </Box>
                                                 </TableCell>

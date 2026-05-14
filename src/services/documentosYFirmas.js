@@ -154,3 +154,18 @@ export const aprobarRechazarFirma = async (id_firma, usuario_id, pin, estado,mot
     }
     return datos;
 };
+
+export const eliminarDocumento = async (id) => {
+    const peticion = await fetch(`${API_URL}/documento/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + window.localStorage.getItem("token"),
+        },
+    });
+    const datos = await peticion.json();
+    if (!peticion.ok) {
+        throw new Error(datos.message || "Error al eliminar el documento");
+    }
+    return datos;
+};

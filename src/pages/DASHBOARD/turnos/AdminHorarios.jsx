@@ -24,6 +24,27 @@ const formatMinutesToTime = (minsStr) => {
     return `${h}:${m}:00`;
 };
 
+const esColacionDentroDeTurno = (hE, mE, hS, mS, hEC, mEC, hSC, mSC) => {
+    if (hE === "" || mE === "" || hS === "" || mS === "" || hEC === "" || mEC === "" || hSC === "" || mSC === "") return true;
+
+    const s = parseInt(hE) * 60 + parseInt(mE);
+    const e = parseInt(hS) * 60 + parseInt(mS);
+    const cs = parseInt(hEC) * 60 + parseInt(mEC);
+    const ce = parseInt(hSC) * 60 + parseInt(mSC);
+
+    const isWithin = (t, start, end) => {
+        if (start <= end) return t >= start && t <= end;
+        return t >= start || t <= end;
+    };
+
+    if (!isWithin(cs, s, e) || !isWithin(ce, s, e)) return false;
+
+    const durShift = (s <= e) ? (e - s) : (1440 - s + e);
+    const durCol = (cs <= ce) ? (ce - cs) : (1440 - cs + ce);
+
+    return durCol <= durShift;
+};
+
 function AdminHorarios() {
 
     // Estados de datos
@@ -67,6 +88,13 @@ function AdminHorarios() {
     const enviarHoraEntradaColacionCrear = `${horaEntradaColacionCrear || "00"}:${minutoEntradaColacionCrear || "00"}:00`
     const enviarHoraSalidaColacionCrear = `${horaSalidaColacionCrear || "00"}:${minutoSalidaColacionCrear || "00"}:00`
 
+    const colacionValidaCrear = esColacionDentroDeTurno(
+        horaEntradaCrear, minutoEntradaCrear,
+        horaSalidaCrear, minutoSalidaCrear,
+        horaEntradaColacionCrear, minutoEntradaColacionCrear,
+        horaSalidaColacionCrear, minutoSalidaColacionCrear
+    );
+
     const [nocturno, setNocturno] = useState(false)
 
     // Estados editar
@@ -95,6 +123,13 @@ function AdminHorarios() {
 
     const enviarHoraEntradaColacionEdit = `${horaEntradaColacionEdit || "00"}:${minutoEntradaColacionEdit || "00"}:00`
     const enviarHoraSalidaColacionEdit = `${horaSalidaColacionEdit || "00"}:${minutoSalidaColacionEdit || "00"}:00`
+
+    const colacionValidaEdit = esColacionDentroDeTurno(
+        horaEntradaEdit, minutoEntradaEdit,
+        horaSalidaEdit, minutoSalidaEdit,
+        horaEntradaColacionEdit, minutoEntradaColacionEdit,
+        horaSalidaColacionEdit, minutoSalidaColacionEdit
+    );
 
     const [eliminar, setEliminar] = useState(false)
     const [inputConfirmacion, setInputConfirmacion] = useState("");
@@ -638,6 +673,12 @@ function AdminHorarios() {
                                     />
                                 </Stack>
 
+                                {!colacionValidaCrear && (
+                                    <Typography variant="caption" color="error" sx={{ display: 'block', mb: 2, fontWeight: 'bold' }}>
+                                        La colación debe estar dentro del horario normal de entrada y salida
+                                    </Typography>
+                                )}
+
                                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
                                     COLACIÓN (MINS)
                                 </Typography>
@@ -669,7 +710,7 @@ function AdminHorarios() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
-                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={horaEntradaCrear === "" || minutoEntradaCrear === "" || horaSalidaCrear === "" || minutoSalidaCrear === "" || idEmpresaCrear === "" || minutoHolguraCrear === "" || minutoColacionCrear === ""}>Guardar</Button>
+                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={horaEntradaCrear === "" || minutoEntradaCrear === "" || horaSalidaCrear === "" || minutoSalidaCrear === "" || idEmpresaCrear === "" || minutoHolguraCrear === "" || minutoColacionCrear === "" || !colacionValidaCrear}>Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -828,6 +869,12 @@ function AdminHorarios() {
                                     />
                                 </Stack>
 
+                                {!colacionValidaEdit && (
+                                    <Typography variant="caption" color="error" sx={{ display: 'block', mb: 2, fontWeight: 'bold' }}>
+                                        La colación debe estar dentro del horario normal de entrada y salida
+                                    </Typography>
+                                )}
+
                                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
                                     COLACIÓN (MINS)
                                 </Typography>
@@ -870,7 +917,8 @@ function AdminHorarios() {
                         minutoSalidaEdit === "" ||
                         idEmpresaEdit === "" ||
                         minutoHolguraEdit === "" ||
-                        minutoColacionEdit === ""
+                        minutoColacionEdit === "" ||
+                        !colacionValidaEdit
                     }>Guardar</Button>
                 </DialogActions>
             </Dialog>

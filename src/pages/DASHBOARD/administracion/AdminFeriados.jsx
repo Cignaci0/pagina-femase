@@ -189,8 +189,8 @@ function AdminFeriados() {
     // Renderizado condicional
     if (cargando) return <Container sx={{ mt: 5, textAlign: 'center' }}><CircularProgress /></Container>;
 
-    const formularioValido = nuevoFecha && nuevoTipoFeriado && nuevoNombre.trim() !== "" && nuevoIrrenunciable !== "" && nuevoTipo !== "" && nuevoRespaldoLegal !== "" && nuevoRegion !== "" && nuevoComuna !== "";
-    const editFormularioValido = editFecha && editTipoFeriado && editNombre.trim() !== "" && editIrrenunciable !== "" && editTipo !== "" && editRespaldoLegal !== "" && editRegion !== "" && editComuna !== "";
+    const formularioValido = nuevoFecha && nuevoTipoFeriado && nuevoNombre.trim() !== "" && nuevoIrrenunciable !== "" && nuevoTipo !== "" && nuevoRespaldoLegal !== "" && nuevoRegion !== "";
+    const editFormularioValido = editFecha && editTipoFeriado && editNombre.trim() !== "" && editIrrenunciable !== "" && editTipo !== "" && editRespaldoLegal !== "" && editRegion !== "";
 
     return (
         <>
@@ -483,7 +483,6 @@ function AdminFeriados() {
                                     <MenuItem value={"No tiene comuna"}>No tiene comuna</MenuItem>
                                     {comunasFiltradasCrear.map((com, index) => (<MenuItem key={index} value={com.nombre}>{com.nombre}</MenuItem>))}
                                 </Select>
-                                {nuevoComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}
                             </FormControl>
 
                         </Paper>
@@ -588,7 +587,6 @@ function AdminFeriados() {
                                     <MenuItem value={"No tiene comuna"}>No tiene comuna</MenuItem>
                                     {comunasFiltradasEdit.map((com, index) => (<MenuItem key={index} value={com.nombre}>{com.nombre}</MenuItem>))}
                                 </Select>
-                                {editComuna === "" && <FormHelperText>La comuna es obligatoria</FormHelperText>}
                             </FormControl>
 
                         </Paper>
