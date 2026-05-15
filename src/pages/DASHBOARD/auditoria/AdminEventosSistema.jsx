@@ -23,14 +23,12 @@ dayjs.locale("es");
 function AdminEventosSistema() {
     // Estados de datos
     const [eventos, setEventos] = useState([]);
-    const [totalEventos, setTotalEventos] = useState(0);
     const [cargando, setCargando] = useState(false);
 
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(10);
     const [busqueda, setBusqueda] = useState("");
-    const [filtrotipoEvento, setFiltroTipoEvento] = useState("");
     const [filtroFechaInicio, setFiltroFechaInicio] = useState(null);
     const [filtroFechaFin, setFiltroFechaFin] = useState(null);
 
@@ -38,9 +36,10 @@ function AdminEventosSistema() {
     const cargarDatos = async () => {
         setCargando(true);
         try {
-            const data = await registrarEvento();
-            setEventos(data);
-            setTotalEventos(data.length);
+            const response = await registrarEvento();
+            // Soporta tanto si viene el array directo como si viene { data: [] }
+            const dataArr = Array.isArray(response) ? response : (response?.data || []);
+            setEventos(dataArr);
         } catch (error) {
             toast.error("Error al cargar los eventos: " + error.message);
         } finally {
@@ -54,7 +53,7 @@ function AdminEventosSistema() {
 
     // Exportacion
     const prepararDatosParaExportar = () => {
-        return eventos.map(evento => ({
+        return filteredEventos.map(evento => ({
             "Usuario": evento.usuario || "-",
             "Evento": evento.evento || "-",
             "IP": evento.ip || "-",
@@ -144,7 +143,31 @@ function AdminEventosSistema() {
     
     useEffect(() => {
         setPagina(0);
-    }, [busqueda, filtrotipoEvento, filtroFechaInicio, filtroFechaFin]);
+    }, [busqueda, filtroFechaInicio, filtroFechaFin]);
+
+    // Filtrado de datos
+    const filteredEventos = (Array.isArray(eventos) ? eventos : []).filter((evento) => {
+        const matchBusqueda = 
+            (evento.usuario?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
+            (evento.evento?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
+            (evento.tipo_evento?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
+            (evento.rut?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
+            (evento.empresa?.toLowerCase() || "").includes(busqueda.toLowerCase());
+
+        let matchFechaInicio = true;
+        if (filtroFechaInicio && evento.fecha) {
+            const fechaEvento = dayjs(evento.fecha);
+            matchFechaInicio = fechaEvento.isAfter(filtroFechaInicio, 'day') || fechaEvento.isSame(filtroFechaInicio, 'day');
+        }
+
+        let matchFechaFin = true;
+        if (filtroFechaFin && evento.fecha) {
+            const fechaEvento = dayjs(evento.fecha);
+            matchFechaFin = fechaEvento.isBefore(filtroFechaFin, 'day') || fechaEvento.isSame(filtroFechaFin, 'day');
+        }
+
+        return matchBusqueda && matchFechaInicio && matchFechaFin;
+    });
 
     return (
         <>
@@ -178,13 +201,7 @@ function AdminEventosSistema() {
                         </IconButton>
                     </Paper>
 
-                    {/* Filtro de tipo evento */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
-                        <InputLabel>Tipo Evento</InputLabel>
-                        <Select sx={{ width: "26vh" }} value={filtrotipoEvento} onChange={(e) => setFiltroTipoEvento(e.target.value)} label="Estado">
-                            <MenuItem value=""><em>Todos</em></MenuItem>
-                        </Select>
-                    </FormControl>
+
 
                     {/* Filtro fecha inicio */}
                     <Box size="small" variant="standard" sx={{ minWidth: 120 }}>
@@ -305,14 +322,14 @@ function AdminEventosSistema() {
                                             <CircularProgress />
                                         </TableCell>
                                     </TableRow>
-                                ) : eventos.length === 0 ? (
+                                ) : filteredEventos.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={11} align="center">
                                             No hay registros para mostrar
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    eventos.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((evento) => (
+                                    filteredEventos.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((evento) => (
                                         <TableRow key={evento.id}>
                                             <TableCell>{evento.usuario || "-"}</TableCell>
                                             <TableCell align="center">{evento.evento || "-"}</TableCell>
@@ -339,7 +356,7 @@ function AdminEventosSistema() {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={totalEventos}
+                    count={filteredEventos.length}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}
