@@ -55,8 +55,8 @@ export const crearDepto = async (nuevoNombre, nuevoEstado, nuevaEmpresa) => {
     },
     body: JSON.stringify({
       nombre_departamento: nuevoNombre,
-      estado: nuevoEstado,
-      empresa: nuevaEmpresa,
+      estado: nuevoEstado ? { estado_id: Number(nuevoEstado) } : undefined,
+      empresa: nuevaEmpresa ? { empresa_id: Number(nuevaEmpresa) } : undefined,
     }),
   });
 
@@ -84,8 +84,8 @@ export const actualizarDepto = async (
       },
       body: JSON.stringify({
         nombre_departamento: editNombre,
-        estado: editEstado,
-        empresa: editEmpresa,
+        estado: editEstado ? { estado_id: Number(editEstado) } : undefined,
+        empresa: editEmpresa ? { empresa_id: Number(editEmpresa) } : undefined,
       }),
     },
   );

@@ -43,14 +43,14 @@ export const crearUsuario = async (
     body: JSON.stringify({
       username,
       password,
-      estado,
+      estado: estado ? { estado_id: Number(estado) } : undefined,
       nombres,
       apellido_paterno,
       apellido_materno,
       email,
-      perfil,
+      perfil: perfil ? { perfil_id: Number(perfil) } : undefined,
       run_usuario,
-      empresa
+      empresa: empresa ? { empresa_id: Number(empresa) } : undefined
     }),
   });
 
@@ -74,7 +74,6 @@ export const actualizarUsuario = async (
   run_usuario,
   empresa
 ) => {
-
   const token = window.localStorage.getItem("token");
   const peticion = await fetch(`${API_URL}/users/actualizar/${editId}`, {
     method: "PATCH",
@@ -84,14 +83,14 @@ export const actualizarUsuario = async (
     },
     body: JSON.stringify({
       username,
-      estado,
+      estado: estado ? { estado_id: Number(estado) } : undefined,
       nombres,
       apellido_paterno,
       apellido_materno,
       email,
-      perfil,
+      perfil: perfil ? { perfil_id: Number(perfil) } : undefined,
       run_usuario,
-      empresa,
+      empresa: empresa ? { empresa_id: Number(empresa) } : undefined,
     }),
   });
 
@@ -133,6 +132,21 @@ export const obtenerAdminPorEmpresa = async (idEmpresa) => {
   const datos = await peticion.json();
   if (!peticion.ok) {
     throw new Error(datos.message || "Error al obtener administradores");
+  }
+  return datos;
+}
+
+export const obtenerusuarioPorEmpresa = async (idEmpresa) => {
+  const peticion = await fetch(`${API_URL}/users/obtener-usuarios/${idEmpresa}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + window.localStorage.getItem("token"),
+    },
+  })
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al obtener usuarios");
   }
   return datos;
 }

@@ -95,3 +95,30 @@ export const reporteTurnos = async (numFicha, fechaInicio, fechaFin) => {
         return [];
     }
 }
+
+export const reporteConexiones = async (fechaInicio, fechaFin, idEmpresa, idUsuario) => {
+    try {
+        let url = `${API_URL}/reportes/conexiones/pdf?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        if (idEmpresa) {
+            url += `&idEmpresa=${idEmpresa}`;
+        }
+        if (idUsuario) {
+            url += `&idUsuario=${idUsuario}`;
+        }
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
+            }
+        })
+        if (!response.ok) {
+            throw new Error('Error al descargar el reporte');
+        }
+        const blob = await response.blob();
+        return blob;
+    } catch (error) {
+        console.error("Error en reporteConexiones:", error);
+        return null;
+    }
+}
