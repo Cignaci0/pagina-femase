@@ -48,6 +48,7 @@ import IngresarAusencia from "../DASHBOARD/ausencias/IngresarAusencias";
 
 // CALCULO ASISTENCIA
 import AutorizacionHoraExtra from "./calculo asistencia/AutorizacionHorasExtras";
+import DiasCompensacion from "./calculo asistencia/DiasCompensacion";
 
 // CARGA DESDE ARCHIVO
 import CargaCencos from "../DASHBOARD/carga desde archivo/CargaCencos";
@@ -145,6 +146,7 @@ const COMPONENTES_VISTA = {
 
   // CALCULO ASISTENCIA
   "Autorizacion Horas Extras": <AutorizacionHoraExtra />,
+  "Dias Compensacion": <DiasCompensacion />,
 
   // CARGA DESDE ARCHIVO
   "Carga Cenco": <CargaCencos />,

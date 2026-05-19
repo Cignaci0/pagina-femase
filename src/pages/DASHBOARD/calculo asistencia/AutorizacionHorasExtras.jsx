@@ -11,11 +11,9 @@ import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { obtenerAutorizacionesHE } from "../../../services/autorizaHorasExtras";
-
+import { obtenerAutorizacionesHE, actualizarAutorizacionHE, generarCalculoHE } from "../../../services/autorizaHorasExtras";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import CircleIcon from '@mui/icons-material/Circle';
 import dayjs from "dayjs";
@@ -31,7 +29,6 @@ function AutorizacionHoraExtra() {
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
-    const [busqueda, setBusqueda] = useState("");
     const [desdeFecha, setDesdeFecha] = useState(null)
     const [hastaFecha, setHastaFecha] = useState(null)
 
@@ -59,6 +56,7 @@ function AutorizacionHoraExtra() {
 
     // Estados editar
     const [openEdit, setOpenEdit] = useState(false)
+    const [editId, setEditId] = useState(null)
     const [editRun, setEditRun] = useState("")
     const [editFecha, setEditFecha] = useState(null)
     const [horaEntradaReal, setHoraEntradaReal] = useState(null)
@@ -72,22 +70,48 @@ function AutorizacionHoraExtra() {
         setOpenEdit(false)
     }
 
+    const handleGuardarCambios = async () => {
+        if (autoriza === "") {
+            toast.error("Seleccione si autoriza o no las horas extras");
+            return;
+        }
+
+        const estado = autoriza === 1 ? "A" : "R";
+
+        setCargando(true);
+        try {
+            const result = await actualizarAutorizacionHE(editId, estado);
+            if (result) {
+                toast.success("Autorización de horas extras actualizada correctamente");
+                setOpenEdit(false);
+                await handleBuscarHE();
+            } else {
+                toast.error("Error al actualizar la autorización");
+            }
+        } catch (error) {
+            toast.error("Error al actualizar la autorización");
+        } finally {
+            setCargando(false);
+        }
+    };
+
     const handleAbrirEdit = (row) => {
         const cleanT = (timeStr) => timeStr ? timeStr.split('-')[0] : "-";
-        
+
+        setEditId(row.id);
         setEditRun(row.run);
         setEditFecha(dayjs(row.fecha_marca));
-        
+
         const fechaBase = dayjs(row.fecha_marca).format("YYYY-MM-DD");
         const hEntrada = cleanT(row.hora_entrada);
         const hSalida = cleanT(row.hora_salida);
-        
+
         if (hEntrada !== "-") {
             setHoraEntradaReal(dayjs(`${fechaBase} ${hEntrada}`));
         } else {
             setHoraEntradaReal(null);
         }
-        
+
         if (hSalida !== "-") {
             setHoraSalidaReal(dayjs(`${fechaBase} ${hSalida}`));
         } else {
@@ -105,7 +129,7 @@ function AutorizacionHoraExtra() {
             setHoraHeAutEdit("00");
             setMinutoHeAutEdit("00");
         }
-        
+
         setAutoriza(row.estado === 'A' ? 1 : row.estado === 'R' ? 2 : "");
         setOpenEdit(true);
     }
@@ -130,19 +154,50 @@ function AutorizacionHoraExtra() {
 
     const handleBuscarHE = async () => {
         if (!filtroEmpleado || !desdeFecha || !hastaFecha) {
-            toast.error("Seleccione empleado y rango de fechas");
             return;
         }
+
+        const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+        if (!empSel || !empSel.num_ficha) {
+            toast.error("El empleado seleccionado no tiene número de ficha registrado");
+            return;
+        }
+
         setCargando(true);
         try {
-            // En una implementación real pasaríamos filtros al service, 
-            // por ahora usamos el service tal cual fue definido.
-            const data = await obtenerAutorizacionesHE();
+            const numFicha = empSel.num_ficha;
+            const fechaInicio = desdeFecha.format("YYYY-MM-DD");
+            const fechaFin = hastaFecha.format("YYYY-MM-DD");
+
+            const data = await obtenerAutorizacionesHE(numFicha, fechaInicio, fechaFin);
             setDatosTabla(data);
             setHaBuscado(true);
             setPagina(0);
         } catch (error) {
             toast.error("Error al buscar autorizaciones");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const handleGenerarCalculo = async () => {
+        const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
+        if (!empSel || !empSel.num_ficha) {
+            toast.error("El empleado seleccionado no tiene número de ficha registrado");
+            return;
+        }
+
+        setCargando(true);
+        try {
+            const result = await generarCalculoHE(empSel.num_ficha);
+            if (result) {
+                toast.success("Cálculo de horas extras generado correctamente");
+                await handleBuscarHE();
+            } else {
+                toast.error("Error al generar el cálculo de horas extras");
+            }
+        } catch (error) {
+            toast.error("Error al generar el cálculo de horas extras");
         } finally {
             setCargando(false);
         }
@@ -248,11 +303,8 @@ function AutorizacionHoraExtra() {
     }, [filtroCenco, empleadosGlobal]);
 
     useEffect(() => {
-        setPagina(0);
-    }, [busqueda]);
-
-    // Renderizado condicional
-    if (cargando) return;
+        handleBuscarHE();
+    }, [filtroEmpleado, desdeFecha, hastaFecha]);
 
     return (
         <>
@@ -266,8 +318,25 @@ function AutorizacionHoraExtra() {
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
                 p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
+                boxSizing: "border-box", position: "relative"
             }}>
+                {cargando && (
+                    <Box sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        bgcolor: 'rgba(255, 255, 255, 0.7)',
+                        zIndex: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 2
+                    }}>
+                        <CircularProgress />
+                    </Box>
+                )}
                 {/* Barra de busqueda y filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
                     {/* Filtros de seleccion */}
@@ -347,25 +416,15 @@ function AutorizacionHoraExtra() {
                         </LocalizationProvider>
                     </Box>
                     <Box>
-                        <Button variant="contained" color="primary" onClick={handleBuscarHE}>
-                            Buscar
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleGenerarCalculo}
+                            disabled={!filtroEmpleado}
+                        >
+                            Generar cálculo
                         </Button>
                     </Box>
-
-                    {/* Barra de busqueda */}
-                    <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "200px" }, height: "40px", }}>
-                        <TextField
-                            placeholder="Buscar..."
-                            variant="standard"
-                            InputProps={{ disableUnderline: true }}
-                            sx={{ ml: 1, flex: 1, px: 1 }}
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                        />
-                        <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-                            <SearchIcon />
-                        </IconButton>
-                    </Paper>
                 </Box>
 
                 {filtroEmpleado && (() => {
@@ -506,7 +565,7 @@ function AutorizacionHoraExtra() {
                                 />
                             </Box>
 
-                           
+
 
                             {/* Campo HE AUT */}
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
@@ -515,26 +574,24 @@ function AutorizacionHoraExtra() {
                             <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mb={3}>
                                 <TextField
                                     value={horaHeAutEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setHoraHeAutEdit, 23)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setHoraHeAutEdit)}
                                     placeholder="HH"
                                     size="small"
-                                    sx={{ width: '70px' }}
+                                    sx={{ width: '70px', bgcolor: "#f5f5f5" }}
+                                    InputProps={{ readOnly: true }}
                                     inputProps={{ style: { textAlign: 'center' } }}
                                 />
                                 <Typography variant="h6">:</Typography>
                                 <TextField
                                     value={minutoHeAutEdit}
-                                    onChange={(e) => handleChangeTime(e.target.value, setMinutoHeAutEdit, 59)}
-                                    onBlur={(e) => handleBlurTime(e.target.value, setMinutoHeAutEdit)}
                                     placeholder="MM"
                                     size="small"
-                                    sx={{ width: '70px' }}
+                                    sx={{ width: '70px', bgcolor: "#f5f5f5" }}
+                                    InputProps={{ readOnly: true }}
                                     inputProps={{ style: { textAlign: 'center' } }}
                                 />
                             </Stack>
 
-                             {/* Campo autorizacion */}
+                            {/* Campo autorizacion */}
                             <FormControl
                                 size="small" variant="outlined" fullWidth>
                                 <InputLabel id="autoriza-label">Autoriza Hrs Extra</InputLabel>
@@ -549,7 +606,7 @@ function AutorizacionHoraExtra() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0 }}>
                     <Button onClick={cerrarDialogEdit} color="error">Cancelar</Button>
-                    <Button variant="contained" color="primary">Guardar Cambios</Button>
+                    <Button variant="contained" color="primary" onClick={handleGuardarCambios}>Guardar Cambios</Button>
                 </DialogActions>
             </Dialog>
         </>
