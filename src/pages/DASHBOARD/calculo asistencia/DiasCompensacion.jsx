@@ -134,10 +134,10 @@ function AdminDiasCompensacion() {
         const horasADescontar = diasSolicitados * 6;
 
         setCargandoEnvio(true);
-        const toastId = toast.loading("Ingresando solicitud y descontando horas...");
+        const toastId = toast.loading("Ingresando solicitud...");
         try {
-            await descontarHorasCompensacion(registroCompensacion.id, horasADescontar);
-            toast.success("Solicitud ingresada y horas descontadas correctamente", { id: toastId });
+            await descontarHorasCompensacion(registroCompensacion.id, horasADescontar, fechaInicio, fechaFin);
+            toast.success("Solicitud ingresada correctamente. Pendiente de aprobación.", { id: toastId });
             setOpenVistaPrevia(false);
             setFechaInicio("");
             setFechaFin("");

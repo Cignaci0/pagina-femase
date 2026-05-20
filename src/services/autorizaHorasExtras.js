@@ -22,7 +22,7 @@ export const obtenerAutorizacionesHE = async (numFicha, fechaInicio, fechaFin) =
 };
 
 //Actualizar estado de autorizacion de horas extras
-export const actualizarAutorizacionHE = async (id, estado) => {
+export const actualizarAutorizacionHE = async (id, estado ) => {
     try {
         const response = await fetch(`${API_URL}/autoriza-horas-extras/${id}`, {
             method: "PATCH",
@@ -42,20 +42,3 @@ export const actualizarAutorizacionHE = async (id, estado) => {
     }
 };
 
-export const generarCalculoHE = async (num_ficha) => {
-    try {
-        const response = await fetch(`${API_URL}/autoriza-horas-extras`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + window.localStorage.getItem("token"),
-            },
-            body: JSON.stringify({
-                num_ficha:num_ficha
-            }),
-        });
-        return response.ok;
-    } catch (error) {
-        return false;
-    }
-}

@@ -11,7 +11,7 @@ import { toast } from "react-hot-toast";
 
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { obtenerAutorizacionesHE, actualizarAutorizacionHE, generarCalculoHE } from "../../../services/autorizaHorasExtras";
+import { obtenerAutorizacionesHE, actualizarAutorizacionHE} from "../../../services/autorizaHorasExtras";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import EditIcon from '@mui/icons-material/Edit';
@@ -175,29 +175,6 @@ function AutorizacionHoraExtra() {
             setPagina(0);
         } catch (error) {
             toast.error("Error al buscar autorizaciones");
-        } finally {
-            setCargando(false);
-        }
-    };
-
-    const handleGenerarCalculo = async () => {
-        const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
-        if (!empSel || !empSel.num_ficha) {
-            toast.error("El empleado seleccionado no tiene número de ficha registrado");
-            return;
-        }
-
-        setCargando(true);
-        try {
-            const result = await generarCalculoHE(empSel.num_ficha);
-            if (result) {
-                toast.success("Cálculo de horas extras generado correctamente");
-                await handleBuscarHE();
-            } else {
-                toast.error("Error al generar el cálculo de horas extras");
-            }
-        } catch (error) {
-            toast.error("Error al generar el cálculo de horas extras");
         } finally {
             setCargando(false);
         }
@@ -414,16 +391,6 @@ function AutorizacionHoraExtra() {
                                 }}
                             />
                         </LocalizationProvider>
-                    </Box>
-                    <Box>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleGenerarCalculo}
-                            disabled={!filtroEmpleado}
-                        >
-                            Generar cálculo
-                        </Button>
                     </Box>
                 </Box>
 
