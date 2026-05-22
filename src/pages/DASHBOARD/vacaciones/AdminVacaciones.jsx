@@ -5,7 +5,7 @@ import {
     DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel,
     IconButton, Typography, List, ListItem, ListItemText, ListItemIcon, CircularProgress,
     Container, Alert, TablePagination, Stack,
-    FormHelperText, Tooltip, Checkbox
+    FormHelperText, Tooltip, Checkbox, Grid
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
@@ -478,74 +478,90 @@ function AdminVacaciones() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="text.secondary" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                     Admin Vacaciones
                 </Typography>
             </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                p: { xs: 1.5, sm: 2, md: 3 }, 
+                bgcolor: "#FFFFFD", 
+                borderRadius: 2, 
+                width: "100%", 
+                height: { xs: "auto", md: "calc(100vh - 200px)" }, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                overflow: { xs: "visible", md: "hidden" },
                 boxSizing: "border-box"
             }}>
-                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
-
+                <Grid container spacing={2} sx={{ mb: 3, px: { xs: 1, sm: 2 }, pt: 1 }}>
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
-                        <InputLabel>Empresa</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empresa" value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepto(""); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={[1, 2, 3].includes(userInfo?.cargo)}>
-                            <MenuItem value=""><em>Todos</em></MenuItem>
-                            {opcionesEmpresas.map(emp => (
-                                <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
+                        <FormControl size="small" variant="standard" fullWidth>
+                            <InputLabel>Empresa</InputLabel>
+                            <Select label="Empresa" value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepto(""); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={[1, 2, 3].includes(userInfo?.cargo)} fullWidth>
+                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                {opcionesEmpresas.map(emp => (
+                                    <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
-                        <InputLabel>Depto</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Depto" value={filtroDepto} onChange={(e) => { setFiltroDepto(e.target.value); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroEmpresa}>
-                            <MenuItem value=""><em>Todos</em></MenuItem>
-                            {opcionesDeptos.map(dep => (
-                                <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
+                        <FormControl size="small" variant="standard" fullWidth>
+                            <InputLabel>Depto</InputLabel>
+                            <Select label="Depto" value={filtroDepto} onChange={(e) => { setFiltroDepto(e.target.value); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroEmpresa} fullWidth>
+                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                {opcionesDeptos.map(dep => (
+                                    <MenuItem key={dep.departamento_id} value={dep.departamento_id}>{dep.nombre_departamento}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
-                        <InputLabel>Cenco</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Cenco" value={filtroCenco} onChange={(e) => { setFiltroCenco(e.target.value); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroDepto}>
-                            <MenuItem value=""><em>Todos</em></MenuItem>
-                            {opcionesCencos.map(c => (
-                                <MenuItem key={c.cenco_id} value={c.cenco_id}>{c.nombre_cenco}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
+                        <FormControl size="small" variant="standard" fullWidth>
+                            <InputLabel>Cenco</InputLabel>
+                            <Select label="Cenco" value={filtroCenco} onChange={(e) => { setFiltroCenco(e.target.value); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroDepto} fullWidth>
+                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                {opcionesCencos.map(c => (
+                                    <MenuItem key={c.cenco_id} value={c.cenco_id}>{c.nombre_cenco}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
-                        <InputLabel>Empleado</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={userInfo?.cargo === 1 || !filtroCenco || empleadosFiltro.length === 0}>
-                            <MenuItem value=""><em>Todos</em></MenuItem>
-                            {empleadosFiltro.map(emp => (
-                                <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
-                                    {emp.nombres} {emp.apellido_paterno}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
+                        <FormControl size="small" variant="standard" fullWidth>
+                            <InputLabel>Empleado</InputLabel>
+                            <Select label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={userInfo?.cargo === 1 || !filtroCenco || empleadosFiltro.length === 0} fullWidth>
+                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                {empleadosFiltro.map(emp => (
+                                    <MenuItem key={emp.empleado_id || emp.run} value={emp.empleado_id || emp.run}>
+                                        {emp.nombres} {emp.apellido_paterno}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
-                        <InputLabel>Estado</InputLabel>
-                        <Select sx={{ width: "15vh" }} label="Estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
-                            <MenuItem value=""><em>Todos</em></MenuItem>
-                            <MenuItem value="P">Pendiente</MenuItem>
-                            <MenuItem value="A">Aprobado</MenuItem>
-                            <MenuItem value="R">Rechazado</MenuItem>
-                        </Select>
-                    </FormControl>
+                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
+                        <FormControl size="small" variant="standard" fullWidth>
+                            <InputLabel>Estado</InputLabel>
+                            <Select label="Estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} fullWidth>
+                                <MenuItem value=""><em>Todos</em></MenuItem>
+                                <MenuItem value="P">Pendiente</MenuItem>
+                                <MenuItem value="A">Aprobado</MenuItem>
+                                <MenuItem value="R">Rechazado</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
                     {/* Filtros de fecha */}
-                    <Box sx={{ mb: 2, maxWidth: "15%" }}>
+                    <Grid item xs={6} sm={6} md={3} lg={2.4}>
                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                             <DatePicker
                                 label="Desde"
@@ -561,9 +577,9 @@ function AdminVacaciones() {
                                 }}
                             />
                         </LocalizationProvider>
-                    </Box>
+                    </Grid>
 
-                    <Box sx={{ mb: 2, maxWidth: "15%" }}>
+                    <Grid item xs={6} sm={6} md={3} lg={2.4}>
                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                             <DatePicker
                                 label="Hasta"
@@ -579,8 +595,9 @@ function AdminVacaciones() {
                                 }}
                             />
                         </LocalizationProvider>
-                    </Box>
+                    </Grid>
 
+                    {/* Botones */}
                     {(() => {
                         const loggedInEmpleado = empleadosGlobal.find(e => e.num_ficha === userInfo?.num_ficha);
                         const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
@@ -591,12 +608,12 @@ function AdminVacaciones() {
                         const isSelfRestrictedNuevo = (cargoTipoBusqueda === 2 && empSelBusqueda?.num_ficha === userInfo?.num_ficha);
 
                         return (
-                            <>
+                            <Grid item xs={12} sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 1 }}>
                                 <Button
                                     variant="contained"
                                     color="warning"
                                     startIcon={<SearchIcon />}
-                                    sx={{ height: "40px", mb: 2, ml: 2, minWidth: "120px" }}
+                                    sx={{ height: "40px", minWidth: "120px", flexGrow: { xs: 1, sm: 0 } }}
                                     onClick={handleBuscarVacaciones}
                                     disabled={!filtroEmpleado || !desdeFecha || !hastaFecha}
                                 >
@@ -605,7 +622,7 @@ function AdminVacaciones() {
                                 <Button
                                     variant="contained"
                                     startIcon={<AddIcon />}
-                                    sx={{ height: "40px", mb: 2, ml: 1 }}
+                                    sx={{ height: "40px", flexGrow: { xs: 1, sm: 0 } }}
                                     onClick={(e) => setOpen(true)}
                                     disabled={!filtroEmpleado || isTipoCargo1Global || isTipoCargo1Busqueda || isSelfRestrictedNuevo}
                                 >
@@ -614,7 +631,7 @@ function AdminVacaciones() {
                                 <Button
                                     variant="contained"
                                     startIcon={<AssessmentIcon />}
-                                    sx={{ height: "40px", mb: 2, ml: 1 }}
+                                    sx={{ height: "40px", flexGrow: { xs: 1, sm: 0 } }}
                                     onClick={handleReporteIndividual}
                                     disabled={!filtroEmpleado || isTipoCargo1Global || isTipoCargo1Busqueda}
                                 >
@@ -623,34 +640,45 @@ function AdminVacaciones() {
                                 <Button
                                     variant="contained"
                                     startIcon={<AssessmentIcon />}
-                                    sx={{ height: "40px", mb: 2, ml: 1 }}
+                                    sx={{ height: "40px", flexGrow: { xs: 1, sm: 0 } }}
                                     onClick={() => setOpenReporte(true)}
                                     disabled={!filtroCenco || isTipoCargo1Global}
                                 >
                                     Reportes Masivos
                                 </Button>
-                            </>
+                            </Grid>
                         );
                     })()}
-
-                </Box>
+                </Grid>
 
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,
-                    overflow: "hidden",
+                    overflow: { xs: "visible", md: "hidden" },
                     width: "100%",
-                    position: "relative"
+                    position: "relative",
+                    minHeight: { xs: "300px", md: "auto" }
                 }}>
-                    <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto", textAlign: "center" }}>
+                    <TableContainer sx={{ 
+                        position: { xs: "static", md: "absolute" }, 
+                        top: 0, left: 0, right: 0, bottom: 0, 
+                        overflowX: "auto", 
+                        overflowY: { xs: "visible", md: "auto" }, 
+                        textAlign: "center" 
+                    }}>
 
                         {filtroEmpleado && (() => {
                             const empSel = empleadosFiltro.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
                             return empSel ? (
-                                <Box display="flex" justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
-                                    <Typography sx={{ fontSize: "20px" }}>
-                                        <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno} ||
-                                        <strong> Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
+                                <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={{ xs: 0.5, sm: 2 }} justifyContent="center" alignItems="center" sx={{ mb: 4, textAlign: "center", px: 2 }}>
+                                    <Typography sx={{ fontSize: { xs: "16px", sm: "18px", md: "20px" } }}>
+                                        <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: { xs: "16px", sm: "18px", md: "20px" }, display: { xs: "none", sm: "inline" } }}>
+                                        ||
+                                    </Typography>
+                                    <Typography sx={{ fontSize: { xs: "16px", sm: "18px", md: "20px" } }}>
+                                        <strong>Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
                                     </Typography>
                                 </Box>
                             ) : null;

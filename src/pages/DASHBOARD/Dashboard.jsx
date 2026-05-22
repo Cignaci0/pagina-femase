@@ -382,8 +382,8 @@ function Dashboard(props) {
             <MenuIcon />
           </IconButton>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1, alignItems: 'center' }}>
-            <img src={logoDinamico} alt="Logo Empresa" style={{ maxHeight: '60px' }} />
-            <img src={logoFemase} alt="Logo" style={{ maxHeight: '60px' }} />
+            <Box component="img" src={logoDinamico} alt="Logo Empresa" sx={{ maxHeight: { xs: '40px', sm: '50px', md: '60px' }, maxWidth: { xs: '150px', sm: '200px' }, objectFit: 'contain' }} />
+            <Box component="img" src={logoFemase} alt="Logo" sx={{ display: { xs: 'none', sm: 'block' }, maxHeight: { sm: '50px', md: '60px' }, maxWidth: '200px', objectFit: 'contain' }} />
           </Box>
         </Toolbar>
       </AppBar>

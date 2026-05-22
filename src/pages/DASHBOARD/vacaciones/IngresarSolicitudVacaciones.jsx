@@ -105,14 +105,22 @@ function AdminIngresarSolicitudVacaciones() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="text.secondary" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                     Ingresar Solicitud Vacaciones
                 </Typography>
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "auto",
+                p: { xs: 2, md: 3 }, 
+                bgcolor: "#FFFFFD", 
+                borderRadius: 2, 
+                width: "100%", 
+                minHeight: "calc(100vh - 200px)", 
+                height: "auto",
+                display: 'flex', 
+                flexDirection: 'column', 
+                overflow: "auto",
             }}>
                 <Typography variant="h5" fontWeight="bold" sx={{ mb: 4, color: "#333", borderBottom: '1px solid #ddd', pb: 2 }}>
                     Nueva Solicitud de Vacaciones
@@ -124,13 +132,18 @@ function AdminIngresarSolicitudVacaciones() {
                     </Box>
                 ) : (
                     <Box sx={{
-                        p: 4, borderRadius: 3, bgcolor: '#f8f9fa', border: '1px solid #eaeaea',
+                        p: { xs: 2.5, sm: 4 }, 
+                        borderRadius: 3, 
+                        bgcolor: '#f8f9fa', 
+                        border: '1px solid #eaeaea',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.03)', 
-                        width: { xs: '90%', md: '50%' }, 
-                        height: '50%', 
-                        minHeight: 350,
-                        mx: 'auto', my: 'auto',
-                        display: 'flex', flexDirection: 'column', justifyContent: 'center'
+                        width: '100%',
+                        maxWidth: { xs: '100%', md: '600px' },
+                        mx: 'auto', 
+                        my: { xs: 2, md: 'auto' },
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'center'
                     }}>
                         {/* Saldos */}
                         <Stack spacing={2} sx={{ mb: 3 }}>

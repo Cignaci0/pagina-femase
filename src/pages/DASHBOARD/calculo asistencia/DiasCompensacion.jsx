@@ -152,14 +152,22 @@ function AdminDiasCompensacion() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="text.secondary" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                     Ingresar Días Compensación
                 </Typography>
             </Box>
 
             <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "auto",
+                p: { xs: 2, md: 3 }, 
+                bgcolor: "#FFFFFD", 
+                borderRadius: 2, 
+                width: "100%", 
+                minHeight: "calc(100vh - 200px)", 
+                height: "auto", 
+                display: 'flex', 
+                flexDirection: 'column', 
+                overflow: "auto",
             }}>
                 <Typography variant="h5" fontWeight="bold" sx={{ mb: 4, color: "#333", borderBottom: '1px solid #ddd', pb: 2 }}>
                     Nueva Solicitud de Días De Compensación
@@ -171,16 +179,21 @@ function AdminDiasCompensacion() {
                     </Box>
                 ) : (
                     <Box sx={{
-                        p: 4, borderRadius: 3, bgcolor: '#f8f9fa', border: '1px solid #eaeaea',
+                        p: { xs: 2.5, sm: 4 }, 
+                        borderRadius: 3, 
+                        bgcolor: '#f8f9fa', 
+                        border: '1px solid #eaeaea',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.03)', 
-                        width: { xs: '90%', md: '50%' }, 
-                        height: '50%', 
-                        minHeight: 350,
-                        mx: 'auto', my: 'auto',
-                        display: 'flex', flexDirection: 'column', justifyContent: 'center'
+                        width: '100%',
+                        maxWidth: { xs: '100%', md: '600px' },
+                        mx: 'auto', 
+                        my: { xs: 2, md: 'auto' },
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: 3
                     }}>
                         {/* Saldos */}
-                        <Stack spacing={2} sx={{ mb: 3 }}>
+                        <Stack spacing={2}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="body1" color="text.secondary">Horas Extras Disponibles:</Typography>
                                 <Typography variant="h6" fontWeight="bold">{saldoDiasDisponibles}</Typography>
@@ -191,44 +204,46 @@ function AdminDiasCompensacion() {
                             </Box>
                         </Stack>
 
-                        <Box sx={{ borderBottom: '1px solid #ddd', mb: 3 }} />
+                        <Box sx={{ borderBottom: '1px solid #ddd' }} />
 
                         {/* Fechas */}
-                        <Typography variant="subtitle1" fontWeight="bold" mb={2}>
-                            Periodo
-                        </Typography>
-                        <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
-                            <Box sx={{ flex: 1 }}>
-                                <Typography variant="body2" color="text.secondary" mb={1}>Fecha de Inicio</Typography>
-                                <TextField
-                                    type="date"
-                                    fullWidth
-                                    size="small"
-                                    value={fechaInicio}
-                                    onChange={handleFechaInicioChange}
-                                    sx={{ bgcolor: "#fff" }}
-                                />
-                            </Box>
-                            <Box sx={{ flex: 1 }}>
-                                <Typography variant="body2" color="text.secondary" mb={1}>Fecha de Término</Typography>
-                                <TextField
-                                    type="date"
-                                    fullWidth
-                                    size="small"
-                                    value={fechaFin}
-                                    onChange={(e) => setFechaFin(e.target.value)}
-                                    sx={{ bgcolor: "#fff" }}
-                                />
-                            </Box>
-                        </Stack>
+                        <Box>
+                            <Typography variant="subtitle1" fontWeight="bold" mb={2}>
+                                Periodo
+                            </Typography>
+                            <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" color="text.secondary" mb={1}>Fecha de Inicio</Typography>
+                                    <TextField
+                                        type="date"
+                                        fullWidth
+                                        size="small"
+                                        value={fechaInicio}
+                                        onChange={handleFechaInicioChange}
+                                        sx={{ bgcolor: "#fff" }}
+                                    />
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" color="text.secondary" mb={1}>Fecha de Término</Typography>
+                                    <TextField
+                                        type="date"
+                                        fullWidth
+                                        size="small"
+                                        value={fechaFin}
+                                        onChange={(e) => setFechaFin(e.target.value)}
+                                        sx={{ bgcolor: "#fff" }}
+                                    />
+                                </Box>
+                            </Stack>
+                        </Box>
 
-                            <Button
-                                variant="contained"
-                                onClick={handleAbrirVistaPrevia}
-                                disabled={cargandoEnvio || !fechaInicio || !fechaFin || diasSolicitados > parseFloat(diasEquivalentes)}
+                        <Button
+                            variant="contained"
+                            onClick={handleAbrirVistaPrevia}
+                            disabled={cargandoEnvio || !fechaInicio || !fechaFin || diasSolicitados > parseFloat(diasEquivalentes)}
                             startIcon={<EventAvailableIcon />}
                             sx={{
-                                mt: 3,
+                                mt: 2,
                                 bgcolor: "#0f355c",
                                 '&:hover': { bgcolor: "#0a243e" },
                                 px: 3, py: 1.5,

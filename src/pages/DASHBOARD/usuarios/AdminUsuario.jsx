@@ -440,7 +440,7 @@ function AdminUsuario() {
 
     //Logica validacionContraseña
     const esClaveValida = (clave) => {
-        const regex = /^(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{5,}$/;
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{12,}$/;
         return regex.test(clave);
     };
 
@@ -824,7 +824,7 @@ function AdminUsuario() {
                                         helperText={
                                             pass1.trim() === ""
                                                 ? "La clave es obligatoria"
-                                                : (!esClaveValida(pass1) ? "Debe tener mín. 5 caracteres, 1 número y 1 símbolo especial" : "")
+                                                : (!esClaveValida(pass1) ? "Debe tener mín. 12 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo especial" : "")
                                         } />
                                     <TextField
                                         label="Reingresar clave"
