@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 
+import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerEmpleados, obtenerPorEmpresa } from "../../../services/empleadosServices";
 import { obtenerAutorizacionesHE, actualizarAutorizacionHE} from "../../../services/autorizaHorasExtras";
@@ -206,18 +207,12 @@ function AutorizacionHoraExtra() {
         const fetchCatalogos = async () => {
             setCargando(true);
             try {
-                const cencos = await obtenerCentroCostos();
+                const [cencos, emps] = await Promise.all([
+                    obtenerCentroCostos(),
+                    obtenerEmpresas()
+                ]);
                 setCencosGlobal(cencos || []);
-
-                // Extraer empresas únicas de los cencos
-                const empresasMap = new Map();
-                (cencos || []).forEach(c => {
-                    const e = c.departamento?.empresa;
-                    if (e && !empresasMap.has(e.empresa_id)) {
-                        empresasMap.set(e.empresa_id, e);
-                    }
-                });
-                setOpcionesEmpresas(Array.from(empresasMap.values()));
+                setOpcionesEmpresas(Array.isArray(emps) ? emps : []);
             } catch (error) {
                 toast.error("Error al cargar datos base");
             } finally {
