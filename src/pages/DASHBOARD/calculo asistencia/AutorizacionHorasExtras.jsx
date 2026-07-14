@@ -65,6 +65,7 @@ function AutorizacionHoraExtra() {
     const [autoriza, setAutoriza] = useState("")
     const [horaHeAutEdit, setHoraHeAutEdit] = useState("")
     const [minutoHeAutEdit, setMinutoHeAutEdit] = useState("")
+    const [multiplicador, setMultiplicador] = useState("")
 
     // Manejo de dialogs
     const cerrarDialogEdit = () => {
@@ -78,10 +79,17 @@ function AutorizacionHoraExtra() {
         }
 
         const estado = autoriza === 1 ? "A" : "R";
+        
+        if (estado === "A" && !multiplicador) {
+            toast.error("Seleccione un multiplicador");
+            return;
+        }
+
+        const horas_extras = `${horaHeAutEdit || "00"}:${minutoHeAutEdit || "00"}:00`;
 
         setCargando(true);
         try {
-            const result = await actualizarAutorizacionHE(editId, estado);
+            const result = await actualizarAutorizacionHE(editId, estado, estado === "A" ? multiplicador : undefined, horas_extras);
             if (result) {
                 toast.success("Autorización de horas extras actualizada correctamente");
                 setOpenEdit(false);
@@ -132,6 +140,7 @@ function AutorizacionHoraExtra() {
         }
 
         setAutoriza(row.estado === 'A' ? 1 : row.estado === 'R' ? 2 : "");
+        setMultiplicador(row.multiplicador || "");
         setOpenEdit(true);
     }
 
@@ -455,7 +464,7 @@ function AutorizacionHoraExtra() {
                                                     {getStatusIcon(row.estado)}
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    <IconButton onClick={() => handleAbrirEdit(row)}>
+                                                    <IconButton onClick={() => handleAbrirEdit(row)} disabled={row.estado === 'A'}>
                                                         <EditIcon fontSize="small" />
                                                     </IconButton>
                                                 </TableCell>
@@ -538,8 +547,9 @@ function AutorizacionHoraExtra() {
                                     value={horaHeAutEdit}
                                     placeholder="HH"
                                     size="small"
-                                    sx={{ width: '70px', bgcolor: "#f5f5f5" }}
-                                    InputProps={{ readOnly: true }}
+                                    sx={{ width: '70px', bgcolor: "#ffffff" }}
+                                    onChange={(e) => handleChangeTime(e.target.value, setHoraHeAutEdit, 23)}
+                                    onBlur={(e) => handleBlurTime(e.target.value, setHoraHeAutEdit)}
                                     inputProps={{ style: { textAlign: 'center' } }}
                                 />
                                 <Typography variant="h6">:</Typography>
@@ -547,15 +557,16 @@ function AutorizacionHoraExtra() {
                                     value={minutoHeAutEdit}
                                     placeholder="MM"
                                     size="small"
-                                    sx={{ width: '70px', bgcolor: "#f5f5f5" }}
-                                    InputProps={{ readOnly: true }}
+                                    sx={{ width: '70px', bgcolor: "#ffffff" }}
+                                    onChange={(e) => handleChangeTime(e.target.value, setMinutoHeAutEdit, 59)}
+                                    onBlur={(e) => handleBlurTime(e.target.value, setMinutoHeAutEdit)}
                                     inputProps={{ style: { textAlign: 'center' } }}
                                 />
                             </Stack>
 
                             {/* Campo autorizacion */}
                             <FormControl
-                                size="small" variant="outlined" fullWidth>
+                                size="small" variant="outlined" fullWidth sx={{ mb: autoriza === 1 ? 2 : 0 }}>
                                 <InputLabel id="autoriza-label">Autoriza Hrs Extra</InputLabel>
                                 <Select labelId="autoriza-label" label="Autoriza Hrs Extra" value={autoriza} onChange={(e) => setAutoriza(e.target.value)}>
                                     <MenuItem value={1}>Si</MenuItem>
@@ -563,6 +574,24 @@ function AutorizacionHoraExtra() {
                                 </Select>
                                 {autoriza === "" && (<FormHelperText>Campo obligatorio</FormHelperText>)}
                             </FormControl>
+
+                            {/* Campo Multiplicador */}
+                            {autoriza === 1 && (
+                                <FormControl size="small" variant="outlined" fullWidth>
+                                    <InputLabel id="multiplicador-label">Multiplicador</InputLabel>
+                                    <Select
+                                        labelId="multiplicador-label"
+                                        label="Multiplicador"
+                                        value={multiplicador}
+                                        onChange={(e) => setMultiplicador(e.target.value)}
+                                    >
+                                        <MenuItem value={1.5}>x 1.5</MenuItem>
+                                        <MenuItem value={2}>x 2</MenuItem>
+                                        <MenuItem value={2.5}>x 2.5</MenuItem>
+                                    </Select>
+                                    {multiplicador === "" && (<FormHelperText>Campo obligatorio</FormHelperText>)}
+                                </FormControl>
+                            )}
                         </Paper>
                     </Box>
                 </DialogContent>
