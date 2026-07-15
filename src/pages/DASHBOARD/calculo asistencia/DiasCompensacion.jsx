@@ -40,6 +40,7 @@ function AdminDiasCompensacion() {
     const [saldoDiasDisponibles, setSaldoDiasDisponibles] = useState("00:00:00");
     const [saldoCompensacion, setSaldoCompensacion] = useState("00:00:00");
     const [saldoPagas, setSaldoPagas] = useState("00:00:00");
+    const [saldoConsumidas, setSaldoConsumidas] = useState("00:00:00");
     const [diasEquivalentes, setDiasEquivalentes] = useState("0.00");
     const [registrosHoras, setRegistrosHoras] = useState([]);
 
@@ -60,6 +61,7 @@ function AdminDiasCompensacion() {
                 let totalMinutosExtras = 0;
                 let totalMinutosCompensacion = 0;
                 let totalMinutosPagas = 0;
+                let totalMinutosConsumidas = 0;
 
                 data.forEach(item => {
                     // Horas Extras Totales
@@ -96,6 +98,7 @@ function AdminDiasCompensacion() {
                         const mcc = parseInt(partsCC[1], 10) || 0;
                         const minsCompCons = (hcc * 60) + mcc;
 
+                        totalMinutosConsumidas += minsCompCons;
                         totalMinutosCompensacion += Math.max(0, minsComp - minsCompCons);
                     }
                 });
@@ -112,6 +115,10 @@ function AdminDiasCompensacion() {
                 const minsC = totalMinutosCompensacion % 60;
                 setSaldoCompensacion(`${String(hrsC).padStart(2, '0')}:${String(minsC).padStart(2, '0')}:00`);
 
+                const hrsCons = Math.floor(totalMinutosConsumidas / 60);
+                const minsCons = totalMinutosConsumidas % 60;
+                setSaldoConsumidas(`${String(hrsCons).padStart(2, '0')}:${String(minsCons).padStart(2, '0')}:00`);
+
                 // Cada 6 horas equivale a un día (6 horas = 360 minutos) usando el saldo de compensacion!
                 const dias = (totalMinutosCompensacion / 360).toFixed(2);
                 setDiasEquivalentes(dias);
@@ -119,6 +126,7 @@ function AdminDiasCompensacion() {
                 setSaldoDiasDisponibles("00:00:00");
                 setSaldoPagas("00:00:00");
                 setSaldoCompensacion("00:00:00");
+                setSaldoConsumidas("00:00:00");
                 setDiasEquivalentes("0.00");
             }
         } catch (error) {
@@ -126,6 +134,7 @@ function AdminDiasCompensacion() {
             setSaldoDiasDisponibles("00:00:00");
             setSaldoPagas("00:00:00");
             setSaldoCompensacion("00:00:00");
+            setSaldoConsumidas("00:00:00");
             setDiasEquivalentes("0.00");
         }
     };
@@ -321,6 +330,10 @@ function AdminDiasCompensacion() {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="body1" color="text.secondary">Horas Compensación Disponibles:</Typography>
                                 <Typography variant="h6" fontWeight="bold" color="primary">{saldoCompensacion}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body1" color="text.secondary">Horas Compensación Consumidas:</Typography>
+                                <Typography variant="h6" fontWeight="bold" color="error">{saldoConsumidas}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                                 <Button variant="outlined" color="primary" onClick={() => setOpenTransferir(true)} size="small" sx={{ borderRadius: 4 }}>
