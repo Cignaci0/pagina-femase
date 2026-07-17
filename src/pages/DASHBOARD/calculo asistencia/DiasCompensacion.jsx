@@ -58,6 +58,9 @@ function AdminDiasCompensacion() {
             
             if (Array.isArray(data)) {
                 setRegistrosHoras(data);
+                if (data.length > 0) {
+                    setPeriodoTransferir(data[0].periodo);
+                }
                 let totalMinutosExtras = 0;
                 let totalMinutosCompensacion = 0;
                 let totalMinutosPagas = 0;
@@ -532,7 +535,7 @@ function AdminDiasCompensacion() {
                 <DialogContent>
                     <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
                         <Typography variant="body2" color="text.secondary">
-                            Asigne las horas que desea transferir a su saldo de compensación para el período actual ({periodoTransferir}).
+                            Asigne las horas que desea transferir a su saldo de compensación para el período actual.
                         </Typography>
                         <TextField
                             label="Horas a Transferir"

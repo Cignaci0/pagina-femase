@@ -187,3 +187,37 @@ export const obtenerLogoEmpresa = async (id) => {
   const blob = await peticion.blob();
   return URL.createObjectURL(blob);
 };
+
+export const obtenerCierreMes = async (id) => {
+  const token = window.localStorage.getItem("token");
+  const peticion = await fetch(`${API_URL}/empresas/cierreMes/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token,
+    },
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al obtener el cierre de mes");
+  }
+  return datos;
+};
+
+export const actualizarCierreMes = async (id, cierreMes) => {
+  const token = window.localStorage.getItem("token");
+  const peticion = await fetch(`${API_URL}/empresas/cierreMes/${id}/${cierreMes}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token,
+    },
+  });
+
+  const datos = await peticion.json();
+  if (!peticion.ok) {
+    throw new Error(datos.message || "Error al actualizar el cierre de mes");
+  }
+  return datos;
+};
