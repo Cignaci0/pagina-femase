@@ -263,7 +263,7 @@ function AdminEmpleados() {
         }
     }
 
-    const llamarEmpleados = async (p = pagina, l = filaPorPagina, emp = filtroEmpresa, est = filtroEstado) => {
+    const llamarEmpleados = async (p = pagina, l = filaPorPagina, emp = filtroEmpresa, est = filtroEstado, search = busqueda) => {
         if (!emp) {
             setEmpleados([]);
             setTotalEmpleados(0);
@@ -271,7 +271,7 @@ function AdminEmpleados() {
         }
         try {
             // Pasamos los filtros adicionales al servicio
-            const respuesta = await obtenerEmpleados(p + 1, l, emp, est);
+            const respuesta = await obtenerEmpleados(p + 1, l, emp, est, search);
             setEmpleados(respuesta.data || []);
             setTotalEmpleados(respuesta.total || 0);
         } catch (error) {
@@ -584,10 +584,10 @@ function AdminEmpleados() {
     }, [])
 
     useEffect(() => {
-        llamarEmpleados(pagina, filaPorPagina, filtroEmpresa, filtroEstado);
-    }, [pagina, filaPorPagina, filtroEmpresa, filtroEstado]);
+        llamarEmpleados(pagina, filaPorPagina, filtroEmpresa, filtroEstado, busqueda);
+    }, [pagina, filaPorPagina, filtroEmpresa, filtroEstado, busqueda]);
 
-    useEffect(() => { setPagina(0); }, [filtroEmpresa, filtroEstado]);
+    useEffect(() => { setPagina(0); }, [filtroEmpresa, filtroEstado, busqueda]);
 
     const empleadosAMostrar = empleados;
 
