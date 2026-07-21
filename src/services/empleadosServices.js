@@ -2,12 +2,13 @@ import { API_URL } from "../config/config";
 
 
 //Obtener empleados
-export const obtenerEmpleados = async (page = 1, limit = 10, empresaId = null, estadoId = null) => {
+export const obtenerEmpleados = async (page = 1, limit = 10, empresaId = null, estadoId = null, search = "") => {
   try {
     let url = `${API_URL}/empleado?page=${page}&limit=${limit}`;
 
     if (empresaId) url += `&empresa_id=${empresaId}`;
     if (estadoId) url += `&estado_id=${estadoId}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -55,7 +56,6 @@ export const crearEmpleado = async (datosEmpleado) => {
       contrato_indefinido: datosEmpleado.contrato_indefinido,
       fecha_fin_contrato: datosEmpleado.fecha_fin_contrato,
       art_22: datosEmpleado.art_22,
-      autoriza_ausencia: datosEmpleado.autoriza_ausencia,
       clave: datosEmpleado.clave,
       empresa: datosEmpleado.empresa,
       cargo: datosEmpleado.cargo,
@@ -101,7 +101,6 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
       contrato_indefinido: datosEmpleado.contrato_indefinido,
       fecha_fin_contrato: datosEmpleado.fecha_fin_contrato,
       art_22: datosEmpleado.art_22,
-      autoriza_ausencia: datosEmpleado.autoriza_ausencia,
       clave: datosEmpleado.clave,
       empresa: datosEmpleado.empresa,
       cargo: datosEmpleado.cargo,

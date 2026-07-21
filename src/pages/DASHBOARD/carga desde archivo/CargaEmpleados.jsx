@@ -47,7 +47,7 @@ function cargaEmpleado() {
 
                 // Orden esperado (basado en el Excel): 
                 // run, nombre, apellido P, apellido M, fecha nacimiento, direccion, email, sexo, telefono fijo, telefono movil, 
-                // comuna, fecha ini contra, contrado inde, fecha fin contra, art 22, autoriza ausencia, clave, empresa, cargo, 
+                // comuna, fecha ini contra, contrado inde, fecha fin contra, art 22, clave, empresa, cargo, 
                 // turno, estado, email laboral, num ficha, cenco
                 const empleados = lines.slice(1).map((line) => {
                     const columns = line.split(";");
@@ -67,7 +67,6 @@ function cargaEmpleado() {
                         contrato_indefinido: parseBoolean(columns[12]),
                         fecha_fin_contrato: parseDate(columns[13]),
                         art_22: parseBoolean(columns[14]),
-                        autoriza_ausencia: parseBoolean(columns[15]),
                         clave: columns[16]?.trim() || null,
                         empresa: columns[17]?.trim() ? parseInt(columns[17].trim()) : null,
                         cargo: columns[18]?.trim() ? parseInt(columns[18].trim()) : null,

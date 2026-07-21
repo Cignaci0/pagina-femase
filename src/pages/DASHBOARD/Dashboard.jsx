@@ -90,6 +90,7 @@ import AdminTeletrabajos from "../DASHBOARD/teletrabajo/AdminTeletrabajo";
 // CONFIGURACION SISTEMA
 import HorasLaboral from "../DASHBOARD/ConfgSistema/HorasLaborales";
 import ImgEmpresas from "../DASHBOARD/ConfgSistema/ImagenesEmpresas";
+import CierreMes from "../DASHBOARD/ConfgSistema/CierreMes";
 
 //EMPLEADOS
 import AdminMarcasAsistencia from "../DASHBOARD/Empleados/MarcasAsistencia";
@@ -106,6 +107,9 @@ import Solicitud from "../DASHBOARD/Documentos y Firmas/Solicitudes"
 
 // NOTIFICACIONES
 import Notifi from "../DASHBOARD/Notificaciones/Notis";
+
+// INSTRUCTIVOS
+import Instructivos from "../DASHBOARD/instructivos/Instructivos";
 
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
@@ -187,6 +191,7 @@ const COMPONENTES_VISTA = {
   // CONFIGURACION SISTEMA
   "Horas Laborales": <HorasLaboral />,
   "Img Empresas": <ImgEmpresas />,
+  "Cierre Mes": <CierreMes />,
 
   // EMPLEADOS
   "Marcas Asistencia": <AdminMarcasAsistencia />,
@@ -203,6 +208,11 @@ const COMPONENTES_VISTA = {
 
   // NOTIFICACIONES
   "Notificaciones": <Notifi />,
+
+  // INSTRUCTIVOS
+  "Instructivos": <Instructivos />,
+  "Intructivos": <Instructivos />,
+  "intructivos": <Instructivos />,
 
 
 }

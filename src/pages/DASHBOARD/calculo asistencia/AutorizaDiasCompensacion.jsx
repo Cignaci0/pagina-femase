@@ -218,7 +218,7 @@ function AutorizaDiasCompensacion() {
         const toastId = toast.loading(accionSeleccionada === "A" ? "Aprobando solicitud..." : "Rechazando solicitud...");
         
         try {
-            await aprobarRechazarHorasCompensacion(solicitudSeleccionada.id, estadoToSend);
+            await aprobarRechazarHorasCompensacion(solicitudSeleccionada.id, estadoToSend, userInfo?.username || userInfo?.nombre_completo || "Supervisor");
             toast.success(accionSeleccionada === "A" ? "Solicitud aprobada exitosamente" : "Solicitud rechazada exitosamente", { id: toastId });
             cerrarDialogAprobar();
             await handleBuscar();
@@ -332,7 +332,6 @@ function AutorizaDiasCompensacion() {
                             <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
                                 <TableRow>
                                     <TableCell align="center"><strong>Fecha Generación</strong></TableCell>
-                                    <TableCell align="center"><strong>Horas Extras Base</strong></TableCell>
                                     <TableCell align="center"><strong>Horas Solicitadas</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Inicio Descanso</strong></TableCell>
                                     <TableCell align="center"><strong>Fecha Fin Descanso</strong></TableCell>
@@ -374,7 +373,6 @@ function AutorizaDiasCompensacion() {
                                         return (
                                             <TableRow key={row.id}>
                                                 <TableCell align="center">{dayjs(row.fecha).format("DD-MM-YYYY")}</TableCell>
-                                                <TableCell align="center">{row.horas_extras}</TableCell>
                                                 <TableCell align="center">{row.horas_solicitadas || "00:00:00"}</TableCell>
                                                 <TableCell align="center">{row.fecha_inicio_descanso ? dayjs(row.fecha_inicio_descanso + 'T12:00:00').format("DD-MM-YYYY") : "-"}</TableCell>
                                                 <TableCell align="center">{row.fecha_fin_descanso ? dayjs(row.fecha_fin_descanso + 'T12:00:00').format("DD-MM-YYYY") : "-"}</TableCell>
