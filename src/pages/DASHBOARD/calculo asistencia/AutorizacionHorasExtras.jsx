@@ -290,11 +290,11 @@ function AutorizacionHoraExtra() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Autorización Horas Extras
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Autorización Horas Extras
+                    </Typography>
+                </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -321,7 +321,7 @@ function AutorizacionHoraExtra() {
                 {/* Barra de busqueda y filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "15vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
                             {opcionesEmpresas.map(emp => (
@@ -330,7 +330,7 @@ function AutorizacionHoraExtra() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
                         <Select sx={{ width: "15vh" }} value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
                             {opcionesDeptos.map(dep => (
@@ -339,7 +339,7 @@ function AutorizacionHoraExtra() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
                         <Select sx={{ width: "15vh" }} value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
                             {opcionesCencos.map(cen => (
@@ -348,7 +348,7 @@ function AutorizacionHoraExtra() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
                         <Select sx={{ width: "15vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)}>
                             <MenuItem value="">Seleccione</MenuItem>

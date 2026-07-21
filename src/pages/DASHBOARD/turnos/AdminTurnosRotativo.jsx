@@ -377,17 +377,14 @@ function AdminTurnosRotativosAsignacion() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Turnos Rotativos
-                </Typography>
-            </Box>
-
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Admin Turnos Rotativos
+                    </Typography>
+                </Box>
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -407,7 +404,7 @@ function AdminTurnosRotativosAsignacion() {
                     </Paper>
 
                     {/* Filtro de empresa */}
-                    <FormControl size="small" variant="standard" sx={{ width: 150 }}>
+                    <FormControl size="small" variant="outlined" sx={{ width: 150 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select
                             label="Empresa"
@@ -441,7 +438,7 @@ function AdminTurnosRotativosAsignacion() {
                     </FormControl>
 
                     {/* Filtro de departamento */}
-                    <FormControl size="small" variant="standard" sx={{ width: 150 }}>
+                    <FormControl size="small" variant="outlined" sx={{ width: 150 }}>
                         <InputLabel>Departamento</InputLabel>
                         <Select
                             label="Departamento"
@@ -462,7 +459,7 @@ function AdminTurnosRotativosAsignacion() {
                     </FormControl>
 
                     {/* Filtro de cenco */}
-                    <FormControl size="small" variant="standard" sx={{ width: 150 }}>
+                    <FormControl size="small" variant="outlined" sx={{ width: 150 }}>
                         <InputLabel>Cenco</InputLabel>
                         <Select
                             label="Cenco"
@@ -480,7 +477,10 @@ function AdminTurnosRotativosAsignacion() {
                     </FormControl>
 
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 <Box sx={{
                     flex: 1,
                     overflow: "hidden",

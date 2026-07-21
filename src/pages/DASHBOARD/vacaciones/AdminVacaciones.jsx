@@ -478,11 +478,11 @@ function AdminVacaciones() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2, textAlign: 'center' }}>
-                <Typography variant="h4" color="text.secondary" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-                    Admin Vacaciones
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Admin Vacaciones
+                    </Typography>
+                </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -499,7 +499,7 @@ function AdminVacaciones() {
                 <Grid container spacing={2} sx={{ mb: 3, px: { xs: 1, sm: 2 }, pt: 1 }}>
                     {/* Filtros de seleccion */}
                     <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="standard" fullWidth>
+                        <FormControl size="small" variant="outlined" fullWidth>
                             <InputLabel>Empresa</InputLabel>
                             <Select label="Empresa" value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepto(""); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={[1, 2, 3].includes(userInfo?.cargo)} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -511,7 +511,7 @@ function AdminVacaciones() {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="standard" fullWidth>
+                        <FormControl size="small" variant="outlined" fullWidth>
                             <InputLabel>Depto</InputLabel>
                             <Select label="Depto" value={filtroDepto} onChange={(e) => { setFiltroDepto(e.target.value); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroEmpresa} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -523,7 +523,7 @@ function AdminVacaciones() {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="standard" fullWidth>
+                        <FormControl size="small" variant="outlined" fullWidth>
                             <InputLabel>Cenco</InputLabel>
                             <Select label="Cenco" value={filtroCenco} onChange={(e) => { setFiltroCenco(e.target.value); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroDepto} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -535,7 +535,7 @@ function AdminVacaciones() {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="standard" fullWidth>
+                        <FormControl size="small" variant="outlined" fullWidth>
                             <InputLabel>Empleado</InputLabel>
                             <Select label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={userInfo?.cargo === 1 || !filtroCenco || empleadosFiltro.length === 0} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -549,7 +549,7 @@ function AdminVacaciones() {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="standard" fullWidth>
+                        <FormControl size="small" variant="outlined" fullWidth>
                             <InputLabel>Estado</InputLabel>
                             <Select label="Estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -639,17 +639,31 @@ function AdminVacaciones() {
                                 </Button>
                                 <Button
                                     variant="contained"
-                                    startIcon={<AssessmentIcon />}
-                                    sx={{ height: "40px", flexGrow: { xs: 1, sm: 0 } }}
-                                    onClick={() => setOpenReporte(true)}
-                                    disabled={!filtroCenco || isTipoCargo1Global}
+                                    sx={{ height: "40px", width: { xs: "100%", sm: "auto" } }}
+                                    onClick={abrirDialogNuevo}
+                                    disabled={!filtroEmpleado || isTipoCargo1Global || isSelfRestricted}
                                 >
-                                    Reportes Masivos
+                                    Ingresar Solicitud
                                 </Button>
                             </Grid>
                         );
                     })()}
                 </Grid>
+            </Paper>
+
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{
+                p: { xs: 1.5, sm: 2, md: 3 },
+                bgcolor: "#FFFFFD",
+                borderRadius: 2,
+                width: "100%",
+                flex: 1,
+                minHeight: { xs: "auto", md: "calc(100vh - 300px)" },
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: { xs: "visible", md: "hidden" },
+                boxSizing: "border-box"
+            }}>
 
                 {/* Tabla principal */}
                 <Box sx={{

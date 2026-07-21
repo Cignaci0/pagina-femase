@@ -393,21 +393,19 @@ function AdminMarcas() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Marcas
-                </Typography>
-            </Box>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Admin Marcas
+                    </Typography>
+                </Box>
 
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
                 {/* Controles y Filtros Inferiores */}
-                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 3 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 1 }}>
 
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120, ml: 2 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120, ml: 2 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
                             {opcionesEmpresas.map(emp => (
@@ -416,7 +414,7 @@ function AdminMarcas() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroDepto} onChange={(e) => setFiltroDepto(e.target.value)} disabled={!filtroEmpresa}>
                             {opcionesDeptos.map(dep => (
@@ -425,7 +423,7 @@ function AdminMarcas() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroCenco} onChange={(e) => setFiltroCenco(e.target.value)} disabled={!filtroDepto}>
                             {opcionesCencos.map(cen => (
@@ -434,7 +432,7 @@ function AdminMarcas() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={!filtroCenco || opcionesEmpleados.length === 0}>
                             {opcionesEmpleados.map(emp => (
@@ -446,7 +444,7 @@ function AdminMarcas() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Dispositivo</InputLabel>
                         <Select sx={{ width: "16vh" }} value={filtroDispositivo} onChange={(e) => setFiltroDispositivo(e.target.value)} disabled={!filtroCenco}>
                             {opcionesDispositivos.map(disp => (
@@ -499,7 +497,7 @@ function AdminMarcas() {
                     {(() => {
                         const normalizeRut = (rut) => String(rut || "").trim().toLowerCase();
                         const userRut = normalizeRut(userInfo?.rut_usuario || userInfo?.rut);
-                        
+
                         const loggedInEmpleado = empleadosGlobal.find(e => normalizeRut(e.run) === userRut);
                         const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
 
@@ -525,7 +523,7 @@ function AdminMarcas() {
                 {filtroEmpleado && (() => {
                     const empSel = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || e.run === filtroEmpleado);
                     return empSel ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" sx={{ mb: 2 }}>
+                        <Box display="flex" justifyContent="center" alignItems="center" sx={{ mt: 1 }}>
                             <Typography sx={{ fontSize: "20px" }}>
                                 <strong>Nombre:</strong> {empSel.nombres} {empSel.apellido_paterno} ||
                                 <strong> Num Ficha:</strong> <span> {empSel.num_ficha || "-"}</span>
@@ -533,8 +531,13 @@ function AdminMarcas() {
                         </Box>
                     ) : null;
                 })()}
+            </Paper>
 
-
+            {/* Card 2: Tabla principal */}
+            <Paper elevation={2} sx={{
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 340px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                boxSizing: "border-box"
+            }}>
 
                 {/* Tabla principal */}
                 <Box sx={{
@@ -543,103 +546,103 @@ function AdminMarcas() {
                     width: "100%",
                     position: "relative"
                 }}>
-
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
-                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de marcas">
-                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
+                    <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de marcas">
+                        <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
+                            <TableRow>
+                                <TableCell align="center"><strong>Fecha Marca</strong></TableCell>
+                                <TableCell align="center"><strong>Hora Marca</strong></TableCell>
+                                <TableCell align="center"><strong>Evento</strong></TableCell>
+                                <TableCell align="center"><strong>Turno</strong></TableCell>
+                                <TableCell align="center"><strong>Más Info</strong></TableCell>
+                                <TableCell align="center"><strong>Hashcode</strong></TableCell>
+                                <TableCell align="center"><strong>Tipo Marca</strong></TableCell>
+                                <TableCell align="center"><strong>Historial de Actualización</strong></TableCell>
+                                <TableCell align="center"><strong>Comentario</strong></TableCell>
+                                <TableCell align="center"><strong>Editar</strong></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {!haBuscado ? (
                                 <TableRow>
-                                    <TableCell align="center"><strong>Fecha Marca</strong></TableCell>
-                                    <TableCell align="center"><strong>Hora Marca</strong></TableCell>
-                                    <TableCell align="center"><strong>Evento</strong></TableCell>
-                                    <TableCell align="center"><strong>Turno</strong></TableCell>
-                                    <TableCell align="center"><strong>Más Info</strong></TableCell>
-                                    <TableCell align="center"><strong>Hashcode</strong></TableCell>
-                                    <TableCell align="center"><strong>Tipo Marca</strong></TableCell>
-                                    <TableCell align="center"><strong>Historial de Actualización</strong></TableCell>
-                                    <TableCell align="center"><strong>Comentario</strong></TableCell>
-                                    <TableCell align="center"><strong>Editar</strong></TableCell>
+                                    <TableCell colSpan={10} align="center">
+                                        <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                            Seleccione un empleado y un rango de fechas para comenzar la búsqueda
+                                        </Typography>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {!haBuscado ? (
-                                    <TableRow>
-                                        <TableCell colSpan={10} align="center">
-                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
-                                                Seleccione un empleado y un rango de fechas para comenzar la búsqueda
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : marcasFiltradas.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={10} align="center">
-                                            <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
-                                                No se encontraron resultados
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    marcasFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
-                                        const esRoja = (row.id_marca === null && row.tieneTurno === true && row.info_adicional?.trim() === "Sin marca") || row.info_adicional?.trim() === "Falta Marca Salida" || row.info_adicional?.trim() === "Faltan ambas marcas" || row.info_adicional?.trim() === "Falta Marca Entrada";
-                                        return (
-                                            <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#cf4c60ff" : "inherit", "& .MuiTableCell-root": { color: esRoja ? "white" : "inherit" } }}>
-                                                <TableCell align="center">{row.fecha_marca}</TableCell>
-                                                <TableCell align="center">{row.hora_marca || "-"}</TableCell>
-                                                <TableCell align="center">{row.evento === 1 ? "Entrada" : !row.evento ? "-" : "Salida"}</TableCell>
-                                                <TableCell align="center">{formatTurno(row.empleado)}</TableCell>
-                                                <TableCell align="center">{row.info_adicional || "-"}</TableCell>
-                                                <TableCell align="center">{row.hashcode || "-"}</TableCell>
-                                                <TableCell align="center">{row.tipo_marca?.nombre}</TableCell>
-                                                <TableCell align="center">{row.id_marca !== null && <Button variant="contained" color="primary" size="small" onClick={() => handleVerHistorial(row.id_marca)}>Historial</Button>}</TableCell>
-                                                <TableCell align="center">{row.comentario}</TableCell>
-                                                <TableCell align="center">
-                                                    {row.id_marca !== null && (() => {
-                                                        const normalizeRut = (rut) => String(rut || "").trim().toLowerCase();
-                                                        const userRut = normalizeRut(userInfo?.rut_usuario || userInfo?.rut);
-                                                        const loggedInEmpleado = empleadosGlobal.find(e => normalizeRut(e.run) === userRut);
-                                                        const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
-                                                        
-                                                        const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || normalizeRut(e.run) === normalizeRut(filtroEmpleado));
-                                                        const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
+                            ) : marcasFiltradas.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={10} align="center">
+                                        <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
+                                            No se encontraron resultados
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                marcasFiltradas.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
+                                    const esRoja = (row.id_marca === null && row.tieneTurno === true && row.info_adicional?.trim() === "Sin marca") || row.info_adicional?.trim() === "Falta Marca Salida" || row.info_adicional?.trim() === "Faltan ambas marcas" || row.info_adicional?.trim() === "Falta Marca Entrada";
+                                    return (
+                                        <TableRow key={idx} sx={{ backgroundColor: esRoja ? "#cf4c60ff" : "inherit", "& .MuiTableCell-root": { color: esRoja ? "white" : "inherit" } }}>
+                                            <TableCell align="center">{row.fecha_marca}</TableCell>
+                                            <TableCell align="center">{row.hora_marca || "-"}</TableCell>
+                                            <TableCell align="center">{row.evento === 1 ? "Entrada" : !row.evento ? "-" : "Salida"}</TableCell>
+                                            <TableCell align="center">{formatTurno(row.empleado)}</TableCell>
+                                            <TableCell align="center">{row.info_adicional || "-"}</TableCell>
+                                            <TableCell align="center">{row.hashcode || "-"}</TableCell>
+                                            <TableCell align="center">{row.tipo_marca?.nombre}</TableCell>
+                                            <TableCell align="center">{row.id_marca !== null && <Button variant="contained" color="primary" size="small" onClick={() => handleVerHistorial(row.id_marca)}>Historial</Button>}</TableCell>
+                                            <TableCell align="center">{row.comentario}</TableCell>
+                                            <TableCell align="center">
+                                                {row.id_marca !== null && (() => {
+                                                    const normalizeRut = (rut) => String(rut || "").trim().toLowerCase();
+                                                    const userRut = normalizeRut(userInfo?.rut_usuario || userInfo?.rut);
+                                                    const loggedInEmpleado = empleadosGlobal.find(e => normalizeRut(e.run) === userRut);
+                                                    const userRole = loggedInEmpleado?.cargo?.tipo_cargo;
 
-                                                        const isRestricted = (userRole === 1) || (cargoTipoBusqueda === 2 && normalizeRut(empSelBusqueda?.run) === userRut);
+                                                    const empSelBusqueda = opcionesEmpleados.find(e => e.empleado_id === filtroEmpleado || normalizeRut(e.run) === normalizeRut(filtroEmpleado));
+                                                    const cargoTipoBusqueda = empSelBusqueda?.cargo?.tipo_cargo;
 
-                                                        return (
-                                                            <IconButton 
-                                                                size="small" 
-                                                                onClick={() => openDialogEdit(row)}
-                                                                disabled={isRestricted}
-                                                                sx={{ opacity: isRestricted ? 0.5 : 1 }}
-                                                            >
-                                                                <EditIcon fontSize="small" color={isRestricted ? "disabled" : "inherit"} />
-                                                            </IconButton>
-                                                        );
-                                                    })()}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Box>
+                                                    const isRestricted = (userRole === 1) || (cargoTipoBusqueda === 2 && normalizeRut(empSelBusqueda?.run) === userRut);
 
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={marcasFiltradas.length}
-                    rowsPerPage={filaPorPagina}
-                    page={pagina}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    labelRowsPerPage="Paginas"
-                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-                />
-            </Paper >
+                                                    return (
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => openDialogEdit(row)}
+                                                            disabled={isRestricted}
+                                                            sx={{ opacity: isRestricted ? 0.5 : 1 }}
+                                                        >
+                                                            <EditIcon fontSize="small" color={isRestricted ? "disabled" : "inherit"} />
+                                                        </IconButton>
+                                                    );
+                                                })()}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Box>
+
+            <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={marcasFiltradas.length}
+                rowsPerPage={filaPorPagina}
+                page={pagina}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Paginas"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+            />
+        </Paper >
 
 
-            {/* Dialog crear */}
-            <Dialog open={openCrear} onClose={() => setOpenCrear(false)} sx={{ textAlign: "center" }}>
+            {/* Dialog crear */ }
+            < Dialog open = { openCrear } onClose = {() => setOpenCrear(false)
+} sx = {{ textAlign: "center" }}>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "40vh", minWidth: "40vh" }}>
                         <Box width="100%">
@@ -705,11 +708,11 @@ function AdminMarcas() {
                         Guardar
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
 
 
-            {/* Dialog editar */}
-            <Dialog open={openEdit} onClose={() => setOpenEdit(false)} sx={{ textAlign: "center" }}>
+    {/* Dialog editar */ }
+    < Dialog open = { openEdit } onClose = {() => setOpenEdit(false)} sx = {{ textAlign: "center" }}>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "40vh", minWidth: "40vh" }}>
                         <Box width="100%">
@@ -758,10 +761,10 @@ function AdminMarcas() {
                     <Button onClick={() => setOpenEdit(false)} color="error">Cancelar</Button>
                     <Button onClick={handleGuardarEdicion} variant="contained" color="primary">Guardar Cambios</Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
 
-            {/* Dialog Historial Auditoría */}
-            <Dialog open={openHistorial} onClose={() => setOpenHistorial(false)} maxWidth="l" fullWidth>
+    {/* Dialog Historial Auditoría */ }
+    < Dialog open = { openHistorial } onClose = {() => setOpenHistorial(false)} maxWidth = "l" fullWidth >
                 <DialogTitle sx={{ textAlign: "center" }}>Historial de Auditoría</DialogTitle>
                 <DialogContent>
                     <TableContainer component={Paper} sx={{ mt: 1, maxHeight: 400, overflowY: "auto" }}>
@@ -821,15 +824,15 @@ function AdminMarcas() {
                 <DialogActions>
                     <Button onClick={() => setOpenHistorial(false)} color="error">Cerrar</Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
 
-            {/* Alerta de eliminar */}
-            <Dialog
-                open={openDeleteDialog}
-                onClose={() => setOpenDeleteDialog(false)}
-                maxWidth="xs"
-                fullWidth
-            >
+    {/* Alerta de eliminar */ }
+    < Dialog
+open = { openDeleteDialog }
+onClose = {() => setOpenDeleteDialog(false)}
+maxWidth = "xs"
+fullWidth
+    >
                 <Box sx={{ textAlign: 'center', pt: 3 }}>
                     <WarningAmberRoundedIcon sx={{ fontSize: 60, color: 'error.main' }} />
                 </Box>
@@ -874,7 +877,7 @@ function AdminMarcas() {
                         Eliminar
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
 
         </>
     );

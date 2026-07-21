@@ -245,20 +245,17 @@ function AdminTipoAusencia() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Tipo Ausencia
-                </Typography>
-            </Box>
-
-            {/* Alerta de exito */}
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Admin Tipo Ausencia
+                    </Typography>
+                </Box>
+                {/* Alerta de exito */}
             
 
             {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
                 {/* Barra de busqueda y filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -278,7 +275,7 @@ function AdminTipoAusencia() {
                     </Paper>
 
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Tipo</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Tipo" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -287,7 +284,7 @@ function AdminTipoAusencia() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} >
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }} >
                         <InputLabel>Estado</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Estado" value={filtroEstado} onChange={(e) => setfiltroEstado(e.target.value)} >
                             <MenuItem value="">Todos</MenuItem>
@@ -296,7 +293,7 @@ function AdminTipoAusencia() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Justifica Hrs</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Justifica Hrs" value={filtrojustificaHrs} onChange={(e) => setFiltrojustificaHrs(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -305,7 +302,7 @@ function AdminTipoAusencia() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Pagada</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Pagada" value={filtroPagada} onChange={(e) => setFiltroPagada(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -331,7 +328,10 @@ function AdminTipoAusencia() {
                         Nuevo Registro
                     </Button>
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,

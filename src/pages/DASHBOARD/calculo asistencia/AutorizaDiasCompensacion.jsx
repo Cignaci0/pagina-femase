@@ -239,11 +239,11 @@ function AutorizaDiasCompensacion() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Autorización Días Compensación
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Autorización Días Compensación
+                    </Typography>
+                </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
@@ -253,7 +253,7 @@ function AutorizaDiasCompensacion() {
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, ml: 2 }}>
 
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Empresa" value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepto(""); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={[1, 2, 3].includes(userInfo?.cargo)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -263,7 +263,7 @@ function AutorizaDiasCompensacion() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Depto</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Depto" value={filtroDepto} onChange={(e) => { setFiltroDepto(e.target.value); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroEmpresa}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -273,7 +273,7 @@ function AutorizaDiasCompensacion() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Cenco</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Cenco" value={filtroCenco} onChange={(e) => { setFiltroCenco(e.target.value); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroDepto}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -283,7 +283,7 @@ function AutorizaDiasCompensacion() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empleado</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={userInfo?.cargo === 1 || !filtroCenco || empleadosFiltro.length === 0}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
