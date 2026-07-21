@@ -6,7 +6,8 @@ import {
     IconButton, Typography, List, ListItem, ListItemText, CircularProgress,
     Container, Alert, TablePagination, Stack,
     FormHelperText,
-    InputAdornment
+    InputAdornment,
+    FormControlLabel
 } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -167,6 +168,10 @@ function AdminEmpleados() {
     const [nuevoEmailNoti, setNuevoEmailNoti] = useState("")
     const [dominioNoti, setDominioNoti] = useState("")
 
+    const [nuevoTieneTurnoFlexible, setNuevoTieneTurnoFlexible] = useState(false)
+    const [nuevoOpcionHorasFlexible, setNuevoOpcionHorasFlexible] = useState("")
+    const [nuevoHorasFlexiblePersonalizado, setNuevoHorasFlexiblePersonalizado] = useState("")
+
     const [nuevoDepartamento, setNuevoDepartamento] = useState("")
     const [nuevoCenco, setNuevoCenco] = useState("")
 
@@ -210,6 +215,10 @@ function AdminEmpleados() {
     const [editPermiteR, setEditPermiteR] = useState("")
     const [editEmailNoti, setEditEmailNoti] = useState("")
     const [editDominioNoti, setEditDominioNoti] = useState("")
+
+    const [editTieneTurnoFlexible, setEditTieneTurnoFlexible] = useState(false)
+    const [editOpcionHorasFlexible, setEditOpcionHorasFlexible] = useState("")
+    const [editHorasFlexiblePersonalizado, setEditHorasFlexiblePersonalizado] = useState("")
 
     // Estados dialogs emails
     const [openDialogEmail, setOpenDialogEmail] = useState(false)
@@ -312,6 +321,8 @@ function AdminEmpleados() {
                 cenco_id: nuevoCenco,
                 permite_rotativo: nuevoPermiteR,
                 email_noti: nuevoEmailNoti && dominioNoti ? `${nuevoEmailNoti}${dominioNoti}` : null,
+                tiene_turno_flexible: nuevoTieneTurnoFlexible,
+                hora_turno_flexible: nuevoTieneTurnoFlexible ? (nuevoOpcionHorasFlexible === "Personalizado" ? nuevoHorasFlexiblePersonalizado : nuevoOpcionHorasFlexible) : null,
             };
             const resultado = await crearEmpleado(datosParaEnviar);
             toast.success("Empleado creado exitosamente");
@@ -345,6 +356,9 @@ function AdminEmpleados() {
             setNuevoCenco("");
             setNuevoPermiteR("");
             setNuevoEmailNoti("");
+            setNuevoTieneTurnoFlexible(false);
+            setNuevoOpcionHorasFlexible("");
+            setNuevoHorasFlexiblePersonalizado("");
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -383,6 +397,8 @@ function AdminEmpleados() {
                 cenco_id: editCenco,
                 permite_rotativo: editPermiteR,
                 email_noti: editEmailNoti && editDominioNoti ? `${editEmailNoti}${editDominioNoti}` : null,
+                tiene_turno_flexible: editTieneTurnoFlexible,
+                hora_turno_flexible: editTieneTurnoFlexible ? (editOpcionHorasFlexible === "Personalizado" ? editHorasFlexiblePersonalizado : editOpcionHorasFlexible) : null,
             };
 
             const respuesta = await actualizarEmpleado(editId, datosEmpleado);
@@ -422,6 +438,9 @@ function AdminEmpleados() {
         setNuevoComuna("");
         setNuevoDepartamento(""); setNuevoCenco("");
         setNuevoPermiteR("");
+        setNuevoTieneTurnoFlexible(false);
+        setNuevoOpcionHorasFlexible("");
+        setNuevoHorasFlexiblePersonalizado("");
     }
 
     const closeDialogEdit = () => { setOpenEdit(false) }
@@ -778,6 +797,19 @@ function AdminEmpleados() {
                                                     setEditNumFicha(fichaBase);
                                                     setEditPermiteR(e.permite_rotativo);
                                                     setEditRun(e.run || "");
+                                                    setEditTieneTurnoFlexible(e.tiene_turno_flexible || false);
+                                                    if (e.tiene_turno_flexible) {
+                                                        if (["01:00:00", "02:00:00", "03:00:00"].includes(e.hora_turno_flexible)) {
+                                                            setEditOpcionHorasFlexible(e.hora_turno_flexible);
+                                                            setEditHorasFlexiblePersonalizado("");
+                                                        } else {
+                                                            setEditOpcionHorasFlexible("Personalizado");
+                                                            setEditHorasFlexiblePersonalizado(e.hora_turno_flexible || "");
+                                                        }
+                                                    } else {
+                                                        setEditOpcionHorasFlexible("");
+                                                        setEditHorasFlexiblePersonalizado("");
+                                                    }
                                                     setEditNombre(e.nombres || "");
                                                     setEditApPaterno(e.apellido_paterno || "");
                                                     setEditApMaterno(e.apellido_materno || "");
@@ -1463,6 +1495,62 @@ function AdminEmpleados() {
                                 </Select>
                             </FormControl>
 
+                            <Box sx={{ mb: 2, textAlign: "left" }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={nuevoTieneTurnoFlexible}
+                                            onChange={(e) => {
+                                                setNuevoTieneTurnoFlexible(e.target.checked);
+                                                if (!e.target.checked) {
+                                                    setNuevoOpcionHorasFlexible("");
+                                                    setNuevoHorasFlexiblePersonalizado("");
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label="Tiene turno flexible"
+                                />
+                            </Box>
+                            
+                            {nuevoTieneTurnoFlexible && (
+                                <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Horas</InputLabel>
+                                        <Select
+                                            label="Horas"
+                                            value={nuevoOpcionHorasFlexible}
+                                            onChange={(e) => {
+                                                setNuevoOpcionHorasFlexible(e.target.value);
+                                                if (e.target.value !== "Personalizado") {
+                                                    setNuevoHorasFlexiblePersonalizado("");
+                                                }
+                                            }}
+                                        >
+                                            <MenuItem value="01:00:00">01:00:00</MenuItem>
+                                            <MenuItem value="02:00:00">02:00:00</MenuItem>
+                                            <MenuItem value="03:00:00">03:00:00</MenuItem>
+                                            <MenuItem value="Personalizado">Personalizado</MenuItem>
+                                        </Select>
+                                        {nuevoOpcionHorasFlexible === "" && <FormHelperText>Seleccione una opción</FormHelperText>}
+                                    </FormControl>
+                                    
+                                    {nuevoOpcionHorasFlexible === "Personalizado" && (
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            type="time"
+                                            InputLabelProps={{ shrink: true }}
+                                            inputProps={{ step: 60 }}
+                                            label="Horas Personalizadas"
+                                            value={nuevoHorasFlexiblePersonalizado ? nuevoHorasFlexiblePersonalizado.slice(0, 5) : ""}
+                                            onChange={(e) => setNuevoHorasFlexiblePersonalizado(e.target.value ? `${e.target.value}:00` : "")}
+                                            helperText={nuevoHorasFlexiblePersonalizado.trim() === "" ? "Ingrese las horas" : ""}
+                                        />
+                                    )}
+                                </Box>
+                            )}
+
                             <FormControl size="small" fullWidth sx={{ mb: 2 }} >
                                 <InputLabel>Cargo</InputLabel>
                                 <Select
@@ -1585,7 +1673,9 @@ function AdminEmpleados() {
                             nuevoEmpresa === "" ||
                             // Removemos nuevoTurno de los checks
                             nuevoCargo === "" ||
-                            !nuevoAutorizaAusencia && nuevoAutorizaAusencia !== false && nuevoAutorizaAusencia !== true}
+                            !nuevoAutorizaAusencia && nuevoAutorizaAusencia !== false && nuevoAutorizaAusencia !== true ||
+                            (nuevoTieneTurnoFlexible && nuevoOpcionHorasFlexible === "") ||
+                            (nuevoTieneTurnoFlexible && nuevoOpcionHorasFlexible === "Personalizado" && nuevoHorasFlexiblePersonalizado.trim() === "")}
                     >
                         Guardar
                     </Button>
@@ -2089,6 +2179,62 @@ function AdminEmpleados() {
                                 </Select>
                             </FormControl>
 
+                            <Box sx={{ mb: 2, textAlign: "left" }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={editTieneTurnoFlexible}
+                                            onChange={(e) => {
+                                                setEditTieneTurnoFlexible(e.target.checked);
+                                                if (!e.target.checked) {
+                                                    setEditOpcionHorasFlexible("");
+                                                    setEditHorasFlexiblePersonalizado("");
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label="Tiene turno flexible"
+                                />
+                            </Box>
+                            
+                            {editTieneTurnoFlexible && (
+                                <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Horas</InputLabel>
+                                        <Select
+                                            label="Horas"
+                                            value={editOpcionHorasFlexible}
+                                            onChange={(e) => {
+                                                setEditOpcionHorasFlexible(e.target.value);
+                                                if (e.target.value !== "Personalizado") {
+                                                    setEditHorasFlexiblePersonalizado("");
+                                                }
+                                            }}
+                                        >
+                                            <MenuItem value="01:00:00">01:00:00</MenuItem>
+                                            <MenuItem value="02:00:00">02:00:00</MenuItem>
+                                            <MenuItem value="03:00:00">03:00:00</MenuItem>
+                                            <MenuItem value="Personalizado">Personalizado</MenuItem>
+                                        </Select>
+                                        {editOpcionHorasFlexible === "" && <FormHelperText>Seleccione una opción</FormHelperText>}
+                                    </FormControl>
+                                    
+                                    {editOpcionHorasFlexible === "Personalizado" && (
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            type="time"
+                                            InputLabelProps={{ shrink: true }}
+                                            inputProps={{ step: 60 }}
+                                            label="Horas Personalizadas"
+                                            value={editHorasFlexiblePersonalizado ? editHorasFlexiblePersonalizado.slice(0, 5) : ""}
+                                            onChange={(e) => setEditHorasFlexiblePersonalizado(e.target.value ? `${e.target.value}:00` : "")}
+                                            helperText={editHorasFlexiblePersonalizado.trim() === "" ? "Ingrese las horas" : ""}
+                                        />
+                                    )}
+                                </Box>
+                            )}
+
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Cargo</InputLabel>
                                 <Select
@@ -2204,7 +2350,9 @@ function AdminEmpleados() {
                             (!editArt22 && editArt22 !== false && editArt22 !== true) ||
                             editEmpresa === "" ||
                             editCargo === "" ||
-                            (!editAutorizaAusencia && editAutorizaAusencia !== false && editAutorizaAusencia !== true)
+                            (!editAutorizaAusencia && editAutorizaAusencia !== false && editAutorizaAusencia !== true) ||
+                            (editTieneTurnoFlexible && editOpcionHorasFlexible === "") ||
+                            (editTieneTurnoFlexible && editOpcionHorasFlexible === "Personalizado" && editHorasFlexiblePersonalizado.trim() === "")
                         }
                     >
                         Guardar

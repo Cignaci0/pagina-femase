@@ -66,10 +66,10 @@ export const crearEmpleado = async (datosEmpleado) => {
       cenco: datosEmpleado.cenco_id,
       permite_rotativo: datosEmpleado.permite_rotativo,
       email_noti: datosEmpleado.email_noti,
+      tiene_turno_flexible: datosEmpleado.tiene_turno_flexible,
+      hora_turno_flexible: datosEmpleado.hora_turno_flexible,
     }),
   });
-
-
   const datos = await peticion.json();
   if (!peticion.ok) {
     throw new Error(datos.message || "Error al crear el empleado");
@@ -112,6 +112,8 @@ export const actualizarEmpleado = async (id, datosEmpleado) => {
       cenco: datosEmpleado.cenco_id,
       permite_rotativo: datosEmpleado.permite_rotativo,
       email_noti: datosEmpleado.email_noti,
+      tiene_turno_flexible: datosEmpleado.tiene_turno_flexible,
+      hora_turno_flexible: datosEmpleado.hora_turno_flexible,
     }),
   });
   const datos = await peticion.json();
