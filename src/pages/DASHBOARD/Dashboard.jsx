@@ -108,6 +108,9 @@ import Solicitud from "../DASHBOARD/Documentos y Firmas/Solicitudes"
 // NOTIFICACIONES
 import Notifi from "../DASHBOARD/Notificaciones/Notis";
 
+// INSTRUCTIVOS
+import Instructivos from "../DASHBOARD/instructivos/Instructivos";
+
 import { obtenerSubMenusPerfil } from "../../services/menus/menuServices";
 import { cerrarSesion } from "../../services/usuariosConectados";
 
@@ -205,6 +208,11 @@ const COMPONENTES_VISTA = {
 
   // NOTIFICACIONES
   "Notificaciones": <Notifi />,
+
+  // INSTRUCTIVOS
+  "Instructivos": <Instructivos />,
+  "Intructivos": <Instructivos />,
+  "intructivos": <Instructivos />,
 
 
 }

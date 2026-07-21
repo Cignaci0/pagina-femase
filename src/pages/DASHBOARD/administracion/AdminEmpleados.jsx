@@ -146,7 +146,6 @@ function AdminEmpleados() {
     const [nuevoFechaNacimiento, setNuevoFechaNacimiento] = useState(null);
     const [nuevoEmpresa, setNuevoEmpresa] = useState("")
     const [nuevoEstado, setNuevoEstado] = useState("")
-    const [nuevoAutorizaAusencia, setnuevoAutorizaAusencia] = useState("")
     const [nuevoDireccion, setNuevoDireccion] = useState("")
     const [nuevoRegion, setNuevoRegion] = useState("")
     const [nuevoComuna, setNuevoComuna] = useState("")
@@ -187,7 +186,6 @@ function AdminEmpleados() {
     const [editEmpresa, setEditEmpresa] = useState("")
     const [editDepartamento, setEditDepartamento] = useState("")
     const [editEstado, setEditEstado] = useState("")
-    const [editAutorizaAusencia, setEditAutorizaAusencia] = useState("")
     const [editCenco, setEditCenco] = useState("")
     const [editDireccion, setEditDireccion] = useState("")
     const [editRegion, setEditRegion] = useState("")
@@ -301,7 +299,6 @@ function AdminEmpleados() {
                     ? "3000-12-31T00:00:00.000Z"
                     : (nuevoFechaTerminoContrato ? nuevoFechaTerminoContrato.toISOString() : null),
                 art_22: nuevoArt22,
-                autoriza_ausencia: nuevoAutorizaAusencia,
                 clave: nuevoClave,
                 empresa: nuevoEmpresa,
                 cargo: nuevoCargo,
@@ -326,7 +323,6 @@ function AdminEmpleados() {
             setNuevoApMaterno("");
             setNuevoFechaNacimiento(null);
             setNuevoEstado("");
-            setnuevoAutorizaAusencia("");
             setNuevoDireccion("");
             setNuevoRegion("");
             setNuevoComuna("");
@@ -372,7 +368,6 @@ function AdminEmpleados() {
                     ? "3000-12-31T00:00:00.000Z"
                     : (editFechaTerminoContrato ? editFechaTerminoContrato.toISOString() : null),
                 art_22: editArt22,
-                autoriza_ausencia: editAutorizaAusencia,
                 clave: editClave,
                 empresa: editEmpresa,
                 cargo: editCargo,
@@ -785,8 +780,7 @@ function AdminEmpleados() {
                                                     setEditFechaInicioContrato(e.fecha_ini_contrato ? dayjs(e.fecha_ini_contrato) : null);
                                                     setEditFechaTerminoContrato(e.fecha_fin_contrato ? dayjs(e.fecha_fin_contrato) : null);
                                                     setEditEstado(e.estado?.estado_id);
-                                                    setEditClave(e.clave)
-                                                    setEditAutorizaAusencia(e.autoriza_ausencia);
+                                                    setEditClave(e.clave);
                                                     setEditDireccion(e.direccion || "");
                                                     const objComuna = comunas.find(c => c.nombre === e.comuna);
                                                     if (objComuna) {
@@ -1504,20 +1498,6 @@ function AdminEmpleados() {
                                 {nuevoCargo === "" && <FormHelperText>El Cargo es obligatorio</FormHelperText>}
                             </FormControl>
 
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }}  >
-                                <InputLabel>Autoriza ausencias</InputLabel>
-                                <Select label="Autoriza ausencias" value={nuevoAutorizaAusencia} onChange={(e) => setnuevoAutorizaAusencia(e.target.value)}>
-                                    <MenuItem value={true}>
-                                        Si
-                                    </MenuItem>
-                                    <MenuItem value={false}>
-                                        No
-                                    </MenuItem>
-                                </Select>
-                                {!nuevoAutorizaAusencia && (
-                                    <FormHelperText>El Autoriza ausencia es obligatorio</FormHelperText>
-                                )}
-                            </FormControl>
 
                             <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                                 <TextField
@@ -1584,8 +1564,7 @@ function AdminEmpleados() {
                             !nuevoPermiteR && nuevoPermiteR !== false && nuevoPermiteR !== true ||
                             nuevoEmpresa === "" ||
                             // Removemos nuevoTurno de los checks
-                            nuevoCargo === "" ||
-                            !nuevoAutorizaAusencia && nuevoAutorizaAusencia !== false && nuevoAutorizaAusencia !== true}
+                            nuevoCargo === ""}
                     >
                         Guardar
                     </Button>
@@ -2131,14 +2110,6 @@ function AdminEmpleados() {
                                 {editCargo === "" && <FormHelperText>El Cargo es obligatorio</FormHelperText>}
                             </FormControl>
 
-                            <FormControl size="small" fullWidth sx={{ mb: 2 }} >
-                                <InputLabel>Autoriza ausencias</InputLabel>
-                                <Select label="Autoriza ausencias" value={editAutorizaAusencia} onChange={(e) => setEditAutorizaAusencia(e.target.value)}>
-                                    <MenuItem value={true}>Si</MenuItem>
-                                    <MenuItem value={false}>No</MenuItem>
-                                </Select>
-                                {(editAutorizaAusencia === "" || editAutorizaAusencia === null) && <FormHelperText>El Autoriza ausencia es obligatorio</FormHelperText>}
-                            </FormControl>
 
                             <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                                 <TextField
@@ -2203,8 +2174,7 @@ function AdminEmpleados() {
                             (!editContratoIndefinido && editContratoIndefinido !== false && editContratoIndefinido !== true) ||
                             (!editArt22 && editArt22 !== false && editArt22 !== true) ||
                             editEmpresa === "" ||
-                            editCargo === "" ||
-                            (!editAutorizaAusencia && editAutorizaAusencia !== false && editAutorizaAusencia !== true)
+                            editCargo === ""
                         }
                     >
                         Guardar
