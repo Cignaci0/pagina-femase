@@ -427,18 +427,16 @@ function AdminAsignacionCiclica() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Asignación Turnos Rotativos
-                </Typography>
-            </Box>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Asignación Turnos Rotativos
+                    </Typography>
+                </Box>
 
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 180px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
                 {/* Filtros */}
-                <Box sx={{ mb: 2, borderBottom: "1px solid #e0e0e0", pb: 2 }}>
+                <Box sx={{ pb: 1 }}>
                     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                         <FormControl size="small" sx={{ width: 250 }}>
                             <InputLabel>Empresa</InputLabel>
@@ -469,6 +467,13 @@ function AdminAsignacionCiclica() {
                         </FormControl>
                     </Stack>
                 </Box>
+            </Paper>
+
+            {/* Card 2: Asignación y Lista */}
+            <Paper elevation={2} sx={{
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                boxSizing: "border-box"
+            }}>
 
                 {/* Transfer list empleados */}
                 <Box sx={{ display: 'flex', flexDirection: { xs: "column", md: "row" }, gap: 2, flex: 1, minHeight: 0, mb: 2, overflow: 'hidden' }}>

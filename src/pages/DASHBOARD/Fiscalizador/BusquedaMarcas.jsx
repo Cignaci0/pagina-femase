@@ -418,9 +418,9 @@ function BusquedaPorMarcas() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Marcas
+            <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Administración Marcas
                 </Typography>
             </Box>
 

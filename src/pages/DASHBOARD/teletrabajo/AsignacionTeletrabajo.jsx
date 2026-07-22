@@ -198,11 +198,11 @@ function AsignacionTeletrabajos() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Asignación Teletrabajo
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Asignación Teletrabajo
+                    </Typography>
+                </Box>
 
             <Paper elevation={2} sx={{
                 p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 180px)", display: 'flex', flexDirection: 'column', overflow: "hidden",

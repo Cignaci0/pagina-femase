@@ -195,13 +195,13 @@ function AdminFeriados() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">Admin Feriados</Typography>
-            </Box>
-
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden", boxSizing: "border-box" }}>
-
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Feriados
+                    </Typography>
+                </Box>
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -212,7 +212,7 @@ function AdminFeriados() {
                     </Paper>
 
                     {/* Filtro de año */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 130, }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 130, }}>
                         <InputLabel>Año</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtroAño} onChange={(e) => { setFiltroAño(e.target.value); setFiltroMes(""); }} label="Año">
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -227,7 +227,7 @@ function AdminFeriados() {
                     </FormControl>
 
                     {/* Filtro de mes */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 130 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 130 }}>
                         <InputLabel>Mes</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -247,7 +247,7 @@ function AdminFeriados() {
                     </FormControl>
 
                     {/* Filtro de tipo feriado */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 130 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 130 }}>
                         <InputLabel>Tipo Feriado</InputLabel>
                         <Select sx={{ width: "20vh" }} label="Estado" value={filtroTipoFeriado} onChange={(e) => setFiltroTipoFeriado(e.target.value)}>
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -263,7 +263,10 @@ function AdminFeriados() {
                     </Button>
 
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative", }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>

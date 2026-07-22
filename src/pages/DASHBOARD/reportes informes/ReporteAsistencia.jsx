@@ -189,11 +189,11 @@ function ReporteAsistencia() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Reporte Asistencia
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Reporte Asistencia
+                    </Typography>
+                </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

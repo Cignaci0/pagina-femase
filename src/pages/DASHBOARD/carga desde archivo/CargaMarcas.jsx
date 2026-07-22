@@ -49,11 +49,11 @@ function cargaMarcas() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Cargar Marcas
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Cargar Marcas
+                    </Typography>
+                </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

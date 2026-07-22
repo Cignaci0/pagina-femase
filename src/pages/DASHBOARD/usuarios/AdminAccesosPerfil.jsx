@@ -161,9 +161,9 @@ function AdminAccesosPerfil() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Acceso Perfil
+            <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Administración Acceso Perfil
                 </Typography>
             </Box>
 

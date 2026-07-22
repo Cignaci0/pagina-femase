@@ -134,7 +134,7 @@ function AdminTeletrabajos() {
         const run = (emp.run || "").toLowerCase();
         const ficha = (emp.num_ficha || "").toLowerCase();
         const nombre = `${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""}`.toLowerCase();
-        
+
         const coincideBusqueda = run.includes(term) || ficha.includes(term) || nombre.includes(term);
         // Nota: El filtrado por depto y cenco ahora debería ser manejado idealmente por el servidor,
         // pero mantenemos el filtrado local sobre la página actual por ahora.
@@ -276,7 +276,7 @@ function AdminTeletrabajos() {
     const formatHorarioInfo = (asig) => {
         // La API envía el objeto de horario dentro de horario_id o id_horario
         let h = asig.horario || asig.horario_id || asig.id_horario;
-        
+
         // Si h no es objeto pero tenemos un ID, buscamos en la lista global
         if (h && typeof h !== 'object') {
             const hid = h;
@@ -301,7 +301,7 @@ function AdminTeletrabajos() {
                 }
             }
         }
-        
+
         // Fallback de diagnóstico final
         const rawId = asig.horario_id || asig.id_horario;
         if (rawId) {
@@ -311,7 +311,7 @@ function AdminTeletrabajos() {
             }
             return `ID: ${rawId}`;
         }
-        
+
         return "Descanso";
     };
 
@@ -329,16 +329,13 @@ function AdminTeletrabajos() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Teletrabajos
-                </Typography>
-            </Box>
-
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 180px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Teletrabajos
+                    </Typography>
+                </Box>
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2 }}>
                     <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "300px" }, height: "40px" }}>
                         <TextField
@@ -352,7 +349,7 @@ function AdminTeletrabajos() {
                         <IconButton type="button" sx={{ p: '10px' }}><SearchIcon /></IconButton>
                     </Paper>
 
-                    <FormControl size="small" variant="standard" sx={{ width: 180 }}>
+                    <FormControl size="small" variant="outlined" sx={{ width: 180 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select
                             value={empresaSeleccionada}
@@ -366,7 +363,7 @@ function AdminTeletrabajos() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ width: 180 }} disabled={!empresaSeleccionada}>
+                    <FormControl size="small" variant="outlined" sx={{ width: 180 }} disabled={!empresaSeleccionada}>
                         <InputLabel>Departamento</InputLabel>
                         <Select
                             value={filtroDepto}
@@ -384,7 +381,7 @@ function AdminTeletrabajos() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ width: 180 }} disabled={!filtroDepto}>
+                    <FormControl size="small" variant="outlined" sx={{ width: 180 }} disabled={!filtroDepto}>
                         <InputLabel>Cenco</InputLabel>
                         <Select
                             value={filtroCenco}
@@ -401,7 +398,10 @@ function AdminTeletrabajos() {
                         </Select>
                     </FormControl>
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 <Box sx={{ flex: 1, overflow: "hidden", width: "100%", display: 'flex', flexDirection: 'column' }}>
                     <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
                         <Table stickyHeader aria-label="tabla de teletrabajos">
@@ -581,9 +581,9 @@ function AdminTeletrabajos() {
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
                     <Button variant="outlined" color="error" onClick={() => setDialogAsignar(false)} disabled={cargandoEnvio}>Cancelar</Button>
-                    <Button 
-                        variant="contained" 
-                        color="primary" 
+                    <Button
+                        variant="contained"
+                        color="primary"
                         onClick={handleGuardarEdicion}
                         disabled={cargandoEnvio || !horarioIdEdicion}
                         startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}

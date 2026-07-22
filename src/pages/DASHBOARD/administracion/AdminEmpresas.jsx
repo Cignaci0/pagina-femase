@@ -270,7 +270,7 @@ function AdminEmpresas() {
 
     const guardarContacto = async () => {
         if (!EmpresaSeleccionada) return;
-        
+
         const emailContacto = contactoEmailLocal && contactoEmailDominio
             ? `${contactoEmailLocal}${contactoEmailDominio}`
             : EmpresaSeleccionada.email_empresa;
@@ -380,20 +380,17 @@ function AdminEmpresas() {
 
     return (
         <>
-            {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Empresas
-                </Typography>
-            </Box>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                {/* Titulo */}
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Empresas
+                    </Typography>
+                </Box>
 
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
                 {/* Barra de busqueda y botones */}
-                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, }}>
 
                     {/* Barra de busqueda */}
                     <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "300px" }, height: "40px", }}>
@@ -410,7 +407,7 @@ function AdminEmpresas() {
                         </IconButton>
                     </Paper>
 
-    
+
                     {/* Botones de exportacion */}
                     <Stack direction="row" spacing={2} sx={{ ml: 3 }} >
                         <Paper
@@ -464,6 +461,13 @@ function AdminEmpresas() {
                     </Button>
 
                 </Box>
+            </Paper>
+
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{
+                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
+                boxSizing: "border-box"
+            }}>
 
                 {/* Tabla principal */}
                 <Box sx={{

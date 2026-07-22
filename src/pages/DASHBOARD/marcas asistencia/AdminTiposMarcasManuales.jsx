@@ -144,20 +144,17 @@ function AdminTipoMarcasManuales() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Tipo Marcas Manuales
-                </Typography>
-            </Box>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Tipo Marcas Manuales
+                    </Typography>
+                </Box>
+                {/* Alerta de exito */}
 
-            {/* Alerta de exito */}
 
-
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -177,7 +174,7 @@ function AdminTipoMarcasManuales() {
                     </Paper>
 
                     {/* Filtro vigente */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Vigente</InputLabel>
                         <Select sx={{ width: "26vh" }} value={filtroVigente} onChange={(e) => setFiltroVigente(e.target.value)} label="Vigente">
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -193,7 +190,10 @@ function AdminTipoMarcasManuales() {
                     </Button>
 
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,
@@ -288,7 +288,7 @@ function AdminTipoMarcasManuales() {
                                 />
                             </Box>
 
-                      
+
 
                             {/* Campo vigente */}
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>
@@ -334,7 +334,7 @@ function AdminTipoMarcasManuales() {
                                 />
                             </Box>
 
-                       
+
 
                             {/* Campo vigente */}
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}>

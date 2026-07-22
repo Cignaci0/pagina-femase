@@ -25,9 +25,9 @@ dayjs.locale("es");
 function AdminUsuariosConectados() {
 
     // Estados de datos
-    
+
     const [usuariosConectados, setUsuariosConectados] = useState([]);
-    
+
 
     // Estados de paginacion y filtrado
     const [busqueda, setBusqueda] = useState("");
@@ -174,28 +174,25 @@ function AdminUsuariosConectados() {
         setPagina(0);
     }, [busqueda]);
 
-    
+
 
     // Renderizado condicional
-    
+
 
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Usuarios Conectados
-                </Typography>
-            </Box>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Usuarios Conectados
+                    </Typography>
+                </Box>
+                {/* Alerta de exito */}
 
-            {/* Alerta de exito */}
-            
 
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -333,7 +330,10 @@ function AdminUsuariosConectados() {
                     </Box>
 
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,

@@ -329,7 +329,7 @@ function AdminTurnos() {
             const emp = empresas.find(e => e.empresa_id === tur.empresa?.empresa_id);
             setEmpresaActual(emp);
             setUsarHorarioEmpresa(false); // Por defecto usar legal al abrir
-            
+
             setDetalle(true)
             setIdTurnoDias(tur.turno_id)
             setEmpresaIdHorarios(tur.empresa?.empresa_id)
@@ -558,17 +558,14 @@ function AdminTurnos() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Turnos
-                </Typography>
-            </Box>
-
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Turnos
+                    </Typography>
+                </Box>
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -588,7 +585,7 @@ function AdminTurnos() {
                     </Paper>
 
                     {/* Filtro de empresa */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "26vh" }} label="Empresa" value={empresasFiltro} onChange={(e) => setEmpresasFiltro(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -601,7 +598,7 @@ function AdminTurnos() {
                     </FormControl>
 
                     {/* Filtro de estado */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Estado</InputLabel>
                         <Select sx={{ width: "26vh" }} value={filtroestado} onChange={(e) => setFiltroEstado(e.target.value)} label="Estado">
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -616,7 +613,10 @@ function AdminTurnos() {
                     </Button>
 
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,
@@ -705,7 +705,7 @@ function AdminTurnos() {
 
                                                                 const assigned = empsDeEmpresa.filter(emp => emp.turno?.turno_id === tur.turno_id);
                                                                 const available = empsDeEmpresa.filter(emp => !emp.turno || !emp.turno.turno_id);
-                                                                
+
                                                                 setEmpleadosAsignados(assigned);
                                                                 setEmpleadosDisponibles(available.filter(a => !assigned.some(as => as.empleado_id === a.empleado_id)));
                                                                 setCheckedEmpleados([]);
@@ -738,8 +738,8 @@ function AdminTurnos() {
                                     <TableRow>
                                         <TableCell align="center" colSpan={9}>
                                             <Typography variant="body1" color="text.secondary">
-                                                {!empresasFiltro 
-                                                    ? "Seleccione una empresa para ver los turnos disponibles" 
+                                                {!empresasFiltro
+                                                    ? "Seleccione una empresa para ver los turnos disponibles"
                                                     : "No se encontraron turnos para esta empresa"}
                                             </Typography>
                                         </TableCell>
@@ -1074,9 +1074,9 @@ function AdminTurnos() {
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
                         <Typography variant="body2" color="text.secondary">Usar horas empresa</Typography>
-                        <Switch 
-                            checked={usarHorarioEmpresa} 
-                            onChange={(e) => setUsarHorarioEmpresa(e.target.checked)} 
+                        <Switch
+                            checked={usarHorarioEmpresa}
+                            onChange={(e) => setUsarHorarioEmpresa(e.target.checked)}
                             disabled={!empresaActual?.horario}
                             size="small"
                         />
@@ -1182,7 +1182,7 @@ function AdminTurnos() {
                     <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 2 }}>
                         Seleccione los días laborales y asigne un horario a cada uno.
                     </Typography>
-                    
+
                     <Typography variant="body2" display="block" textAlign="center" color={calcularHorasSemanales() > getHorasLímite() ? "error" : "text.primary"} sx={{ mt: 1, fontWeight: 'bold' }}>
                         Horas semanales: {calcularHorasSemanales().toFixed(1)} / {getHorasLímite()}
                     </Typography>
@@ -1204,7 +1204,7 @@ function AdminTurnos() {
                 </DialogActions>
             </Dialog >
 
-            
+
         </>
     );
 }

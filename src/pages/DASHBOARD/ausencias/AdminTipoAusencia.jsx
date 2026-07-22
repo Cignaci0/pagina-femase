@@ -30,7 +30,7 @@ function AdminTipoAusencia() {
     // Estados de datos
     const [tipoAusencia, setTipoAusencia] = useState([])
     const [cargando, setCargando] = useState(false);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -226,7 +226,7 @@ function AdminTipoAusencia() {
     };
 
     // Effects
-    
+
 
     useEffect(() => {
         setPagina(0);
@@ -240,25 +240,22 @@ function AdminTipoAusencia() {
     const esFormularioValido = nuevoNombre.trim() !== "" && nuevoTipo !== "" && nuevoEstado !== "" && nuevoJustificaHora !== "" && nuevoPagadas !== "";
     const esEditValido = editNombre.trim() !== "" && editTipo !== "" && editEstado !== "" && editJustidicaHora !== "" && editPagadas !== "";
 
-    if (cargando) return ;
+    if (cargando) return;
 
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Tipo Ausencia
-                </Typography>
-            </Box>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Tipo Ausencia
+                    </Typography>
+                </Box>
+                {/* Alerta de exito */}
 
-            {/* Alerta de exito */}
-            
 
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -278,7 +275,7 @@ function AdminTipoAusencia() {
                     </Paper>
 
                     {/* Filtros de seleccion */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Tipo</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Tipo" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -287,7 +284,7 @@ function AdminTipoAusencia() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }} >
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }} >
                         <InputLabel>Estado</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Estado" value={filtroEstado} onChange={(e) => setfiltroEstado(e.target.value)} >
                             <MenuItem value="">Todos</MenuItem>
@@ -296,7 +293,7 @@ function AdminTipoAusencia() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Justifica Hrs</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Justifica Hrs" value={filtrojustificaHrs} onChange={(e) => setFiltrojustificaHrs(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -305,7 +302,7 @@ function AdminTipoAusencia() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Pagada</InputLabel>
                         <Select sx={{ width: "15vh" }} label="Pagada" value={filtroPagada} onChange={(e) => setFiltroPagada(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -331,7 +328,10 @@ function AdminTipoAusencia() {
                         Nuevo Registro
                     </Button>
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,
@@ -568,7 +568,7 @@ function AdminTipoAusencia() {
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", mt: 1, maxWidth: "55vh", minWidth: "55vh" }}>
                         <Box width="100%">
-                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9"}}>
+                            <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f9f9f9" }}>
                                 <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
                                     <Stack direction="row" spacing={2}>
                                         <Paper

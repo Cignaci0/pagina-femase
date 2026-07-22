@@ -248,17 +248,13 @@ function AdminDispositivos() {
     return (
         <>
             {/* Titulo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Dispositivos
-                </Typography>
-            </Box>
-
-            {/* Contenedor principal */}
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-
-            }}>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Dispositivos
+                    </Typography>
+                </Box>
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -278,7 +274,7 @@ function AdminDispositivos() {
                     </Paper>
 
                     {/* Filtro de tipos */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 130, ml: 1 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 130, ml: 1 }}>
                         <InputLabel>Tipos</InputLabel>
                         <Select
                             sx={{ width: "23vh" }}
@@ -294,7 +290,7 @@ function AdminDispositivos() {
                     </FormControl>
 
                     {/* Filtro de estado */}
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 130 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 130 }}>
                         <InputLabel>Estado</InputLabel>
                         <Select
                             sx={{ width: "23vh" }}
@@ -314,7 +310,10 @@ function AdminDispositivos() {
                     </Button>
 
                 </Box>
+            </Paper>
 
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 {/* Tabla principal */}
                 <Box sx={{
                     flex: 1,

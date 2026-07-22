@@ -204,15 +204,15 @@ const COMPONENTES_VISTA = {
   // DOCUMENTOS Y FIRMAS
   "Documentos": <Documento />,
   "Firmas": <Firma />,
-  "Solicitudes":<Solicitud></Solicitud>,
+  "Solicitudes": <Solicitud></Solicitud>,
 
   // NOTIFICACIONES
   "Notificaciones": <Notifi />,
 
   // INSTRUCTIVOS
-  "Instructivos": <Instructivos />,
-  "Intructivos": <Instructivos />,
-  "intructivos": <Instructivos />,
+  "Instructivo": <Instructivos />,
+  "Instructivo": <Instructivos />,
+  "instructivo": <Instructivos />,
 
 
 }

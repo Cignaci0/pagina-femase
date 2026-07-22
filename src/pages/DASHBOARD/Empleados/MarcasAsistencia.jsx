@@ -19,7 +19,7 @@ function MarcasAsistencia() {
 
     const [cargando, setCargando] = useState(false);
     const [userInfo, setUserInfo] = useState({});
-    
+
     const [desdeFecha, setDesdeFecha] = useState(null);
     const [hastaFecha, setHastaFecha] = useState(null);
     const [busqueda, setBusqueda] = useState("");
@@ -103,9 +103,9 @@ function MarcasAsistencia() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Marcas
+            <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Administración Marcas
                 </Typography>
             </Box>
 
@@ -115,7 +115,7 @@ function MarcasAsistencia() {
             }}>
                 {/* Controles y Filtros */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 3 }}>
-                    
+
                     <Box sx={{ maxWidth: "20%" }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                             <DatePicker

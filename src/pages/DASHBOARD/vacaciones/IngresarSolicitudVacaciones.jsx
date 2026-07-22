@@ -105,11 +105,11 @@ function AdminIngresarSolicitudVacaciones() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2, textAlign: 'center' }}>
-                <Typography variant="h4" color="text.secondary" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-                    Ingresar Solicitud Vacaciones
-                </Typography>
-            </Box>
+            <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Ingresar Solicitud Vacaciones
+                    </Typography>
+                </Box>
 
             <Paper elevation={2} sx={{
                 p: { xs: 2, md: 3 }, 

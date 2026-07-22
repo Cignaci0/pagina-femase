@@ -464,16 +464,13 @@ function AdminUsuario() {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" color="text.secondary">
-                    Admin Usuarios
-                </Typography>
-            </Box>
-
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+            {/* Card 1: Titulo y Filtros */}
+            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Administración Usuarios
+                    </Typography>
+                </Box>
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2 }}>
 
                     <Paper component="form" sx={{ bgcolor: "#F5F5F5", p: "2px 4px", display: "flex", alignItems: "center", width: { xs: "100%", md: "300px" }, height: "40px" }}>
@@ -490,7 +487,7 @@ function AdminUsuario() {
                         </IconButton>
                     </Paper>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Empresa</InputLabel>
                         <Select sx={{ width: "20vh" }} value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} label="Empresa">
                             <MenuItem value=""><em>Todos</em></MenuItem>
@@ -500,7 +497,7 @@ function AdminUsuario() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Estado</InputLabel>
                         <Select
                             sx={{ width: "20vh" }}
@@ -514,7 +511,7 @@ function AdminUsuario() {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                    <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                         <InputLabel>Perfil</InputLabel>
                         <Select
                             sx={{ width: "20vh" }}
@@ -534,6 +531,10 @@ function AdminUsuario() {
 
 
                 {/* TABLA PRINCIPAL */}
+            </Paper>
+
+            {/* Card 2: Tabla Principal */}
+            <Paper elevation={2} sx={{ p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", flex: 1, minHeight: "calc(100vh - 280px)", display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box" }}>
                 <Box sx={{
                     flex: 1,
                     overflow: "hidden",
@@ -556,7 +557,7 @@ function AdminUsuario() {
                                     <TableCell width="20%"><strong>Nombre Completo</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Estado</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Perfil</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Admin Cenco</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Administración Cenco</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>
