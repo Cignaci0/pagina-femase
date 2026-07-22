@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Card, CardContent, Button, Container } from "@mui/material";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import { API_URL } from "../../../config/config";
+import { FILE_URL } from "../../../config/config";
 import { toast } from "react-hot-toast";
 
 const Instructivos = () => {
@@ -13,7 +13,7 @@ const Instructivos = () => {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const perfilId = parseInt(payload.profile || payload.perfil_id || payload.perfil);
-        
+
         let file = "";
         let title = "";
 
@@ -44,7 +44,7 @@ const Instructivos = () => {
 
   const handleDownload = () => {
     if (manual) {
-      window.open(`${API_URL}/utils/${manual.file}`, '_blank');
+      window.open(`${FILE_URL}/utils/${manual.file}`, '_blank');
     }
   };
 

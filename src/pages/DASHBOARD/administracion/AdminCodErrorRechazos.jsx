@@ -25,7 +25,7 @@ function AdminCodErrorRechazos() {
     // Estados de datos
     const [errorRachazo, setErrorRachazo] = useState([])
     const [cargando, setCargando] = useState(true);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -185,10 +185,10 @@ function AdminCodErrorRechazos() {
         setPagina(0);
     }, [busqueda]);
 
-    
+
 
     // Renderizado condicional
-    if (cargando) return ;
+    if (cargando) return;
 
     return (
         <>
@@ -197,13 +197,13 @@ function AdminCodErrorRechazos() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Error Rechazos
+                        Administración Error Rechazos
                     </Typography>
                 </Box>
                 {/* Alerta de exito */}
-            
 
-            {/* Contenedor principal */}
+
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 

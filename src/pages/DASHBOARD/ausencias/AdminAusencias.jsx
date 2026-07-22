@@ -178,7 +178,7 @@ function AdminAusencia() {
         try {
             const fi = desdeFecha.format("YYYY-MM-DD");
             const ff = hastaFecha.format("YYYY-MM-DD");
-            
+
             const blob = await reporteAusencia(numFicha, ff, fi);
             if (!blob || Array.isArray(blob)) {
                 toast.error("Error al generar el reporte", { id: toastId });
@@ -316,7 +316,7 @@ function AdminAusencia() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Ausencias
+                        Administración Ausencias
                     </Typography>
                 </Box>
                 {/* Contenedor principal */}
@@ -550,7 +550,7 @@ function AdminAusencia() {
                 <DialogTitle sx={{ fontWeight: "bold" }}>Editar Ausencia</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 2 }}>
-                        
+
                         <FormControl fullWidth size="small">
                             <InputLabel>Motivo Ausencia</InputLabel>
                             <Select
@@ -595,12 +595,12 @@ function AdminAusencia() {
                             </Select>
                         </FormControl>
 
-                        <Box sx={{ 
-                            display: "flex", 
-                            flexDirection: "column", 
-                            gap: 2, 
-                            p: 2, 
-                            bgcolor: "#f9f9f9", 
+                        <Box sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                            p: 2,
+                            bgcolor: "#f9f9f9",
                             borderRadius: 1,
                             opacity: editDiaCompleto ? 0.6 : 1,
                             pointerEvents: editDiaCompleto ? "none" : "auto"

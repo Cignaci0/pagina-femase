@@ -26,7 +26,7 @@ function AdminTiposDispositivos() {
     // Estados de datos
     const [tipoDispositivos, setTiposDispositivos] = useState([]);
     const [cargando, setCargando] = useState(false);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(5);
@@ -210,10 +210,10 @@ function AdminTiposDispositivos() {
         setPagina(0);
     }, [busqueda, filtroEmpresa,]);
 
-    
+
 
     // Renderizado condicional
-    if (cargando) return ;
+    if (cargando) return;
 
     return (
         <>
@@ -222,7 +222,7 @@ function AdminTiposDispositivos() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Tipos Dispositivos
+                        Administración Tipos Dispositivos
                     </Typography>
                 </Box>
                 {/* Barra de busqueda y botones */}
@@ -352,7 +352,7 @@ function AdminTiposDispositivos() {
                                         </TableRow>
                                     )
                                 })}
-                            
+
                             {tipoDispositivos.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={7} align="center" sx={{ alignItems: "center" }}>

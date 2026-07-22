@@ -140,14 +140,14 @@ function AdminEventosSistema() {
         setPagina(0);
     };
 
-    
+
     useEffect(() => {
         setPagina(0);
     }, [busqueda, filtroFechaInicio, filtroFechaFin]);
 
     // Filtrado de datos
     const filteredEventos = (Array.isArray(eventos) ? eventos : []).filter((evento) => {
-        const matchBusqueda = 
+        const matchBusqueda =
             (evento.usuario?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
             (evento.evento?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
             (evento.tipo_evento?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
@@ -176,7 +176,7 @@ function AdminEventosSistema() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Registro de Eventos
+                        Administración Registro de Eventos
                     </Typography>
                 </Box>
                 {/* Contenedor principal */}

@@ -148,7 +148,7 @@ function AdminVacaciones() {
                     const empsRes = await obtenerPorEmpresa(filtroEmpresa);
                     const emps = empsRes || [];
                     setEmpleadosGlobal(emps);
-                    
+
                     if (userInfo?.num_ficha && filtroDepto === "" && filtroCenco === "" && filtroEmpleado === "") {
                         const me = emps.find(e => e.num_ficha === userInfo.num_ficha);
                         if (me) {
@@ -479,20 +479,20 @@ function AdminVacaciones() {
         <>
             {/* Titulo */}
             <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Vacaciones
-                    </Typography>
-                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Administración Vacaciones
+                </Typography>
+            </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{
-                p: { xs: 1.5, sm: 2, md: 3 }, 
-                bgcolor: "#FFFFFD", 
-                borderRadius: 2, 
-                width: "100%", 
-                height: { xs: "auto", md: "calc(100vh - 200px)" }, 
-                display: 'flex', 
-                flexDirection: 'column', 
+                p: { xs: 1.5, sm: 2, md: 3 },
+                bgcolor: "#FFFFFD",
+                borderRadius: 2,
+                width: "100%",
+                height: { xs: "auto", md: "calc(100vh - 200px)" },
+                display: 'flex',
+                flexDirection: 'column',
                 overflow: { xs: "visible", md: "hidden" },
                 boxSizing: "border-box"
             }}>
@@ -673,12 +673,12 @@ function AdminVacaciones() {
                     position: "relative",
                     minHeight: { xs: "300px", md: "auto" }
                 }}>
-                    <TableContainer sx={{ 
-                        position: { xs: "static", md: "absolute" }, 
-                        top: 0, left: 0, right: 0, bottom: 0, 
-                        overflowX: "auto", 
-                        overflowY: { xs: "visible", md: "auto" }, 
-                        textAlign: "center" 
+                    <TableContainer sx={{
+                        position: { xs: "static", md: "absolute" },
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        overflowX: "auto",
+                        overflowY: { xs: "visible", md: "auto" },
+                        textAlign: "center"
                     }}>
 
                         {filtroEmpleado && (() => {

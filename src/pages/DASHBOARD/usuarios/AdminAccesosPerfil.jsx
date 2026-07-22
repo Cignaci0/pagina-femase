@@ -162,10 +162,10 @@ function AdminAccesosPerfil() {
         <>
             {/* Titulo */}
             <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Acceso Perfil
-                    </Typography>
-                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Administración Acceso Perfil
+                </Typography>
+            </Box>
 
             {/* Contenedor principal */}
             <Paper elevation={2} sx={{

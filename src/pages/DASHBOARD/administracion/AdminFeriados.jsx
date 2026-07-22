@@ -199,7 +199,7 @@ function AdminFeriados() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Feriados
+                        Administración Feriados
                     </Typography>
                 </Box>
                 {/* Barra de busqueda y botones */}

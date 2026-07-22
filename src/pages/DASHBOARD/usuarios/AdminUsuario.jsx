@@ -468,7 +468,7 @@ function AdminUsuario() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Usuarios
+                        Administración Usuarios
                     </Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2 }}>
@@ -557,7 +557,7 @@ function AdminUsuario() {
                                     <TableCell width="20%"><strong>Nombre Completo</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Estado</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Perfil</strong></TableCell>
-                                    <TableCell width="20%" align="center"><strong>Admin Cenco</strong></TableCell>
+                                    <TableCell width="20%" align="center"><strong>Administración Cenco</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
                                 </TableRow>
                             </TableHead>

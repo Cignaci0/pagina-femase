@@ -28,7 +28,7 @@ function AdminDepartamentos() {
     const [departamentos, setDepartamentos] = useState([]);
     const [empresas, setEmpresas] = useState([])
     const [cargando, setCargando] = useState(true);
-    
+
     // Estados de paginacion y filtrado
     const [pagina, setPagina] = useState(0);
     const [filaPorPagina, setFilaPorPagina] = useState(7);
@@ -245,10 +245,10 @@ function AdminDepartamentos() {
         setPagina(0);
     }, [busqueda, filtroEmpresa,]);
 
-    
+
 
     // Renderizado condicional
-    if (cargando) return ;
+    if (cargando) return;
 
     return (
         <>
@@ -257,13 +257,13 @@ function AdminDepartamentos() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Departamentos
+                        Administración Departamentos
                     </Typography>
                 </Box>
                 {/* Alerta de exito */}
-            
 
-            {/* Contenedor principal */}
+
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 
@@ -355,7 +355,7 @@ function AdminDepartamentos() {
                     flex: 1,
                     overflow: "hidden",
                     width: "100%",
-                    position: "relative" 
+                    position: "relative"
                 }}>
                     <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
                         <Table stickyHeader sx={{ minWidth: 650, width: "100%" }} aria-label="tabla de usuarios">
@@ -456,7 +456,7 @@ function AdminDepartamentos() {
                             <DialogTitle sx={{ p: 0, mb: 3 }}>Agregar Nuevo Departamento</DialogTitle>
 
                             {/* Campo empresa */}
-                            <FormControl size="small" fullWidth  sx={{ mb: 2 }}>
+                            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
                                 <InputLabel>Empresa</InputLabel>
                                 <Select
                                     label="Empresa"

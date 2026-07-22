@@ -419,10 +419,10 @@ function BusquedaPorMarcas() {
     return (
         <>
             <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Marcas
-                    </Typography>
-                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Administración Marcas
+                </Typography>
+            </Box>
 
             <Paper elevation={2} sx={{
                 p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",

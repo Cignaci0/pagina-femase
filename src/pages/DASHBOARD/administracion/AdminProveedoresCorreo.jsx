@@ -212,13 +212,13 @@ function AdminPreoveedorCorreo() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Proveedores Correo
+                        Administración Proveedores Correo
                     </Typography>
                 </Box>
                 {/* Alerta de exito */}
 
 
-            {/* Contenedor principal */}
+                {/* Contenedor principal */}
                 {/* Barra de busqueda y botones */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2, }}>
 

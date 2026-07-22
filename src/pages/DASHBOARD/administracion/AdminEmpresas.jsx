@@ -270,7 +270,7 @@ function AdminEmpresas() {
 
     const guardarContacto = async () => {
         if (!EmpresaSeleccionada) return;
-        
+
         const emailContacto = contactoEmailLocal && contactoEmailDominio
             ? `${contactoEmailLocal}${contactoEmailDominio}`
             : EmpresaSeleccionada.email_empresa;
@@ -385,7 +385,7 @@ function AdminEmpresas() {
                 {/* Titulo */}
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Empresas
+                        Administración Empresas
                     </Typography>
                 </Box>
 
@@ -407,7 +407,7 @@ function AdminEmpresas() {
                         </IconButton>
                     </Paper>
 
-    
+
                     {/* Botones de exportacion */}
                     <Stack direction="row" spacing={2} sx={{ ml: 3 }} >
                         <Paper

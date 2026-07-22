@@ -134,7 +134,7 @@ function AdminTeletrabajos() {
         const run = (emp.run || "").toLowerCase();
         const ficha = (emp.num_ficha || "").toLowerCase();
         const nombre = `${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno || ""}`.toLowerCase();
-        
+
         const coincideBusqueda = run.includes(term) || ficha.includes(term) || nombre.includes(term);
         // Nota: El filtrado por depto y cenco ahora debería ser manejado idealmente por el servidor,
         // pero mantenemos el filtrado local sobre la página actual por ahora.
@@ -276,7 +276,7 @@ function AdminTeletrabajos() {
     const formatHorarioInfo = (asig) => {
         // La API envía el objeto de horario dentro de horario_id o id_horario
         let h = asig.horario || asig.horario_id || asig.id_horario;
-        
+
         // Si h no es objeto pero tenemos un ID, buscamos en la lista global
         if (h && typeof h !== 'object') {
             const hid = h;
@@ -301,7 +301,7 @@ function AdminTeletrabajos() {
                 }
             }
         }
-        
+
         // Fallback de diagnóstico final
         const rawId = asig.horario_id || asig.id_horario;
         if (rawId) {
@@ -311,7 +311,7 @@ function AdminTeletrabajos() {
             }
             return `ID: ${rawId}`;
         }
-        
+
         return "Descanso";
     };
 
@@ -333,7 +333,7 @@ function AdminTeletrabajos() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Teletrabajos
+                        Administración Teletrabajos
                     </Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2 }}>
@@ -581,9 +581,9 @@ function AdminTeletrabajos() {
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
                     <Button variant="outlined" color="error" onClick={() => setDialogAsignar(false)} disabled={cargandoEnvio}>Cancelar</Button>
-                    <Button 
-                        variant="contained" 
-                        color="primary" 
+                    <Button
+                        variant="contained"
+                        color="primary"
                         onClick={handleGuardarEdicion}
                         disabled={cargandoEnvio || !horarioIdEdicion}
                         startIcon={cargandoEnvio && <CircularProgress size={20} color="inherit" />}

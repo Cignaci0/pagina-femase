@@ -617,7 +617,7 @@ function AdminEmpleados() {
             <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", boxSizing: "border-box" }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Admin Empleados
+                        Administración Empleados
                     </Typography>
                 </Box>
                 {/* Barra de busqueda y botones */}
@@ -1509,7 +1509,7 @@ function AdminEmpleados() {
                                     label="Tiene turno flexible"
                                 />
                             </Box>
-                            
+
                             {nuevoTieneTurnoFlexible && (
                                 <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
                                     <FormControl size="small" fullWidth>
@@ -1531,7 +1531,7 @@ function AdminEmpleados() {
                                         </Select>
                                         {nuevoOpcionHorasFlexible === "" && <FormHelperText>Seleccione una opción</FormHelperText>}
                                     </FormControl>
-                                    
+
                                     {nuevoOpcionHorasFlexible === "Personalizado" && (
                                         <TextField
                                             size="small"
@@ -2177,7 +2177,7 @@ function AdminEmpleados() {
                                     label="Tiene turno flexible"
                                 />
                             </Box>
-                            
+
                             {editTieneTurnoFlexible && (
                                 <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
                                     <FormControl size="small" fullWidth>
@@ -2199,7 +2199,7 @@ function AdminEmpleados() {
                                         </Select>
                                         {editOpcionHorasFlexible === "" && <FormHelperText>Seleccione una opción</FormHelperText>}
                                     </FormControl>
-                                    
+
                                     {editOpcionHorasFlexible === "Personalizado" && (
                                         <TextField
                                             size="small"
@@ -2322,8 +2322,8 @@ function AdminEmpleados() {
                             (!editContratoIndefinido && editContratoIndefinido !== false && editContratoIndefinido !== true) ||
                             (!editArt22 && editArt22 !== false && editArt22 !== true) ||
                             editEmpresa === "" ||
-                            editCargo === "" ||
-                            (!editAutorizaAusencia && editAutorizaAusencia !== false && editAutorizaAusencia !== true)
+                            editCargo === ""
+                            //||(!editAutorizaAusencia && editAutorizaAusencia !== false && editAutorizaAusencia !== true)
                         }
                     >
                         Guardar
