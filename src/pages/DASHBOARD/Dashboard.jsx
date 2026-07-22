@@ -211,9 +211,6 @@ const COMPONENTES_VISTA = {
 
   // INSTRUCTIVOS
   "Instructivo": <Instructivos />,
-  "Instructivo": <Instructivos />,
-  "instructivo": <Instructivos />,
-
 
 }
 
