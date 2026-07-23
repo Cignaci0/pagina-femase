@@ -166,6 +166,7 @@ function AdminEmpleados() {
     const [nuevoPermiteR, setNuevoPermiteR] = useState("")
     const [nuevoEmailNoti, setNuevoEmailNoti] = useState("")
     const [dominioNoti, setDominioNoti] = useState("")
+    const [nuevoAutorizaAusencia, setNuevoAutorizaAusencia] = useState(false)
 
     const [nuevoTieneTurnoFlexible, setNuevoTieneTurnoFlexible] = useState(false)
     const [nuevoOpcionHorasFlexible, setNuevoOpcionHorasFlexible] = useState("")
