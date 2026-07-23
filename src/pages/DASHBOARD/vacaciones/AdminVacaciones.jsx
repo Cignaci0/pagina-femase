@@ -640,8 +640,8 @@ function AdminVacaciones() {
                                 <Button
                                     variant="contained"
                                     sx={{ height: "40px", width: { xs: "100%", sm: "auto" } }}
-                                    onClick={abrirDialogNuevo}
-                                    disabled={!filtroEmpleado || isTipoCargo1Global || isSelfRestricted}
+                                    onClick={() => setOpen(true)}
+                                    disabled={!filtroEmpleado || isTipoCargo1Global || isSelfRestrictedNuevo}
                                 >
                                     Ingresar Solicitud
                                 </Button>
