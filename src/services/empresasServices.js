@@ -107,8 +107,7 @@ export const actualizarHorarioLegal = async (horario) => {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + token,
     }, body: JSON.stringify({
-      hora: horario,
-      idUsuario: idUsuario,
+      hora: horario
     })
   });
 
