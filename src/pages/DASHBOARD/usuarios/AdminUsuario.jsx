@@ -766,6 +766,7 @@ function AdminUsuario() {
                                         <FormControl size="small" sx={{ minWidth: 150 }} disabled={!empresa}>
                                             <InputLabel>Dominio</InputLabel>
                                             <Select label="Dominio" value={emailDominio} onChange={(e) => setEmailDominio(e.target.value)}>
+                                                <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                                 {proveedorCorreo
                                                     .filter(p => p.empresa?.empresa_id === empresa)
                                                     .map((prov) => (
@@ -929,6 +930,7 @@ function AdminUsuario() {
                                         <FormControl size="small" sx={{ minWidth: 150 }} disabled={!editEmpresa}>
                                             <InputLabel>Dominio</InputLabel>
                                             <Select label="Dominio" value={editEmailDominio} onChange={(e) => setEditEmailDominio(e.target.value)}>
+                                                <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                                 {proveedorCorreo
                                                     .filter(p => p.empresa?.empresa_id === editEmpresa)
                                                     .map((prov) => (

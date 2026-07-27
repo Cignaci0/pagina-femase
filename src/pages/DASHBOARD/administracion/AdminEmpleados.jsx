@@ -1097,6 +1097,7 @@ function AdminEmpleados() {
                                         value={dominioPersonal}
                                         onChange={(e) => setDominioPersonal(e.target.value)}
                                     >
+                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => !p.empresa || p.empresa === null)
                                             .map((prov) => (
@@ -1375,6 +1376,7 @@ function AdminEmpleados() {
                                         onChange={(e) => setDominio(e.target.value)}
                                         disabled={!nuevoEmpresa}
                                     >
+                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => p.empresa?.empresa_id === nuevoEmpresa)
                                             .map((prov) => (
@@ -1617,6 +1619,7 @@ function AdminEmpleados() {
                                         onChange={(e) => setDominioNoti(e.target.value)}
                                         disabled={!nuevoEmpresa || cargos.find(c => c.cargo_id === nuevoCargo)?.tipo_cargo === 1}
                                     >
+                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => p.empresa?.empresa_id === nuevoEmpresa)
                                             .map((prov) => (
@@ -1805,6 +1808,7 @@ function AdminEmpleados() {
                                         value={editDominioPersonal}
                                         onChange={(e) => setEditDominioPersonal(e.target.value)}
                                     >
+                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => !p.empresa || p.empresa === null)
                                             .map((prov) => (
@@ -2044,6 +2048,7 @@ function AdminEmpleados() {
                                         onChange={(e) => setEditDominio(e.target.value)}
                                         disabled={!editEmpresa}
                                     >
+                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => p.empresa?.empresa_id === editEmpresa)
                                             .map((prov) => (
@@ -2285,6 +2290,7 @@ function AdminEmpleados() {
                                         onChange={(e) => setEditDominioNoti(e.target.value)}
                                         disabled={!editEmpresa || cargos.find(c => c.cargo_id === editCargo)?.tipo_cargo === 1}
                                     >
+                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => p.empresa?.empresa_id === editEmpresa)
                                             .map((prov) => (
