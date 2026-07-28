@@ -169,3 +169,26 @@ export const eliminarDocumento = async (id) => {
     }
     return datos;
 };
+
+
+//Obtener mis firmas enviadas
+export const obtenerMisFirmasEnviadas = async () => {
+    try {
+        const response = await fetch(`${API_URL}/firmas/enviados`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+
+        const data = await response.json();
+        return data || [];
+    } catch (error) {
+        return [];
+    }
+};

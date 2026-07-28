@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import {
     Box, Paper, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, TablePagination,
-    Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, TextField, Grid, Divider
+    Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, TextField, Grid, Divider, Tabs, Tab
 } from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Send as SendIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Add as AddIcon, Edit as EditIcon, Send as SendIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from "@mui/icons-material";
 import { toast } from "react-hot-toast";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 // Services
-import { obtenerDocumento, crearDocumento, actualizarDocumento, crearFirma, eliminarDocumento } from "../../../services/documentosYFirmas";
+import { obtenerDocumento, crearDocumento, actualizarDocumento, crearFirma, eliminarDocumento, obtenerMisFirmasEnviadas } from "../../../services/documentosYFirmas";
 import { obtenerEmpresas } from "../../../services/empresasServices";
 import { obtenerDeptoPorEmpresa } from "../../../services/departamentosServices";
 import { obtenerCencosPorDepto } from "../../../services/centroCostosServices";
@@ -17,6 +17,8 @@ import { obtenerPorEmpresa as obtenerEmpleadosPorEmpresa } from "../../../servic
 
 function Documento() {
     const [documentos, setDocumentos] = useState([]);
+    const [misFirmas, setMisFirmas] = useState([]);
+    const [tabValue, setTabValue] = useState(0);
     const [editId, setEditId] = useState(null);
     const [filtroEmpresa, setFiltroEmpresa] = useState(() => {
         const stored = localStorage.getItem('empresaId');
@@ -92,6 +94,17 @@ useEffect(() => {
             fetchDocumentos(filtroEmpresa);
         }
     }, [filtroEmpresa]);
+
+    const fetchMisFirmas = async () => {
+        const data = await obtenerMisFirmasEnviadas();
+        setMisFirmas(data);
+    };
+
+    useEffect(() => {
+        if (tabValue === 1) {
+            fetchMisFirmas();
+        }
+    }, [tabValue]);
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -236,17 +249,22 @@ useEffect(() => {
     };
 
     return (
-        <>
+        <Paper elevation={2} sx={{
+            p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 140px)", display: 'flex', flexDirection: 'column',
+            boxSizing: "border-box"
+        }}>
             <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Documentos
-                    </Typography>
-                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Documentos
+                </Typography>
+                <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)}>
+                    <Tab label="Plantillas" />
+                    <Tab label="Mis Envíos" />
+                </Tabs>
+            </Box>
 
-            <Paper elevation={2} sx={{
-                p: 2, bgcolor: "#FFFFFD", borderRadius: 2, width: "100%", height: "calc(100vh - 200px)", display: 'flex', flexDirection: 'column', overflow: "hidden",
-                boxSizing: "border-box"
-            }}>
+            {tabValue === 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, pt: 1 }}>
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", mb: 3, gap: 2 }}>
                     <FormControl size="small" sx={{ minWidth: 250 }}>
                         <InputLabel>Filtrar por Empresa</InputLabel>
@@ -333,7 +351,104 @@ useEffect(() => {
                     labelRowsPerPage="Paginas"
                     labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
                 />
-            </Paper>
+                </Box>
+            )}
+            
+            {tabValue === 1 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, pt: 1 }}>
+                    <Box sx={{ flex: 1, overflow: "hidden", width: "100%", position: "relative" }}>
+                    <TableContainer sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflowX: "auto", overflowY: "auto" }}>
+                        <Table stickyHeader sx={{ minWidth: 650, width: "100%" }}>
+                            <TableHead sx={{ '& th': { bgcolor: '#FFFFFD', borderBottom: '2px solid #ddd' } }}>
+                                <TableRow>
+                                    <TableCell><strong>Empleado</strong></TableCell>
+                                    <TableCell><strong>Nombre Doc</strong></TableCell>
+                                    <TableCell><strong>Tipo</strong></TableCell>
+                                    <TableCell><strong>Fecha Envío</strong></TableCell>
+                                    <TableCell align="center"><strong>Visto en Correo</strong></TableCell>
+                                    <TableCell align="center"><strong>Estado</strong></TableCell>
+                                    <TableCell align="center"><strong>Ver</strong></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {misFirmas.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={7} align="center">
+                                            <Typography variant="body1" sx={{ py: 3, color: 'text.secondary' }}>
+                                                No hay documentos enviados por ti
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    misFirmas
+                                        .slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina)
+                                        .map((row) => (
+                                            <TableRow 
+                                                key={row.id}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { backgroundColor: '#f5f5f5' } }}
+                                            >
+                                                <TableCell>{row.empleado?.nombres} {row.empleado?.apellido_paterno}</TableCell>
+                                                <TableCell>{row.nombre}</TableCell>
+                                                <TableCell>{row.tipo}</TableCell>
+                                                <TableCell>{row.fecha_envio ? new Date(row.fecha_envio).toLocaleDateString() : 'N/A'}</TableCell>
+                                                <TableCell align="center">
+                                                    {row.leido ? (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: '#4caf50' }}>
+                                                            <VisibilityIcon fontSize="small" /> Sí
+                                                        </Box>
+                                                    ) : (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: '#9e9e9e' }}>
+                                                            <VisibilityOffIcon fontSize="small" /> No
+                                                        </Box>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                                        <Box
+                                                            sx={{
+                                                                width: 12,
+                                                                height: 12,
+                                                                borderRadius: '50%',
+                                                                bgcolor: row.estado === "A" ? "#4caf50" : row.estado === "R" ? "#f44336" : "#ffeb3b",
+                                                                boxShadow: '0 0 4px rgba(0,0,0,0.2)'
+                                                            }}
+                                                        />
+                                                        <Typography variant="body2">
+                                                            {row.estado === "A" ? "Aprobada" : row.estado === "R" ? "Rechazada" : "Pendiente"}
+                                                        </Typography>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <Button variant="outlined" size="small" onClick={() => {
+                                                        setNombreDoc(row.nombre);
+                                                        setContenido(row.texto || "");
+                                                        setEditId(null);
+                                                        setIsAssigning(false); // We can just use the modal as read-only or a custom view
+                                                        setOpenModal(true);
+                                                    }}>
+                                                        Ver
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Box>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={misFirmas.length}
+                    rowsPerPage={filaPorPagina}
+                    page={pagina}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelRowsPerPage="Paginas"
+                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+                />
+                </Box>
+            )}
 
             {/* Dialogo Dual (Plantilla / Envío) */}
             <Dialog open={openModal} onClose={handleCloseModal} maxWidth="lg" fullWidth PaperProps={{ sx: { borderRadius: 3, bgcolor: '#f5f7f9', minHeight: '80vh' } }}>
@@ -451,7 +566,7 @@ useEffect(() => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </>
+        </Paper>
     );
 }
 
