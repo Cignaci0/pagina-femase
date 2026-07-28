@@ -24,7 +24,7 @@ export const obtenerHorarios = async (empresa_id) => {
 };
 
 //Crear horario
-export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgura_mins, colacion, nocturno, hora_entrada_colacion, hora_salida_colacion) => {
+export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgura_mins, colacion, nocturno, hora_entrada_colacion, hora_salida_colacion, marca_colacion) => {
   const peticion = await fetch(`${API_URL}/horario/crear`, {
     method: "POST",
     headers: {
@@ -40,6 +40,7 @@ export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgur
       nocturno:nocturno,
       hora_inicio_colacion: hora_entrada_colacion,
       hora_fin_colacion: hora_salida_colacion,
+      marca_colacion: marca_colacion,
     }),
   });
 
@@ -51,7 +52,7 @@ export const crearHorario = async (hora_entrada, hora_salida, empresa_id, holgur
 };
 
 //Actualizar horario
-export const actualizarHorario = async (editId, hora_entrada, hora_salida, empresa, holgura_mins, colacion, nocturno, hora_entrada_colacion, hora_salida_colacion) => {
+export const actualizarHorario = async (editId, hora_entrada, hora_salida, empresa, holgura_mins, colacion, nocturno, hora_entrada_colacion, hora_salida_colacion, marca_colacion) => {
   const peticion = await fetch(`${API_URL}/horario/${editId}`, {
     method: "PATCH",
     headers: {
@@ -67,6 +68,7 @@ export const actualizarHorario = async (editId, hora_entrada, hora_salida, empre
       nocturno:nocturno,
       hora_inicio_colacion: hora_entrada_colacion,
       hora_fin_colacion: hora_salida_colacion,
+      marca_colacion: marca_colacion,
     }),
   });
 

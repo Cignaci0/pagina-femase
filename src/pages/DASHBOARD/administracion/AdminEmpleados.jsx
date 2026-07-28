@@ -428,7 +428,7 @@ function AdminEmpleados() {
         setNuevoRun("");
         setNuevoNumFicha("");
         setNuevoLetraFicha("");
-        setnuevoNombre(""); setNuevoEmpresa("");
+        setnuevoNombre(""); setNuevoEmpresa(filtroEmpresa || "");
         setNuevoEstado(""); setNuevoDireccion("");
         setNuevoEmailPersonal(""); setNuevoRegion("");
         setNuevoComuna("");
@@ -594,7 +594,20 @@ function AdminEmpleados() {
     };
 
     // Effects
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setNuevoEmpresa(payload.empresa_id);
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         llamarDatosParaFiltrado()
     }, [])
 
@@ -1008,7 +1021,7 @@ function AdminEmpleados() {
                                     inputProps={{ maxLength: 12 }}
                                     error={nuevoRun.length > 0 && !esRutValido(nuevoRun)}
                                     helperText={
-                                        nuevoRun.trim() === ""
+                                        (nuevoRun || "").trim() === ""
                                             ? "El Run es obligatorio"
                                             : (!esRutValido(nuevoRun) ? "RUT inválido" : "")
                                     }
@@ -1041,14 +1054,14 @@ function AdminEmpleados() {
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Nombres" size="small" value={nuevoNombre} onChange={(e) => setnuevoNombre(e.target.value)} helperText={nuevoNombre.trim() === "" ? "El nombre es obligatorio" : ""} />
+                                <TextField fullWidth label="Nombres" size="small" value={nuevoNombre} onChange={(e) => setnuevoNombre(e.target.value)} helperText={(nuevoNombre || "").trim() === "" ? "El nombre es obligatorio" : ""} />
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Apellido Paterno" size="small" value={nuevoApPaterno} onChange={(e) => setNuevoApPaterno(e.target.value)} helperText={nuevoApPaterno.trim() === "" ? "El Apellido paterno es obligatorio" : ""} />
+                                <TextField fullWidth label="Apellido Paterno" size="small" value={nuevoApPaterno} onChange={(e) => setNuevoApPaterno(e.target.value)} helperText={(nuevoApPaterno || "").trim() === "" ? "El Apellido paterno es obligatorio" : ""} />
                             </Box>
                             <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Apellido Materno" size="small" value={nuevoApMaterno} onChange={(e) => setNuevoApMaterno(e.target.value)} helperText={nuevoApMaterno.trim() === "" ? "El Apellido materno es obligatorio" : ""} />
+                                <TextField fullWidth label="Apellido Materno" size="small" value={nuevoApMaterno} onChange={(e) => setNuevoApMaterno(e.target.value)} helperText={(nuevoApMaterno || "").trim() === "" ? "El Apellido materno es obligatorio" : ""} />
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
@@ -1071,7 +1084,7 @@ function AdminEmpleados() {
                             </Box>
 
                             <Box sx={{ mb: 2 }}>
-                                <TextField fullWidth label="Dirección" size="small" value={nuevoDireccion} onChange={(e) => setNuevoDireccion(e.target.value)} helperText={nuevoDireccion.trim() === "" ? "La dirección es obligatoria" : ""} />
+                                <TextField fullWidth label="Dirección" size="small" value={nuevoDireccion} onChange={(e) => setNuevoDireccion(e.target.value)} helperText={(nuevoDireccion || "").trim() === "" ? "La dirección es obligatoria" : ""} />
                             </Box>
 
                             <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
@@ -1085,7 +1098,7 @@ function AdminEmpleados() {
                                         setNuevoEmailPersonal(val);
                                     }}
                                     helperText={
-                                        nuevoEmailPersonal.trim() === ""
+                                        (nuevoEmailPersonal || "").trim() === ""
                                             ? "El email es obligatorio"
                                             : ""
                                     }
@@ -1097,7 +1110,6 @@ function AdminEmpleados() {
                                         value={dominioPersonal}
                                         onChange={(e) => setDominioPersonal(e.target.value)}
                                     >
-                                        <MenuItem value="@gmail.com">@gmail.com</MenuItem>
                                         {proveedorCorreo
                                             .filter(p => !p.empresa || p.empresa === null)
                                             .map((prov) => (
@@ -1108,8 +1120,6 @@ function AdminEmpleados() {
                                     </Select>
                                 </FormControl>
                             </Box>
-
-
 
                             <FormControl size="small" fullWidth sx={{ mb: 2 }}  >
                                 <InputLabel>Sexo</InputLabel>
@@ -1363,7 +1373,7 @@ function AdminEmpleados() {
                                         setNuevoEmailLaboral(val);
                                     }}
                                     helperText={
-                                        nuevoEmailLaboral.trim() === ""
+                                        (nuevoEmailLaboral || "").trim() === ""
                                             ? "El email es obligatorio"
                                             : ""
                                     }
@@ -1545,7 +1555,7 @@ function AdminEmpleados() {
                                             label="Horas Personalizadas"
                                             value={nuevoHorasFlexiblePersonalizado ? nuevoHorasFlexiblePersonalizado.slice(0, 5) : ""}
                                             onChange={(e) => setNuevoHorasFlexiblePersonalizado(e.target.value ? `${e.target.value}:00` : "")}
-                                            helperText={nuevoHorasFlexiblePersonalizado.trim() === "" ? "Ingrese las horas" : ""}
+                                            helperText={(nuevoHorasFlexiblePersonalizado || "").trim() === "" ? "Ingrese las horas" : ""}
                                         />
                                     )}
                                 </Box>
@@ -1606,7 +1616,7 @@ function AdminEmpleados() {
                                         setNuevoEmailNoti(val);
                                     }}
                                     helperText={
-                                        nuevoEmailNoti.trim() === ""
+                                        (nuevoEmailNoti || "").trim() === ""
                                             ? "El email es obligatorio"
                                             : ""
                                     }
@@ -1640,12 +1650,12 @@ function AdminEmpleados() {
                         variant="contained"
                         color="primary"
                         disabled={
-                            nuevoRun.trim() === "" ||
+                            (nuevoRun || "").trim() === "" ||
                             !esRutValido(nuevoRun) ||
-                            nuevoNombre.trim() === "" ||
-                            nuevoApPaterno.trim() === "" ||
-                            nuevoApMaterno.trim() === "" ||
-                            nuevoDireccion.trim() === "" ||
+                            (nuevoNombre || "").trim() === "" ||
+                            (nuevoApPaterno || "").trim() === "" ||
+                            (nuevoApMaterno || "").trim() === "" ||
+                            (nuevoDireccion || "").trim() === "" ||
                             !nuevoFechaNacimiento ||
                             nuevoTelefonoFijo.length !== 9 ||
                             nuevoTelefonoMovil.length !== 9 ||
@@ -1690,7 +1700,7 @@ function AdminEmpleados() {
                                     inputProps={{ maxLength: 12 }}
                                     error={editRun.length > 0 && !esRutValido(editRun)}
                                     helperText={
-                                        editRun.trim() === ""
+                                        (editRun || "").trim() === ""
                                             ? "El Run es obligatorio"
                                             : (!esRutValido(editRun) ? "RUT inválido" : "")
                                     }
@@ -1729,7 +1739,7 @@ function AdminEmpleados() {
                                     size="small"
                                     value={editNombre}
                                     onChange={(e) => setEditNombre(e.target.value)}
-                                    helperText={editNombre.trim() === "" ? "El nombre es obligatorio" : ""}
+                                    helperText={(editNombre || "").trim() === "" ? "El nombre es obligatorio" : ""}
                                 />
                             </Box>
 
@@ -1740,7 +1750,7 @@ function AdminEmpleados() {
                                     size="small"
                                     value={editApPaterno}
                                     onChange={(e) => setEditApPaterno(e.target.value)}
-                                    helperText={editNombre.trim() === "" ? "El Apellido paterno es obligatorio" : ""}
+                                    helperText={(editNombre || "").trim() === "" ? "El Apellido paterno es obligatorio" : ""}
                                 />
                             </Box>
 
@@ -1751,7 +1761,7 @@ function AdminEmpleados() {
                                     size="small"
                                     value={editApMaterno}
                                     onChange={(e) => setEditApMaterno(e.target.value)}
-                                    helperText={editNombre.trim() === "" ? "El Apellido materno es obligatorio" : ""}
+                                    helperText={(editNombre || "").trim() === "" ? "El Apellido materno es obligatorio" : ""}
                                 />
                             </Box>
 
@@ -1781,7 +1791,7 @@ function AdminEmpleados() {
                                     size="small"
                                     value={editDireccion}
                                     onChange={(e) => setEditDireccion(e.target.value)}
-                                    helperText={editDireccion.trim() === "" ? "La dirección es obligatoria" : ""}
+                                    helperText={(editDireccion || "").trim() === "" ? "La dirección es obligatoria" : ""}
                                 />
                             </Box>
 
@@ -1796,7 +1806,7 @@ function AdminEmpleados() {
                                         setEditEmailPersonal(val);
                                     }}
                                     helperText={
-                                        editEmailPersonal.trim() === ""
+                                        (editEmailPersonal || "").trim() === ""
                                             ? "El email es obligatorio"
                                             : ""
                                     }
@@ -2035,7 +2045,7 @@ function AdminEmpleados() {
                                         setEditEmailLaboral(val);
                                     }}
                                     helperText={
-                                        editEmailLaboral.trim() === ""
+                                        (editEmailLaboral || "").trim() === ""
                                             ? "El email es obligatorio"
                                             : ""
                                     }
@@ -2216,7 +2226,7 @@ function AdminEmpleados() {
                                             label="Horas Personalizadas"
                                             value={editHorasFlexiblePersonalizado ? editHorasFlexiblePersonalizado.slice(0, 5) : ""}
                                             onChange={(e) => setEditHorasFlexiblePersonalizado(e.target.value ? `${e.target.value}:00` : "")}
-                                            helperText={editHorasFlexiblePersonalizado.trim() === "" ? "Ingrese las horas" : ""}
+                                            helperText={(editHorasFlexiblePersonalizado || "").trim() === "" ? "Ingrese las horas" : ""}
                                         />
                                     )}
                                 </Box>
@@ -2277,7 +2287,7 @@ function AdminEmpleados() {
                                         setEditEmailNoti(val);
                                     }}
                                     helperText={
-                                        editEmailNoti.trim() === ""
+                                        (editEmailNoti || "").trim() === ""
                                             ? "El email es obligatorio"
                                             : ""
                                     }

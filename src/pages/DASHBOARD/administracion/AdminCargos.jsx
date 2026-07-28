@@ -160,7 +160,7 @@ function AdminCargos() {
         setOpen(false)
         setNuevoNombre("")
         setNuevoEstado("")
-        setIdEmpresaCrear("")
+        setIdEmpresaCrear(filtroEmpresa || "")
     }
 
     const cerrarDialogEdit = () => {
@@ -176,7 +176,7 @@ function AdminCargos() {
             cargarCargos()
             setNuevoNombre("")
             setNuevoEstado("")
-            setIdEmpresaCrear("")
+            setIdEmpresaCrear(filtroEmpresa || "")
             setNuevoTipoCargo("")
         } catch (error) {
             toast.error(error.message || "Error al crear el cargo")
@@ -213,7 +213,20 @@ function AdminCargos() {
     };
 
     // Effects
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setIdEmpresaCrear(payload.empresa_id);
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         obtenerEmpresasCrear()
     }, [])
 

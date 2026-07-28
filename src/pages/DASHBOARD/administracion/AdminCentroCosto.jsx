@@ -167,7 +167,7 @@ function AdminCentroCosto() {
     // Manejo de dialogs
     const cerrarDialog = () => {
         setOpen(false);
-        setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa("");
+        setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa(filtroEmpresa || "");
         setNuevoEstado(""); setNuevoEmailGnralLocal(""); setNuevoEmailGnralDominio("");
         setNuevoEmailNotiLocal(""); setNuevoEmailNotiDominio("");
         setNuevoDireccion(""); setNuevoZonaExtrema(""); setNuevoRegion("");
@@ -194,7 +194,7 @@ function AdminCentroCosto() {
             toast.success("Centro de costo creado con exito")
             const data = await obtenerCentroCostos();
             setCencos(data);
-            setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa("");
+            setnuevoNombre(""); setNuevoDepartamento(""); setNuevoEmpresa(filtroEmpresa || "");
             setNuevoEstado(""); setNuevoEmailGnralLocal(""); setNuevoEmailGnralDominio("");
             setNuevoEmailNotiLocal(""); setNuevoEmailNotiDominio("");
             setNuevoDireccion(""); setNuevoZonaExtrema(""); setNuevoRegion("");
@@ -496,7 +496,20 @@ function AdminCentroCosto() {
 
     const [deptosFiltradosSelect, setDeptosFiltradosSelect] = useState([]);
 
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setNuevoEmpresa(payload.empresa_id);
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         const fetchDeptos = async () => {
             if (!filtroEmpresa) {
                 setDeptosFiltradosSelect([]);

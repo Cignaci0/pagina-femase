@@ -29,7 +29,19 @@ function ReporteConexion() {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Carga inicial
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         const fetchCatalogos = async () => {
             try {
                 const empresas = await obtenerEmpresas();

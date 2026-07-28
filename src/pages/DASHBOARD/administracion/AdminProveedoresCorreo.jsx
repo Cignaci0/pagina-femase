@@ -164,7 +164,7 @@ function AdminPreoveedorCorreo() {
     const closeDialog = () => {
         setOpen(false);
         setNuevoDominio("")
-        setNuevoEmpresa("")
+        setNuevoEmpresa(filtroEmpresa || "")
     }
 
     const closeDialogEdit = () => {

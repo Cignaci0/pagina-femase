@@ -96,6 +96,7 @@ function AdminHorarios() {
     );
 
     const [nocturno, setNocturno] = useState(false)
+    const [marcaColacionCrear, setMarcaColacionCrear] = useState(true)
 
     // Estados editar
     const [mostrarEdit, setMostrarEdit] = useState("")
@@ -134,6 +135,7 @@ function AdminHorarios() {
     const [eliminar, setEliminar] = useState(false)
     const [inputConfirmacion, setInputConfirmacion] = useState("");
     const [nocturnoEdit, setNocturnoEdit] = useState(false)
+    const [marcaColacionEdit, setMarcaColacionEdit] = useState(true)
 
     // Carga de datos
     const obtenerEmpresasCrear = async () => {
@@ -174,7 +176,7 @@ function AdminHorarios() {
         setOpen(false)
         setHoraEntradaCrear("")
         setMinutoEntradaCrear("")
-        setIdEmpresaCrear("")
+        setIdEmpresaCrear(filtroEmpresa || "")
         setSegEntradaCrear("")
         setHoraSalidaCrear("")
         setMinutoSalidaCrear("")
@@ -202,23 +204,24 @@ function AdminHorarios() {
             console.log("hora entrada colacion: " + enviarHoraEntradaColacionCrear)
             console.log("hora salida colacion: " + enviarHoraSalidaColacionCrear)
             const respuesta = await crearHorario(
-                enviarHoraEntradaCrear,
-                enviarHoraSalidaCrear,
-                idEmpresaCrear,
-                enviarHolguraCrear,
-                enviarColacionCrear,
-                nocturno,
-                enviarHoraEntradaColacionCrear,
-                enviarHoraSalidaColacionCrear
-            )
+                  enviarHoraEntradaCrear,
+                  enviarHoraSalidaCrear,
+                  idEmpresaCrear,
+                  enviarHolguraCrear,
+                  enviarColacionCrear,
+                  nocturno,
+                  enviarHoraEntradaColacionCrear,
+                  enviarHoraSalidaColacionCrear,
+                  marcaColacionCrear
+              )
             toast.success("Se creo con exito")
             setOpen(false)
             setNuevoHorarioEntrada("")
-            setIdEmpresaCrear("")
+            setIdEmpresaCrear(filtroEmpresa || "")
             cargarHorarios(filtroEmpresa)
             setHoraEntradaCrear("")
             setMinutoEntradaCrear("")
-            setIdEmpresaCrear("")
+            setIdEmpresaCrear(filtroEmpresa || "")
             setSegEntradaCrear("")
             setHoraSalidaCrear("")
             setMinutoSalidaCrear("")
@@ -230,6 +233,7 @@ function AdminHorarios() {
             setHoraSalidaColacionCrear("")
             setMinutoSalidaColacionCrear("")
             setNocturno(false)
+            setMarcaColacionCrear(true)
         } catch (error) {
             toast.error(error.message || "Error al crear el horarios")
         }
@@ -246,8 +250,9 @@ function AdminHorarios() {
                 enviarColacionEdit,
                 nocturnoEdit,
                 enviarHoraEntradaColacionEdit,
-                enviarHoraSalidaColacionEdit
-            )
+                enviarHoraSalidaColacionEdit,
+                  marcaColacionEdit
+              )
             setMostrarEdit(false)
             toast.success("Se edito con exito")
             cargarHorarios(filtroEmpresa)
@@ -303,7 +308,20 @@ function AdminHorarios() {
     };
 
     // Effects
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setIdEmpresaCrear(payload.empresa_id);
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         obtenerEmpresasCrear()
     }, [])
 
@@ -440,6 +458,7 @@ function AdminHorarios() {
                                     <TableCell width="15%" align="center"><strong>Holgura</strong></TableCell>
                                     <TableCell width="15%" align="center"><strong>Colación</strong></TableCell>
                                     <TableCell width="15%" align="center"><strong>Nocturno</strong></TableCell>
+                                    <TableCell width="15%" align="center"><strong>Marca Colación</strong></TableCell>
                                     <TableCell width="20%" align="center"><strong>Editar</strong></TableCell>
 
                                 </TableRow>
@@ -457,6 +476,7 @@ function AdminHorarios() {
                                                 <TableCell align="center">{row.holgura_mins || "00:00:00"}</TableCell>
                                                 <TableCell align="center">{row.colacion || "00:00:00"}</TableCell>
                                                 <TableCell align="center">{row.nocturno ? "Si" : "No"}</TableCell>
+                                                <TableCell align="center">{row.marca_colacion !== false ? "Si" : "No"}</TableCell>
                                                 <TableCell align="center">
                                                     <IconButton
                                                         onClick={() => {
@@ -472,11 +492,13 @@ function AdminHorarios() {
                                                             setMinutoSalidaEdit(mS);
                                                             setSegSalidaEdit(sS);
 
-                                                            const [, mH] = (row.holgura_mins || "00:00:00").split(':');
-                                                            setMinutoHolguraEdit(mH || "00");
+                                                            const [hH, mH] = (row.holgura_mins || "00:00:00").split(':');
+                                                            const totalHolgura = parseInt(hH || "0", 10) * 60 + parseInt(mH || "0", 10);
+                                                            setMinutoHolguraEdit(totalHolgura.toString());
 
-                                                            const [, mC] = (row.colacion || "00:00:00").split(':');
-                                                            setMinutoColacionEdit(mC || "00");
+                                                            const [hC, mC] = (row.colacion || "00:00:00").split(':');
+                                                            const totalColacion = parseInt(hC || "0", 10) * 60 + parseInt(mC || "0", 10);
+                                                            setMinutoColacionEdit(totalColacion.toString());
 
                                                             const [hEC, mEC] = (row.hora_inicio_colacion || "00:00:00").split(':');
                                                             setHoraEntradaColacionEdit(hEC);
@@ -487,6 +509,7 @@ function AdminHorarios() {
                                                             setMinutoSalidaColacionEdit(mSC);
 
                                                             setNocturnoEdit(row.nocturno);
+                                                            setMarcaColacionEdit(row.marca_colacion !== false);
                                                             setMostrarEdit(true);
                                                         }}
                                                         sx={{ padding: 0 }}
@@ -703,6 +726,14 @@ function AdminHorarios() {
                                     InputLabelProps={{ shrink: true }}
                                     sx={{ mb: 2, width: "40vh", mx: "auto" }}
                                 />
+                                <FormControl size="small" sx={{ mb: 2, width: "40vh", mx: "auto" }}>
+                                    <InputLabel>Marca Colación</InputLabel>
+                                    <Select value={marcaColacionCrear} onChange={(e) => setMarcaColacionCrear(e.target.value)} label="Marca Colación">
+                                        <MenuItem value={true}>Si</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
+                                    </Select>
+                                </FormControl>
+
 
                             </Paper>
                         </Box>
@@ -710,7 +741,7 @@ function AdminHorarios() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={cerrarDialog} color="error">Cancelar</Button>
-                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={horaEntradaCrear === "" || minutoEntradaCrear === "" || horaSalidaCrear === "" || minutoSalidaCrear === "" || idEmpresaCrear === "" || minutoHolguraCrear === "" || minutoColacionCrear === "" || !colacionValidaCrear}>Guardar</Button>
+                    <Button onClick={clickCrear} variant="contained" color="primary" disabled={horaEntradaCrear === "" || minutoEntradaCrear === "" || horaSalidaCrear === "" || minutoSalidaCrear === "" || idEmpresaCrear === "" || minutoHolguraCrear === "" || minutoColacionCrear === "" || horaEntradaColacionCrear === "" || minutoEntradaColacionCrear === "" || horaSalidaColacionCrear === "" || minutoSalidaColacionCrear === "" || !colacionValidaCrear}>Guardar</Button>
                 </DialogActions>
             </Dialog>
 
@@ -899,6 +930,14 @@ function AdminHorarios() {
                                     InputLabelProps={{ shrink: true }}
                                     sx={{ mb: 2, width: "40vh", mx: "auto" }}
                                 />
+                                <FormControl size="small" sx={{ mb: 2, width: "40vh", mx: "auto" }}>
+                                    <InputLabel>Marca Colación</InputLabel>
+                                    <Select value={marcaColacionEdit} onChange={(e) => setMarcaColacionEdit(e.target.value)} label="Marca Colación">
+                                        <MenuItem value={true}>Si</MenuItem>
+                                        <MenuItem value={false}>No</MenuItem>
+                                    </Select>
+                                </FormControl>
+
                                 <Box>
                                     <Button color="error" variant="contained" onClick={() => setEliminar(true)}>Eliminar</Button>
                                 </Box>
@@ -917,8 +956,7 @@ function AdminHorarios() {
                         minutoSalidaEdit === "" ||
                         idEmpresaEdit === "" ||
                         minutoHolguraEdit === "" ||
-                        minutoColacionEdit === "" ||
-                        !colacionValidaEdit
+                        minutoColacionEdit === "" || horaEntradaColacionEdit === "" || minutoEntradaColacionEdit === "" || horaSalidaColacionEdit === "" || minutoSalidaColacionEdit === "" || !colacionValidaEdit
                     }>Guardar</Button>
                 </DialogActions>
             </Dialog>

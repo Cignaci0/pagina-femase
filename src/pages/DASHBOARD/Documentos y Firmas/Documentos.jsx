@@ -75,7 +75,19 @@ function Documento() {
         setDocumentos(data);
     };
 
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         if (filtroEmpresa) {
             fetchDocumentos(filtroEmpresa);
         }
@@ -86,7 +98,7 @@ function Documento() {
             const data = await obtenerEmpresas();
             setEmpresas(data);
             if (data.length > 0) {
-                setFiltroEmpresa(data[0].empresa_id);
+                setFiltroEmpresa(prev => prev || data[0].empresa_id);
             }
         };
         fetchInitialData();
@@ -137,6 +149,18 @@ function Documento() {
         setNombreDoc("");
         setTipoDoc("Anexos");
         setContenido("");
+    };
+
+    
+    const handlePrint = () => {
+        const printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Imprimir Documento</title>');
+        printWindow.document.write('<style>body { font-family: Arial, sans-serif; padding: 20px; }</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write(contenido);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
     };
 
     const handleAction = async () => {
@@ -396,6 +420,25 @@ function Documento() {
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
+                    <Button 
+                        variant="outlined" 
+                        color="error"
+                        disableElevation
+                        sx={{ px: 6, py: 1, borderRadius: 2, mr: 2 }}
+                        onClick={handleCloseModal}
+                    >
+                        CANCELAR
+                    </Button>
+                    <Button 
+                        variant="outlined" 
+                        color="secondary"
+                        disableElevation
+                        sx={{ px: 6, py: 1, borderRadius: 2, mr: 2 }}
+                        onClick={handlePrint}
+                        disabled={!contenido}
+                    >
+                        IMPRIMIR
+                    </Button>
                     <Button 
                         variant="contained" 
                         color="primary"

@@ -213,7 +213,7 @@ function AsignacionTeletrabajos() {
                     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                         <FormControl size="small" sx={{ width: 250 }}>
                             <InputLabel>Empresa</InputLabel>
-                            <Select label="Empresa" value={filtroEmpresa} onChange={(e) => handleCambioEmpresa(e.target.value)}>
+                            <Select label="Empresa" value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
                                 <MenuItem value=""><em>Seleccionar</em></MenuItem>
                                 {empresas.map((emp) => (
                                     <MenuItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nombre_empresa}</MenuItem>

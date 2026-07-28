@@ -29,7 +29,7 @@ function RecuperarContrasena() {
         setCargando(true);
         try {
             await obtenerCodigo(rut);
-            setMensaje("Rut enviado con éxito");
+            setMensaje("Username enviado con éxito");
             setTimeout(() => {
                 navigate("/ingresarcodigo", { state: { rutUsuario: rut } });
             }, 2000);

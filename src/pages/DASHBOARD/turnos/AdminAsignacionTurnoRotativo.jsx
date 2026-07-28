@@ -97,7 +97,7 @@ function AdminAsignacionCiclica() {
                 minCol = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
             }
         }
-        return `${entrada} - ${salida} / col: ${minCol}`;
+        return `${entrada} - ${salida} / col: ${minCol} / mar-col: ${h.marca_colacion !== false ? "Si" : "No"}`;
     }
 
     const handleGuardarRotativa = async () => {
@@ -161,7 +161,19 @@ function AdminAsignacionCiclica() {
     }
 
     // Carga de datos
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         const cargarDatos = async () => {
             try {
                 const [dataEmpresas, dataDepartamentos, dataCencos] = await Promise.all([
@@ -728,7 +740,7 @@ function AdminAsignacionCiclica() {
                                             return (
 
                                                 <MenuItem key={h.horario_id} value={h.horario_id}>
-                                                    {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins}
+                                                    {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {colMins} / mar-col: {h.marca_colacion !== false ? "Si" : "No"}
                                                 </MenuItem>
                                             );
                                         })}

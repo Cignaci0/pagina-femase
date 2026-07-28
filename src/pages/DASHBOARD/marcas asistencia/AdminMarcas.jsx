@@ -51,6 +51,9 @@ function AdminMarcas() {
                 if (!token) return {};
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 setUserInfo(payload);
+                if (payload.empresa_id) {
+                    setFiltroEmpresa(payload.empresa_id);
+                }
             } catch (e) {
                 setUserInfo({});
             }

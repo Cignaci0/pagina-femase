@@ -228,7 +228,20 @@ function AdminTurnos() {
         }
     };
 
-    useEffect(() => {
+        useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setFiltroEmpresaAsignar(payload.empresa_id);
+                    setEmpresaCrear(payload.empresa_id);
+                }
+            }
+        } catch(e){}
+    }, []);
+
+useEffect(() => {
         cargarDatosFiltrosAsignacion();
     }, []);
 
@@ -1104,7 +1117,7 @@ function AdminTurnos() {
                             {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => {
                                 return (
                                     <MenuItem key={h.horario_id} value={h.horario_id}>
-                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {h.colacion || "00:00:00"}
+                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {h.colacion || "00:00:00"} / mar-col: {h.marca_colacion !== false ? "Si" : "No"}
                                     </MenuItem>
                                 );
                             })}
@@ -1168,7 +1181,7 @@ function AdminTurnos() {
                                             {horarios.filter(h => h.empresa?.empresa_id === empresaIdHorarios).map((h) => {
                                                 return (
                                                     <MenuItem key={h.horario_id} value={h.horario_id}>
-                                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {h.colacion || "00:00:00"}
+                                                        {h.hora_entrada.slice(0, 5)} - {h.hora_salida.slice(0, 5)} / col: {h.colacion || "00:00:00"} / mar-col: {h.marca_colacion !== false ? "Si" : "No"}
                                                     </MenuItem>
                                                 );
                                             })}

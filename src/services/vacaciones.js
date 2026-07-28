@@ -20,9 +20,13 @@ export const obtenerDiasDisponibles = async () => {
     }
 }
 
-export const obtenerVacaciones = async (numFicha, fechaInicio, fechaFin) => {
+export const obtenerVacaciones = async (numFicha, fechaInicio, fechaFin, page = 1, limit = 10) => {
     try {
-        const response = await fetch(`${API_URL}/vacaciones?numFicha=${numFicha}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, {
+        let url = `${API_URL}/vacaciones?numFicha=${numFicha}&page=${page}&limit=${limit}`;
+        if (fechaInicio && fechaFin) {
+            url += `&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        }
+        const response = await fetch(url, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -30,12 +34,35 @@ export const obtenerVacaciones = async (numFicha, fechaInicio, fechaFin) => {
             },
         });
         if (!response.ok) {
-            return [];
+            return { vacaciones: [], pagination: { total: 0 } };
         }
         const data = await response.json();
-        return data || [];
+        return data;
     } catch (error) {
-        return [];
+        return { vacaciones: [], pagination: { total: 0 } };
+    }
+}
+
+export const obtenerPendientes = async (empresaId, page = 1, limit = 10) => {
+    try {
+        let url = `${API_URL}/vacaciones/pendientes?page=${page}&limit=${limit}`;
+        if (empresaId) {
+            url += `&empresaId=${empresaId}`;
+        }
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+        if (!response.ok) {
+            return { vacaciones: [], pagination: { total: 0 } };
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        return { vacaciones: [], pagination: { total: 0 } };
     }
 }
 

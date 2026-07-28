@@ -162,7 +162,7 @@ function AdminDepartamentos() {
 
     const cerrarDialog = () => {
         setOpen(false);
-        setNuevaEmpresa("")
+        setNuevaEmpresa(filtroEmpresa || "")
         setNuevoEstado("")
         setNuevoNombre("")
     }
@@ -178,7 +178,7 @@ function AdminDepartamentos() {
             toast.success("Departamento creado con exito")
             cargarDatos()
             setNuevoEstado("")
-            setNuevaEmpresa("")
+            setNuevaEmpresa(filtroEmpresa || "")
             setNuevoNombre("")
             cargarDepto()
         } catch (error) {
@@ -233,7 +233,20 @@ function AdminDepartamentos() {
     };
 
     // Effects
+    
     useEffect(() => {
+        try {
+            const token = window.localStorage.getItem("token");
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.empresa_id) {
+                    setNuevaEmpresa(payload.empresa_id);
+                    setFiltroEmpresa(payload.empresa_id);
+                }
+            }
+        } catch (e) {}
+    }, []);
+useEffect(() => {
         cargarDatos();
     }, []);
 

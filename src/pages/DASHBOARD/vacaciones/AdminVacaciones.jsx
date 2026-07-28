@@ -13,7 +13,7 @@ import { obtenerEmpresas, crearEmpresa, actualizarEmpresa } from "../../../servi
 import { regiones, comunas } from "../../../utils/dataGeografica";
 import { obtenerCentroCostos } from "../../../services/centroCostosServices";
 import { obtenerPorEmpresa } from "../../../services/empleadosServices";
-import { obtenerVacaciones, crearSolicitudVacaciones, aprobarRechazar, generarreporte } from "../../../services/vacaciones";
+import { obtenerVacaciones, crearSolicitudVacaciones, aprobarRechazar, generarreporte, obtenerPendientes } from "../../../services/vacaciones";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -51,6 +51,9 @@ function AdminVacaciones() {
                 if (!token) return {};
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 setUserInfo(payload);
+                if (payload.empresa_id) {
+                    setFiltroEmpresa(payload.empresa_id);
+                }
             } catch (e) {
                 setUserInfo({});
             }
@@ -68,6 +71,7 @@ function AdminVacaciones() {
     const [vacacionesFiltradas, setVacacionesFiltradas] = useState([]);
     const [resumenSaldos, setResumenSaldos] = useState({});
     const [filtroEstado, setFiltroEstado] = useState("");
+    const [totalRegistros, setTotalRegistros] = useState(0);
 
     // Estados dialogs de detalle (Fechas, Dias, Saldos)
     const [openFechas, setOpenFechas] = useState(false);
@@ -111,18 +115,12 @@ function AdminVacaciones() {
     useEffect(() => {
         const fetchCatalogos = async () => {
             try {
-                const cencos = await obtenerCentroCostos();
-
+                const [cencos, emps] = await Promise.all([
+                    obtenerCentroCostos(),
+                    obtenerEmpresas()
+                ]);
                 setCencosGlobal(cencos || []);
-
-                const empresasMap = new Map();
-                (cencos || []).forEach(c => {
-                    const e = c.departamento?.empresa;
-                    if (e && !empresasMap.has(e.empresa_id)) {
-                        empresasMap.set(e.empresa_id, e);
-                    }
-                });
-                setOpcionesEmpresas(Array.from(empresasMap.values()));
+                setOpcionesEmpresas(emps || []);
             } catch (error) {
                 toast.error("Error al cargar datos base");
             }
@@ -204,15 +202,34 @@ function AdminVacaciones() {
         setCheckedDer([]);
     }, [filtroCenco, empleadosGlobal]);
 
+    const handleTraerPendientes = async () => {
+        setCargando(true);
+        try {
+            const response = await obtenerPendientes(filtroEmpresa, pagina + 1, filaPorPagina);
+            if (response && response.vacaciones) {
+                setVacacionesFiltradas(response.vacaciones);
+                setTotalRegistros(response.pagination?.total || 0);
+                setResumenSaldos({});
+            } else {
+                setVacacionesFiltradas([]);
+                setTotalRegistros(0);
+                setResumenSaldos({});
+            }
+            setHaBuscado(true);
+        } catch (error) {
+            toast.error("Error al buscar las vacaciones pendientes");
+        } finally {
+            setCargando(false);
+        }
+    };
+
     useEffect(() => {
         if (filtroEmpleado && desdeFecha && hastaFecha) {
             handleBuscarVacaciones();
         } else if (!filtroEmpleado) {
-            setVacacionesFiltradas([]);
-            setResumenSaldos({});
-            setHaBuscado(false);
+            handleTraerPendientes();
         }
-    }, [filtroEmpleado]);
+    }, [filtroEmpleado, filtroEmpresa, pagina, filaPorPagina]);
 
     // Handlers transfer list
     const handleToggleIzq = (empId) => {
@@ -357,13 +374,15 @@ function AdminVacaciones() {
         try {
             const fi = desdeFecha.format("YYYY-MM-DD");
             const ff = hastaFecha.format("YYYY-MM-DD");
-            const response = await obtenerVacaciones(numFicha, fi, ff);
+            const response = await obtenerVacaciones(numFicha, fi, ff, pagina + 1, filaPorPagina);
 
             if (response && response.vacaciones) {
                 setVacacionesFiltradas(response.vacaciones);
+                setTotalRegistros(response.pagination?.total || 0);
                 setResumenSaldos(response.resumen || {});
             } else {
                 setVacacionesFiltradas([]);
+                setTotalRegistros(0);
                 setResumenSaldos({});
             }
             setHaBuscado(true);
@@ -371,7 +390,6 @@ function AdminVacaciones() {
             toast.error("Error al buscar las vacaciones");
         } finally {
             setCargando(false);
-            setPagina(0);
         }
     };
 
@@ -490,16 +508,15 @@ function AdminVacaciones() {
                 bgcolor: "#FFFFFD",
                 borderRadius: 2,
                 width: "100%",
-                height: { xs: "auto", md: "calc(100vh - 200px)" },
+                mb: 2,
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: { xs: "visible", md: "hidden" },
                 boxSizing: "border-box"
             }}>
                 <Grid container spacing={2} sx={{ mb: 3, px: { xs: 1, sm: 2 }, pt: 1 }}>
                     {/* Filtros de seleccion */}
-                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="outlined" fullWidth>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
+                        <FormControl size="small" variant="outlined" fullWidth sx={{ minWidth: 160 }}>
                             <InputLabel>Empresa</InputLabel>
                             <Select label="Empresa" value={filtroEmpresa} onChange={(e) => { setFiltroEmpresa(e.target.value); setFiltroDepto(""); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={[1, 2, 3].includes(userInfo?.cargo)} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -510,8 +527,8 @@ function AdminVacaciones() {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="outlined" fullWidth>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
+                        <FormControl size="small" variant="outlined" fullWidth sx={{ minWidth: 160 }}>
                             <InputLabel>Depto</InputLabel>
                             <Select label="Depto" value={filtroDepto} onChange={(e) => { setFiltroDepto(e.target.value); setFiltroCenco(""); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroEmpresa} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -522,8 +539,8 @@ function AdminVacaciones() {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="outlined" fullWidth>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
+                        <FormControl size="small" variant="outlined" fullWidth sx={{ minWidth: 160 }}>
                             <InputLabel>Cenco</InputLabel>
                             <Select label="Cenco" value={filtroCenco} onChange={(e) => { setFiltroCenco(e.target.value); setFiltroEmpleado(""); }} disabled={userInfo?.cargo === 1 || !filtroDepto} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -534,8 +551,8 @@ function AdminVacaciones() {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="outlined" fullWidth>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
+                        <FormControl size="small" variant="outlined" fullWidth sx={{ minWidth: 160 }}>
                             <InputLabel>Empleado</InputLabel>
                             <Select label="Empleado" value={filtroEmpleado} onChange={(e) => setFiltroEmpleado(e.target.value)} disabled={userInfo?.cargo === 1 || !filtroCenco || empleadosFiltro.length === 0} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -548,8 +565,8 @@ function AdminVacaciones() {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3} lg={2.4}>
-                        <FormControl size="small" variant="outlined" fullWidth>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
+                        <FormControl size="small" variant="outlined" fullWidth sx={{ minWidth: 160 }}>
                             <InputLabel>Estado</InputLabel>
                             <Select label="Estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} fullWidth>
                                 <MenuItem value=""><em>Todos</em></MenuItem>
@@ -561,7 +578,7 @@ function AdminVacaciones() {
                     </Grid>
 
                     {/* Filtros de fecha */}
-                    <Grid item xs={6} sm={6} md={3} lg={2.4}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                             <DatePicker
                                 label="Desde"
@@ -579,7 +596,7 @@ function AdminVacaciones() {
                         </LocalizationProvider>
                     </Grid>
 
-                    <Grid item xs={6} sm={6} md={3} lg={2.4}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={3}>
                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
                             <DatePicker
                                 label="Hasta"
@@ -742,7 +759,7 @@ function AdminVacaciones() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    vacacionesParaMostrar.slice(pagina * filaPorPagina, pagina * filaPorPagina + filaPorPagina).map((row, idx) => {
+                                    vacacionesParaMostrar.map((row, idx) => {
                                         return (
                                             <TableRow key={row.id_vacaciones || idx}>
                                                 <TableCell align="center">
@@ -812,7 +829,7 @@ function AdminVacaciones() {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={haBuscado ? vacacionesParaMostrar.length : 0}
+                    count={totalRegistros}
                     rowsPerPage={filaPorPagina}
                     page={pagina}
                     onPageChange={handleChangePage}

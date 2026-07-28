@@ -77,7 +77,7 @@ function AdminTurnosRotativosAsignacion() {
                 minCol = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
             }
         }
-        return `${entrada} - ${salida} / col: ${minCol}`;
+        return `${entrada} - ${salida} / col: ${minCol} / mar-col: ${h.marca_colacion !== false ? "Si" : "No"}`;
     }
     const [asignacionSeleccionada, setAsignacionSeleccionada] = useState(null)
 
