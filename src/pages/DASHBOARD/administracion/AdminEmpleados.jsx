@@ -764,11 +764,11 @@ useEffect(() => {
                                             </TableCell>
 
                                             <TableCell align="center">
-                                                {e.fecha_ini_contrato}
+                                                {e.fecha_ini_contrato ? e.fecha_ini_contrato.split('T')[0] : ""}
                                             </TableCell>
 
                                             <TableCell align="center">
-                                                {e.fecha_fin_contrato}
+                                                {e.fecha_fin_contrato ? e.fecha_fin_contrato.split('T')[0] : ""}
                                             </TableCell>
 
                                             <TableCell align="center">
