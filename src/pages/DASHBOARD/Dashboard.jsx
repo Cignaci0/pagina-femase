@@ -130,7 +130,6 @@ const COMPONENTES_VISTA = {
   "Proveedor Correo": <AdminPreoveedorCorreo />,
   "Tipos de dispositivos": <AdminTiposDispositivos />, //
   "Feriados": <AdminFeriados />,
-  "huellas": <AdminHuellas />,
   "Huellas": <AdminHuellas />,
 
   // USUARIOS
