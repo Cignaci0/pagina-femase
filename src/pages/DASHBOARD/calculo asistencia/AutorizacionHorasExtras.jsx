@@ -450,9 +450,17 @@ useEffect(() => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {haBuscado && datosTabla.length === 0 ? (
+                                {!haBuscado ? (
                                     <TableRow>
-                                        <TableCell colSpan={12} align="center">
+                                        <TableCell colSpan={12} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="body1" color="text.secondary">
+                                                Seleccione empleado y rango de fechas para la búsqueda
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : datosTabla.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={12} align="center" sx={{ py: 3 }}>
                                             No se encontraron registros
                                         </TableCell>
                                     </TableRow>

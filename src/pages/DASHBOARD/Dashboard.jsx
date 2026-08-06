@@ -27,6 +27,7 @@ import AdminEmpleados from "../DASHBOARD/administracion/AdminEmpleados";
 import AdminPreoveedorCorreo from "../DASHBOARD/administracion/AdminProveedoresCorreo";
 import AdminTiposDispositivos from "../DASHBOARD/administracion/AdminTiposDispositivos";
 import AdminFeriados from "../DASHBOARD/administracion/AdminFeriados";
+import AdminHuellas from "../DASHBOARD/administracion/AdminHuellas";
 
 // USUARIOS
 import AdminUsuarios from "../DASHBOARD/usuarios/AdminUsuario";
@@ -65,6 +66,7 @@ import CargaFeriados from "../DASHBOARD/carga desde archivo/Cargaferiados";
 // MARCAS ASISTENCIA
 import AdminTiposMarcasManuales from "../DASHBOARD/marcas asistencia/AdminTiposMarcasManuales";
 import AdminMarcas from "../DASHBOARD/marcas asistencia/AdminMarcas";
+import ErrorRechazos from "../DASHBOARD/marcas asistencia/ErrorRechazo";
 
 // REPORTES/INFORMES
 import ReporteAsistencia from "./reportes informes/ReporteAsistencia";
@@ -128,6 +130,8 @@ const COMPONENTES_VISTA = {
   "Proveedor Correo": <AdminPreoveedorCorreo />,
   "Tipos de dispositivos": <AdminTiposDispositivos />, //
   "Feriados": <AdminFeriados />,
+  "huellas": <AdminHuellas />,
+  "Huellas": <AdminHuellas />,
 
   // USUARIOS
   "Gestion": <AdminUsuarios />,//
@@ -167,6 +171,7 @@ const COMPONENTES_VISTA = {
   // MARCAS ASISTENCIA
   "Tipos Marcas Manuales": <AdminTiposMarcasManuales />,
   "Admin Marcas": <AdminMarcas />,
+  "Error Rechazo": <ErrorRechazos />,
 
   // REPORTES/INFORMES
   "Reporte Asistencia": <ReporteAsistencia />,

@@ -130,3 +130,27 @@ export const buscarPorHash = async (hash) => {
         return [];
     }
 }
+
+export const getRechazos = async (fechaInicio, fechaFin, empresaId = "") => {
+    try {
+        let url = `${API_URL}/marcas/rechazos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        if (empresaId) {
+            url += `&empresaId=${empresaId}`;
+        }
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.localStorage.getItem("token"),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+        const datos = await response.json();
+        return datos || [];
+    } catch (error) {
+        return [];
+    }
+}
